@@ -1,0 +1,68 @@
+{
+  "rules": {
+    ".read":  false,
+    ".write": false,
+
+    "sensors": {
+      ".read": true,
+      ".write": false,
+
+      "$zone": {
+        ".read": true,
+        ".write": false,
+
+        ".validate": "newData.hasChildren(['moisture', 'temperature', 'humidity', 'updatedAt'])",
+
+        "moisture": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "temperature": {
+          ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 85"
+        },
+        "humidity": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "plant": {
+          ".validate": "newData.isString() && newData.val().length <= 32"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "averages": {
+      ".read": true,
+      ".write": false
+    },
+
+    "control": {
+      ".read": true,
+      "relay": {
+        ".write": "auth != null"
+      }
+    },
+
+    "config": {
+      ".read": true,
+      "thresholds": {
+        ".write": "auth != null"
+      },
+      "thresholds_updated": {
+        ".write": "auth != null"
+      }
+    },
+
+    "users": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "$uid === auth.uid"
+      }
+    }
+  }
+}
