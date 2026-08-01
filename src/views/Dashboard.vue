@@ -135,7 +135,16 @@
           Activity Log
         </h2>
       </div>
-      <div v-if="activityLog.length === 0" class="text-center py-8 text-xs text-garden-dim">
+      <div v-if="!activityLogLoaded" class="space-y-1">
+        <div v-for="i in 4" :key="i" class="flex items-start gap-2.5 p-2.5">
+          <div class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-garden-border animate-pulse" />
+          <div class="min-w-0 flex-1 space-y-1.5">
+            <div class="h-3 w-2/3 rounded bg-garden-border animate-pulse" />
+            <div class="h-2.5 w-1/3 rounded bg-garden-border animate-pulse" />
+          </div>
+        </div>
+      </div>
+      <div v-else-if="activityLog.length === 0" class="text-center py-8 text-xs text-garden-dim">
         No activity yet — pump events, schedule changes, and detections will appear here as they happen.
       </div>
       <div v-else class="space-y-1 overflow-y-auto max-h-72 pr-1">
@@ -233,12 +242,12 @@ const activePumpMessage = computed(() => {
 })
 
 // ── Activity log — shared, persistent feed (see useActivityLog.js) ───────────
-const { entries: activityLog } = useActivityFeed(25)
+const { entries: activityLog, loaded: activityLogLoaded } = useActivityFeed(25)
 
 function formatLogTime(timestamp) {
   const d = new Date(timestamp)
   const isToday = d.toDateString() === new Date().toDateString()
-  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
+  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
 }
 </script>

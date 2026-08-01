@@ -110,10 +110,10 @@
               class="w-full py-3 rounded-xl bg-[#2d7a4f] text-white font-medium text-sm
                      hover:bg-[#246040] active:bg-[#1d5035] transition-colors shadow-sm
                      disabled:opacity-60 disabled:cursor-not-allowed"
-              :disabled="resetLoading || !resetEmail"
+              :disabled="resetLoading || !resetEmail || cooldownRemaining > 0"
               @click="handleReset"
             >
-              {{ resetLoading ? 'Sending…' : 'Send Reset Link' }}
+              {{ resetButtonLabel }}
             </button>
           </div>
         </template>
@@ -241,10 +241,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/auth/useAuth'
 import { db } from '@/firebase'
+import { checkRateLimit, peekRateLimit, formatResetTime } from '@/security/rateLimiter'
+
+const RESET_WINDOW_MS = 15 * 60 * 1000
+const RESET_MAX_ATTEMPTS = 3
+const RESEND_COOLDOWN_MS = 60 * 1000
 
 const router = useRouter()
 const route  = useRoute()
@@ -261,6 +266,79 @@ const resetEmail   = ref('')
 const resetLoading = ref(false)
 const resetMsg     = ref('')
 const resetError   = ref(false)
+
+// ── Resend cooldown timer ─────────────────────────────────────────────
+const cooldownUntil    = ref(0)   // epoch ms; 0 = no active cooldown
+const cooldownRemaining = ref(0)  // seconds left, ticked every second
+let cooldownInterval = null
+
+function resetKeyFor(emailValue) {
+  return `password-reset:${emailValue.trim().toLowerCase()}`
+}
+
+function stopCooldownTimer() {
+  if (cooldownInterval) {
+    clearInterval(cooldownInterval)
+    cooldownInterval = null
+  }
+}
+
+function tickCooldown() {
+  const remainingMs = cooldownUntil.value - Date.now()
+  if (remainingMs <= 0) {
+    cooldownRemaining.value = 0
+    cooldownUntil.value = 0
+    stopCooldownTimer()
+    return
+  }
+  cooldownRemaining.value = Math.ceil(remainingMs / 1000)
+}
+
+function startCooldown(untilMs) {
+  cooldownUntil.value = untilMs
+  tickCooldown()
+  stopCooldownTimer()
+  if (cooldownRemaining.value > 0) {
+    cooldownInterval = setInterval(tickCooldown, 1000)
+  }
+}
+
+// Restore an in-progress cooldown (from the rate limiter, persisted across
+// reloads) whenever the reset email field has a value worth checking —
+// on mount and whenever the user edits the email.
+function syncCooldownFromLimiter(emailValue) {
+  if (!emailValue) {
+    cooldownUntil.value = 0
+    cooldownRemaining.value = 0
+    stopCooldownTimer()
+    return
+  }
+  const key = resetKeyFor(emailValue)
+  const { allowed, resetAt } = peekRateLimit(key, {
+    windowMs: RESET_WINDOW_MS,
+    maxAttempts: RESET_MAX_ATTEMPTS,
+  })
+  if (!allowed) {
+    startCooldown(resetAt)
+  } else {
+    cooldownUntil.value = 0
+    cooldownRemaining.value = 0
+    stopCooldownTimer()
+  }
+}
+
+watch(resetEmail, (val) => syncCooldownFromLimiter(val))
+syncCooldownFromLimiter(resetEmail.value)
+
+const resetButtonLabel = computed(() => {
+  if (resetLoading.value) return 'Sending…'
+  if (cooldownRemaining.value > 0) return `Resend in ${cooldownRemaining.value}s`
+  return 'Send Reset Link'
+})
+
+onUnmounted(() => {
+  stopCooldownTimer()
+})
 
 
 function friendlyError(code) {
@@ -310,14 +388,42 @@ async function handleGoogle() {
 }
 
 async function handleReset() {
-  if (!resetEmail.value || resetLoading.value) return
+  if (!resetEmail.value || resetLoading.value || cooldownRemaining.value > 0) return
   resetMsg.value     = ''
   resetError.value   = false
+
+  // Cap reset requests per email to prevent spamming a user's inbox.
+  // Persisted to localStorage (see rateLimiter.js) so refreshing the page
+  // can't be used to bypass the cap.
+  const key = resetKeyFor(resetEmail.value)
+  const { allowed, resetAt } = checkRateLimit(key, {
+    windowMs: RESET_WINDOW_MS,
+    maxAttempts: RESET_MAX_ATTEMPTS,
+  })
+  if (!allowed) {
+    resetError.value = true
+    resetMsg.value   = `Too many reset requests. Try again in ${formatResetTime(resetAt)}.`
+    startCooldown(resetAt)
+    return
+  }
+
   resetLoading.value = true
   try {
-    await resetPassword(resetEmail.value)
-    resetMsg.value = 'Reset link sent! Check your inbox (and spam folder).'
+    const { isGoogleOnly } = await resetPassword(resetEmail.value)
+    if (isGoogleOnly) {
+      // Only fires when Firebase actually confirms it (i.e. Email
+      // Enumeration Protection is off for this project) — see useAuth.js.
+      resetMsg.value = "This email is registered through Google Sign-In. We still sent a reset link — completing it will let you sign in with a password too, in addition to Google."
+    } else {
+      // We usually can't confirm sign-in method client-side (Firebase's
+      // Email Enumeration Protection hides it by default), so this stays
+      // deliberately vague and always includes the Google hint.
+      resetMsg.value = "If this email has an account, a reset link is on its way — check your inbox (and spam). Signed up with Google? You can keep using \"Continue with Google\"."
+    }
+    startCooldown(Date.now() + RESEND_COOLDOWN_MS)
   } catch (err) {
+    // Firebase intentionally returns success-shaped behavior for unknown
+    // emails on some configs; still map known error codes if they surface.
     resetError.value = true
     resetMsg.value   = friendlyError(err.code)
   } finally {

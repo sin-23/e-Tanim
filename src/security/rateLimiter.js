@@ -1,47 +1,104 @@
 // src/security/rateLimiter.js
 //
 // Client-side rate limiter using token bucket algorithm.
-// Used to cap Firebase reconnection retries and prevent runaway polling.
+// Used to cap Firebase reconnection retries, password-reset requests, and
+// other repeated user-triggered actions, to prevent abuse/spam.
 //
-// NOTE: This app has no authentication routes, no login form, and no
-// user-submitted endpoints — so "5 attempts per 15 min" is applied to
-// Firebase connection retries (the only repeated operation in this app).
+// NOTE: This is a client-side-only guard. Buckets are persisted to
+// localStorage (not just in-memory) so a page refresh can't be used to
+// bypass the limit — but it's still just a UX guard, not a substitute for
+// Firebase's own server-side abuse protection on auth endpoints.
 
-const WINDOW_MS    = 15 * 60 * 1000  // 15 minutes
-const MAX_ATTEMPTS = 5
+const DEFAULT_WINDOW_MS    = 15 * 60 * 1000  // 15 minutes
+const DEFAULT_MAX_ATTEMPTS = 5
+const STORAGE_PREFIX = 'ratelimit:'
 
-// Stores attempt timestamps per key — in-memory only, resets on page reload
+// In-memory cache mirrors localStorage so repeated calls in the same tick
+// don't need to re-parse JSON every time.
 const buckets = new Map()
+
+function storageKey(key) {
+  return `${STORAGE_PREFIX}${key}`
+}
+
+function readBucket(key) {
+  if (buckets.has(key)) return buckets.get(key)
+
+  let attempts = []
+  try {
+    const raw = localStorage.getItem(storageKey(key))
+    if (raw) attempts = JSON.parse(raw)
+    if (!Array.isArray(attempts)) attempts = []
+  } catch {
+    attempts = []
+  }
+  buckets.set(key, attempts)
+  return attempts
+}
+
+function writeBucket(key, attempts) {
+  buckets.set(key, attempts)
+  try {
+    if (attempts.length === 0) {
+      localStorage.removeItem(storageKey(key))
+    } else {
+      localStorage.setItem(storageKey(key), JSON.stringify(attempts))
+    }
+  } catch {
+    // localStorage unavailable (private mode, quota, etc.) — fall back to
+    // in-memory only, which still works within the current page session.
+  }
+}
 
 /**
  * Check if an action identified by `key` is allowed under rate limiting.
  *
  * @param {string} key - identifier for the action (e.g. 'firebase-connect')
+ * @param {object} [options]
+ * @param {number} [options.windowMs]    - override the default 15 min window
+ * @param {number} [options.maxAttempts] - override the default 5-attempt cap
  * @returns {{ allowed: boolean, remaining: number, resetAt: number }}
  */
-export function checkRateLimit(key) {
+export function checkRateLimit(key, options = {}) {
+  const windowMs    = options.windowMs    ?? DEFAULT_WINDOW_MS
+  const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS
   const now = Date.now()
 
-  if (!buckets.has(key)) {
-    buckets.set(key, [])
-  }
-
   // Purge timestamps outside the current window
-  const attempts = buckets.get(key).filter(ts => now - ts < WINDOW_MS)
-  buckets.set(key, attempts)
+  const attempts = readBucket(key).filter(ts => now - ts < windowMs)
 
-  const remaining = Math.max(0, MAX_ATTEMPTS - attempts.length)
-  const resetAt   = attempts.length > 0 ? attempts[0] + WINDOW_MS : now
+  const remaining = Math.max(0, maxAttempts - attempts.length)
+  const resetAt   = attempts.length > 0 ? attempts[0] + windowMs : now
 
-  if (attempts.length >= MAX_ATTEMPTS) {
+  if (attempts.length >= maxAttempts) {
+    writeBucket(key, attempts)
     return { allowed: false, remaining: 0, resetAt }
   }
 
   // Record this attempt
   attempts.push(now)
-  buckets.set(key, attempts)
+  writeBucket(key, attempts)
 
   return { allowed: true, remaining: remaining - 1, resetAt }
+}
+
+/**
+ * Peek at the current state of a bucket without recording a new attempt.
+ * Used on mount to restore an in-progress cooldown after a page reload.
+ * @param {string} key
+ * @param {object} [options]
+ * @returns {{ allowed: boolean, remaining: number, resetAt: number }}
+ */
+export function peekRateLimit(key, options = {}) {
+  const windowMs    = options.windowMs    ?? DEFAULT_WINDOW_MS
+  const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS
+  const now = Date.now()
+
+  const attempts = readBucket(key).filter(ts => now - ts < windowMs)
+  const remaining = Math.max(0, maxAttempts - attempts.length)
+  const resetAt   = attempts.length > 0 ? attempts[0] + windowMs : now
+
+  return { allowed: attempts.length < maxAttempts, remaining, resetAt }
 }
 
 /**
@@ -49,7 +106,7 @@ export function checkRateLimit(key) {
  * @param {string} key
  */
 export function resetRateLimit(key) {
-  buckets.delete(key)
+  writeBucket(key, [])
 }
 
 /**

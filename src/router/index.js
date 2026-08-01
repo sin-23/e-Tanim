@@ -1,7 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import { watch }                          from 'vue'
-import { currentUser, authLoading } from '@/auth/useAuth'
+import { currentUser, authLoading, loggingOut } from '@/auth/useAuth'
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
@@ -54,7 +54,7 @@ function waitForAuth() {
 router.beforeEach(async (to) => {
   await waitForAuth()
 
-  const authed = !!currentUser.value
+  const authed = !!currentUser.value && !loggingOut.value
 
   if (to.meta.requiresGuest && authed) {
     return { name: 'dashboard' }

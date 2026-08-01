@@ -45,27 +45,6 @@
           <p class="text-sm text-white/50 font-medium leading-relaxed mb-8">
             Monitor soil moisture, automate irrigation, and get AI-powered harvest detection — all from one dashboard.
           </p>
-
-          <!-- Feature pills -->
-          <div class="flex flex-wrap gap-2">
-            <div
-              v-for="f in featurePills"
-              :key="f.label"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/8 border border-white/10"
-            >
-              <span class="text-sm">{{ f.icon }}</span>
-              <span class="text-xs font-semibold text-white/70">{{ f.label }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom sensor strip — live Firebase averages -->
-        <div class="grid grid-cols-3 gap-3">
-          <div v-for="s in sensorStrip" :key="s.label" class="p-3 rounded-xl bg-white/6 border border-white/10">
-            <div class="text-base mb-1">{{ s.icon }}</div>
-            <div class="text-sm font-medium font-mono text-white">{{ s.value }}</div>
-            <div class="text-[10px] text-white/40 font-medium mt-0.5">{{ s.label }}</div>
-          </div>
         </div>
       </div>
     </div>
@@ -267,7 +246,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter }      from 'vue-router'
 import { useVuelidate }   from '@vuelidate/core'
 import {
@@ -295,7 +274,7 @@ const confirmPassword = ref('')
 const showPassword    = ref(false)
 const loading         = ref(false)
 const serverError     = ref('')
-const success         = ref(false)
+const success          = ref(false)
 
 // ── Vuelidate rules ───────────────────────────────────────────────────────────
 const mustMatch = helpers.withMessage(

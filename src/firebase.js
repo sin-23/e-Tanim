@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app'
 import { getDatabase }   from 'firebase/database'
 import { getAuth }       from 'firebase/auth'
+import { getFirestore }  from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,14 +23,16 @@ const isConfigured = !!(
 // Demo mode disabled — auth is required
 export const isDemoMode = false
 
-let app  = null
-let db   = null
-let auth = null
+let app       = null
+let db        = null
+let auth      = null
+let firestore = null
 
 if (isConfigured) {
-  app  = initializeApp(firebaseConfig)
-  db   = getDatabase(app)
-  auth = getAuth(app)
+  app       = initializeApp(firebaseConfig)
+  db        = getDatabase(app)
+  auth      = getAuth(app)
+  firestore = getFirestore(app)
 }
 
-export { db, auth, isConfigured }
+export { db, auth, firestore, isConfigured }

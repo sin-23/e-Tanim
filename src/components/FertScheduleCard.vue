@@ -10,11 +10,16 @@
           <div class="text-sm font-semibold text-garden-text truncate">Shared Schedule</div>
         </div>
         <span
+          v-if="sourceLoaded"
           class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0"
           :style="activeSource === 'organic'
             ? { backgroundColor: '#fef3c7', color: '#92400e', borderColor: '#fde68a' }
             : { backgroundColor: '#dbeafe', color: '#1d4ed8', borderColor: '#93c5fd' }"
         >{{ activeSource === 'organic' ? 'ORGANIC (Storebought) ACTIVE' : 'LEACHATE (FFJ) ACTIVE' }}</span>
+        <span
+          v-else
+          class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0 bg-[#f4f8f5] text-garden-dim border-garden-border animate-pulse"
+        >Loading…</span>
       </div>
 
       <!-- Source selector -->
@@ -22,7 +27,7 @@
         <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">
           Fertilizer Source <span class="normal-case font-normal">— only this pump will fire on schedule</span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <div v-if="sourceLoaded" class="grid grid-cols-2 gap-2">
           <button
             class="py-2.5 rounded-xl border text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
             :class="activeSource === 'leachate'
@@ -40,12 +45,16 @@
             @click="setSource('organic')"
           >Organic Fertilizer (Storebought)</button>
         </div>
+        <div v-else class="grid grid-cols-2 gap-2">
+          <div class="py-2.5 rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse h-[42px]" />
+          <div class="py-2.5 rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse h-[42px]" />
+        </div>
       </div>
 
       <!-- Time window -->
       <div>
         <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">Time Window</div>
-        <div class="flex items-center gap-2">
+        <div v-if="scheduleLoaded" class="flex items-center gap-2">
           <input
             v-model="startTime" type="time" :disabled="readonly"
             class="flex-1 px-3 py-2.5 rounded-xl border border-garden-border font-mono text-sm text-garden-text
@@ -60,13 +69,18 @@
                    disabled:opacity-60"
           />
         </div>
-        <p v-if="crossesMidnight" class="text-[11px] text-garden-dim mt-1.5">ⓘ Window crosses midnight.</p>
+        <div v-else class="flex items-center gap-2">
+          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse" />
+          <span class="text-garden-dim text-sm flex-shrink-0">to</span>
+          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse" />
+        </div>
+        <p v-if="scheduleLoaded && crossesMidnight" class="text-[11px] text-garden-dim mt-1.5">ⓘ Window crosses midnight.</p>
       </div>
 
       <!-- Days (alarm-style toggle) -->
       <div>
         <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">Repeat On</div>
-        <div class="flex gap-1.5">
+        <div v-if="scheduleLoaded" class="flex gap-1.5">
           <button
             v-for="d in dayList" :key="d.key"
             type="button"
@@ -78,6 +92,9 @@
             @click="days[d.key] = !days[d.key]"
           >{{ d.label }}</button>
         </div>
+        <div v-else class="flex gap-1.5">
+          <div v-for="i in 7" :key="i" class="w-9 h-9 rounded-full border border-garden-border bg-[#f4f8f5] animate-pulse" />
+        </div>
         <span v-if="daysError" class="block text-[11px] text-garden-danger mt-1.5">{{ daysError }}</span>
       </div>
 
@@ -85,7 +102,7 @@
         v-if="!readonly"
         class="w-full py-3 rounded-xl bg-garden-primary text-white font-semibold text-sm
                hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="scheduleSaving"
+        :disabled="scheduleSaving || !scheduleLoaded"
         @click="saveSchedule"
       >{{ scheduleSaving ? 'Saving…' : 'Save Schedule' }}</button>
 
@@ -120,6 +137,8 @@ const startTime = ref('06:00')
 const endTime   = ref('06:15')
 const days = reactive({ sun: false, mon: true, tue: false, wed: true, thu: false, fri: true, sat: false })
 const activeSource   = ref('leachate')
+const sourceLoaded   = ref(false)
+const scheduleLoaded = ref(false)
 const scheduleSaving = ref(false)
 const sourceSaving   = ref(false)
 const daysError       = ref('')
@@ -138,15 +157,18 @@ const crossesMidnight = computed(() => {
 onMounted(() => {
   unsubSchedule = onValue(dbRef(db, 'config/fert_schedule'), (snapshot) => {
     const v = snapshot.val()
-    if (!v) return
-    startTime.value = `${pad(v.startHour ?? 6)}:${pad(v.startMinute ?? 0)}`
-    endTime.value   = `${pad(v.endHour ?? 6)}:${pad(v.endMinute ?? 15)}`
-    if (v.days) Object.assign(days, v.days)
+    if (v) {
+      startTime.value = `${pad(v.startHour ?? 6)}:${pad(v.startMinute ?? 0)}`
+      endTime.value   = `${pad(v.endHour ?? 6)}:${pad(v.endMinute ?? 15)}`
+      if (v.days) Object.assign(days, v.days)
+    }
+    scheduleLoaded.value = true
   })
 
   unsubSource = onValue(dbRef(db, 'config/fert_active_source'), (snapshot) => {
     const v = snapshot.val()
     if (v === 'leachate' || v === 'organic') activeSource.value = v
+    sourceLoaded.value = true
   })
 })
 

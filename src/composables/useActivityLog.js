@@ -1,55 +1,72 @@
 // src/composables/useActivityLog.js
 //
-// Two separate log streams, so that one user's actions are never visible to
-// another user:
+// activity_log/{uid}/entries/... — private, per-user. Every action a
+// specific logged-in user performs (manual toggles, schedule/source/
+// threshold edits) plus every device-initiated event on their own system
+// (timer auto-off, future AI detections) lives here.
 //
-//   activity_log/users/{uid}/...  — private, per-user. Manual pump toggles,
-//                                    schedule edits, source switches, and
-//                                    threshold changes a specific logged-in
-//                                    user performed. Only that uid may read
-//                                    or write their own branch.
-//
-//   activity_log/system/...       — public, unattributed. Events nobody
-//                                    specifically triggered by logging in —
-//                                    a timer expiring on its own, or (once
-//                                    implemented) the AI detection device.
-//                                    Readable/writable without auth, since
-//                                    the detection device isn't a Firebase
-//                                    Auth user and this should still be
-//                                    visible while logged out.
-//
-// logActivity()       -> writes to the current user's private branch.
-//                         No-ops (with a console warning) if nobody is
-//                         signed in, since a private entry needs an owner.
-// logSystemActivity()  -> writes to the shared public branch.
-// useActivityFeed()   -> merges "my private entries" (if signed in) with
-//                         the public system entries into one reactive,
-//                         newest-first list.
+// NOTE: this now runs on Firestore, not Realtime Database. Everything
+// else in the app (relays, sensors, schedules) stays on RTDB — only the
+// activity log moved. Reasoning: RTDB's orderByChild + limitToLast needs
+// a published server-side index to stay reliable as new children are
+// added, which we never had configured, and was the suspected cause of
+// entries getting stuck after the first snapshot. Firestore's
+// orderBy + limit queries don't have that failure mode (single-field
+// indexes are automatic), and onSnapshot()'s unsubscribe pattern is
+// simpler than RTDB's off()/onValue() return-value mismatch that bit us
+// earlier. Both databases live in the same Firebase project — see
+// src/firebase.js for the shared `firestore` export.
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { db } from '@/firebase'
+import { firestore } from '@/firebase'
 import {
-  ref as dbRef, push, set, onValue, off,
-  query, orderByChild, limitToLast,
-} from 'firebase/database'
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { currentUser } from '@/auth/useAuth'
+import { checkRateLimit } from '@/security/rateLimiter'
 
-const SYSTEM_PATH = 'activity_log/system'
-const userPath = (uid) => `activity_log/users/${uid}`
+const entriesCollection = (uid) => collection(firestore, 'activity_log', uid, 'entries')
 
-async function writeEntry(path, message, color, type, extra = {}) {
+// Activity log writes are triggered by real user/device actions (relay
+// toggles, schedule edits, auto-off events), so under normal use this
+// limit is never hit. It exists to stop runaway writes — e.g. a stuck
+// auto-off loop or a buggy retry — from spamming Firestore and racking
+// up write costs. This is a client-side guard only; see
+// firestore.rules for the server-enforced backstop (schema + field
+// validation — true write-rate throttling isn't expressible in
+// Firestore rules alone and would need App Check / Cloud Functions).
+const WRITE_LIMIT_KEY_PREFIX = 'activity-log-write:'
+const MAX_WRITES_PER_MINUTE = 20
+
+async function writeEntry(uid, message, color, type, extra = {}) {
+  const { allowed, resetAt } = checkRateLimit(`${WRITE_LIMIT_KEY_PREFIX}${uid}`, {
+    windowMs: 60 * 1000,
+    maxAttempts: MAX_WRITES_PER_MINUTE,
+  })
+  if (!allowed) {
+    console.warn(
+      `Activity log write blocked by rate limit for ${uid} — resets in ${Math.ceil((resetAt - Date.now()) / 1000)}s. Entry dropped:`,
+      message
+    )
+    return
+  }
+
   try {
-    const entryRef = push(dbRef(db, path))
-    await set(entryRef, {
+    await addDoc(entriesCollection(uid), {
       message,
       color,
       type,
-      timestamp: Date.now(),
+      timestamp: Date.now(),        // used for client-side sort/display
+      createdAt: serverTimestamp(), // authoritative server time, for auditing
       ...extra,
     })
   } catch (err) {
-    // Never let logging failures break the actual feature (relay control,
-    // schedule saving, etc.) that triggered the log call.
-    console.error(`Failed to write activity log entry to ${path}:`, err)
+    console.error(`Failed to write activity log entry to activity_log/${uid}/entries:`, err)
   }
 }
 
@@ -65,84 +82,85 @@ export async function logActivity(message, color = '#94a3b8', type = 'system') {
     console.warn('logActivity() called with no signed-in user — entry not saved:', message)
     return
   }
-  await writeEntry(userPath(user.uid), message, color, type, {
+  await writeEntry(user.uid, message, color, type, {
     by: user.displayName || user.email || 'Unknown user',
   })
 }
 
 /**
- * Log a system/device event nobody specifically triggered — auto-off timers,
- * AI detections, etc. Public: visible to everyone, including logged-out users.
+ * Log a device-initiated event (timer auto-off, AI detection) tied to the
+ * currently signed-in user's own system. Same collection as logActivity(),
+ * just without a "by" tag since no one specifically clicked anything.
  */
 export async function logSystemActivity(message, color = '#94a3b8', type = 'system') {
-  await writeEntry(SYSTEM_PATH, message, color, type)
+  const user = currentUser.value
+  if (!user) {
+    console.warn('logSystemActivity() called with no signed-in user — entry not saved:', message)
+    return
+  }
+  await writeEntry(user.uid, message, color, type)
 }
 
 /**
- * Live-subscribe to the current user's private log entries merged with the
- * public system log, newest first. Re-evaluates automatically on login/logout
- * so switching accounts never leaks the previous user's private entries.
+ * Live-subscribe to the current user's log entries, newest first.
+ * Re-subscribes on login/logout so switching accounts never leaks the
+ * previous user's entries.
  */
-export function useActivityFeed(limit = 25) {
-  const systemEntries = ref([])
-  const userEntries    = ref([])
-  let unsubSystem = null
-  let unsubUser   = null
+export function useActivityFeed(limitCount = 25) {
+  const rawEntries = ref([])
+  const loaded = ref(false)
+  let unsubscribe = null
+  let subscribedUid = null
 
-  function subscribeSystem() {
-    if (unsubSystem) return
-    const q = query(dbRef(db, SYSTEM_PATH), orderByChild('timestamp'), limitToLast(limit))
-    const handler = onValue(q, (snapshot) => {
-      const list = []
-      snapshot.forEach((child) => list.push({ id: child.key, ...child.val() }))
-      systemEntries.value = list
-    })
-    unsubSystem = () => off(q, 'value', handler)
-  }
+  function subscribe(uid) {
+    if (subscribedUid === uid) return
+    if (unsubscribe) { unsubscribe(); unsubscribe = null }
+    subscribedUid = uid
+    loaded.value = false
 
-  function subscribeUser(uid) {
-    unsubscribeUser()
-    const q = query(dbRef(db, userPath(uid)), orderByChild('timestamp'), limitToLast(limit))
-    const handler = onValue(q, (snapshot) => {
-      const list = []
-      snapshot.forEach((child) => list.push({ id: child.key, ...child.val() }))
-      userEntries.value = list
-    })
-    unsubUser = () => off(q, 'value', handler)
-  }
+    if (!uid) {
+      rawEntries.value = []
+      loaded.value = true
+      return
+    }
 
-  function unsubscribeUser() {
-    if (unsubUser) { unsubUser(); unsubUser = null }
-    userEntries.value = []
+    const q = query(
+      entriesCollection(uid),
+      orderBy('timestamp', 'desc'),
+      limit(limitCount)
+    )
+
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        rawEntries.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        loaded.value = true
+      },
+      (err) => {
+        console.error(`activity feed listener error on activity_log/${uid}/entries:`, err)
+        loaded.value = true // stop showing a loading state on error too — don't spin forever
+      }
+    )
   }
 
   onMounted(() => {
-    subscribeSystem()
-    if (currentUser.value) subscribeUser(currentUser.value.uid)
+    subscribe(currentUser.value ? currentUser.value.uid : null)
   })
 
-  // Re-subscribe to the private branch whenever the signed-in user changes,
-  // so logging out (or switching accounts) immediately drops the previous
-  // user's private entries instead of leaving them visible.
-  const stopWatch = watch(currentUser, (user) => {
-    if (user) {
-      subscribeUser(user.uid)
-    } else {
-      unsubscribeUser()
-    }
-  })
+  const stopWatch = watch(
+    () => currentUser.value?.uid ?? null,
+    (uid) => subscribe(uid)
+  )
 
   onUnmounted(() => {
-    if (unsubSystem) unsubSystem()
-    unsubscribeUser()
+    if (unsubscribe) unsubscribe()
     stopWatch()
   })
 
-  const entries = computed(() =>
-    [...userEntries.value, ...systemEntries.value]
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit)
-  )
+  // Firestore already returns newest-first sorted + capped at limitCount,
+  // so no extra client-side sort/slice needed — computed just passes it
+  // through for a stable, consistent return shape.
+  const entries = computed(() => rawEntries.value)
 
-  return { entries }
+  return { entries, loaded }
 }

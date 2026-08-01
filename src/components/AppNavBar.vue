@@ -142,9 +142,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
 async function handleLogout() {
   signingOut.value = true
   menuOpen.value   = false
+  // logout() sets loggingOut=true synchronously on its first line (before
+  // its own internal await), so by the time router.push runs on the next
+  // line, the router guard already treats the session as over — it won't
+  // race signOut()'s network round-trip and bounce back to /dashboard.
+  const logoutPromise = logout()
+  router.push('/login')
   try {
-    await logout()
-    router.push('/login')
+    await logoutPromise
   } finally {
     signingOut.value = false
   }
