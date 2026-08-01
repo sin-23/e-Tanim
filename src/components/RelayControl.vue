@@ -256,7 +256,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { db }                                     from '@/firebase'
-import { ref as dbRef, set, onValue, get, off }   from 'firebase/database'
+import { ref as dbRef, set, update, onValue, get, off } from 'firebase/database'
+import { logActivity } from '@/composables/useActivityLog'
 
 const props = defineProps({
   currentMoisture:       { type: Number, default: null },
@@ -354,9 +355,18 @@ function checkUnfavorableConditions() {
   return Object.values(reasons).some(r => r)
 }
 
-async function writeRelay(value) {
+// Companion path that stores the epoch-ms timestamp this relay should
+// auto-off at. Written alongside the relay boolean so that any component
+// instance (even a fresh mount after page navigation) can compute the
+// true remaining time instead of restarting the countdown from scratch.
+const offAtPath = computed(() => `${props.controlPath}_off_at`)
+
+async function writeRelay(value, offAt = null) {
   try {
-    await set(dbRef(db, props.controlPath), value)
+    await update(dbRef(db), {
+      [props.controlPath]: value,
+      [offAtPath.value]:   value ? offAt : null,
+    })
     return true
   } catch (err) {
     console.error('Relay write failed:', err)
@@ -398,6 +408,7 @@ async function saveThresholds() {
     thresholds.value     = { ...editThresholds.value }
     loading.value        = false
     showSettings.value   = false
+    logActivity(`${props.title} auto-mode thresholds updated`, '#3b9dd2', 'threshold')
   } catch (err) {
     loading.value = false
     console.error(`Failed to save thresholds for pump ${props.pumpNumber}:`, err)
@@ -431,9 +442,13 @@ function startCountdown(seconds) {
 
 async function turnOnRelay() {
   loading.value = true
-  const ok      = await writeRelay(true)
+  const offAt   = Date.now() + totalSeconds.value * 1000
+  const ok      = await writeRelay(true, offAt)
   loading.value = false
-  if (ok) startCountdown(totalSeconds.value)
+  if (ok) {
+    startCountdown(totalSeconds.value)
+    logActivity(`${props.title} manually turned ON for ${formattedCountdown.value}`, '#22c55e', 'relay')
+  }
 }
 
 function closeWarning() { showWarningModal.value = false }
@@ -473,7 +488,38 @@ async function handleClick() {
     loading.value   = true
     await writeRelay(false)
     loading.value   = false
+    logActivity(`${props.title} manually turned OFF`, '#94a3b8', 'relay')
   }
+}
+
+// When the relay is ON but this component instance has no local timer
+// running (fresh mount, page navigation, tab reopened), fetch the shared
+// off-at timestamp from Firebase and resume the countdown from the true
+// remaining time — rather than restarting it from the duration inputs.
+async function resumeCountdownFromServer() {
+  try {
+    const snap  = await get(dbRef(db, offAtPath.value))
+    const offAt = snap.exists() ? snap.val() : null
+
+    if (typeof offAt === 'number') {
+      const remainingMs = offAt - Date.now()
+      if (remainingMs > 0) {
+        startCountdown(Math.ceil(remainingMs / 1000))
+        return
+      }
+      // Timer already expired while we were away — turn the relay off now.
+      loading.value = true
+      await writeRelay(false)
+      loading.value = false
+      return
+    }
+  } catch (err) {
+    console.error(`Failed to resume countdown for ${props.controlPath}:`, err)
+  }
+
+  // No off-at on record (e.g. relay was flipped on outside the app) —
+  // fall back to a best-effort countdown using the current duration inputs.
+  startCountdown(totalSeconds.value > 0 ? totalSeconds.value : 30)
 }
 
 onMounted(() => {
@@ -487,10 +533,7 @@ onMounted(() => {
     relayOn.value = val === true
 
     if (relayOn.value && countdown.value <= 0) {
-      // Relay is ON (turned on elsewhere, or already on at page load) but this
-      // component has no local timer running — start a best-effort countdown
-      // using the current duration inputs so the auto-off box still displays.
-      startCountdown(totalSeconds.value > 0 ? totalSeconds.value : 30)
+      resumeCountdownFromServer()
     }
 
     if (!relayOn.value && countdownTimer) {

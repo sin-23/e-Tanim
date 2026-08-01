@@ -24,12 +24,14 @@ const routes = [
     path:      '/dashboard',
     name:      'dashboard',
     component: () => import('@/views/Dashboard.vue'),
+    meta:      { requiresAuth: true },
   },
 
   {
     path:      '/irrigation',
     name:      'irrigation',
     component: () => import('@/views/IrrigationView.vue'),
+    meta:      { requiresAuth: true },
   },
 
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
@@ -56,6 +58,10 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresGuest && authed) {
     return { name: 'dashboard' }
+  }
+
+  if (to.meta.requiresAuth && !authed) {
+    return { name: 'login', query: to.fullPath !== '/dashboard' ? { redirect: to.fullPath } : undefined }
   }
 })
 

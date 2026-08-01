@@ -1,0 +1,75 @@
+// src/composables/useRelayAutoOff.js
+//
+// RelayControl.vue's own countdown only runs while that specific component
+// is mounted (i.e. only while you're on the Irrigation page). Navigate away
+// — to the Dashboard, for example — and that component unmounts, killing its
+// timer. Nothing is then left running to actually write `relay = false` when
+// the countdown reaches zero, so the relay stays ON in Firebase past its
+// intended shutoff time until someone reopens the Irrigation page.
+//
+// This watcher lives at the app root (mounted once from App.vue) so it keeps
+// enforcing the `*_off_at` deadlines regardless of which route is active, as
+// long as the browser tab stays open. It's the single source of truth for
+// actually turning relays off; RelayControl.vue's local countdown is only
+// there to render a live "MM:SS" display for whoever is looking at it.
+import { ref as dbRef, onValue, get, update } from 'firebase/database'
+import { db } from '@/firebase'
+import { logSystemActivity } from './useActivityLog'
+
+const RELAY_PATHS = ['control/relay', 'control/relay2', 'control/relay3']
+const RELAY_LABELS = {
+  'control/relay':  'Water pump',
+  'control/relay2': 'Compost leachate pump',
+  'control/relay3': 'Organic fertilizer pump',
+}
+
+let started = false
+
+async function turnOffExpiredRelay(path, offAtPath) {
+  try {
+    await update(dbRef(db), { [path]: false, [offAtPath]: null })
+    logSystemActivity(`${RELAY_LABELS[path] ?? path} auto-off — timer expired`, '#94a3b8', 'relay')
+  } catch (err) {
+    // Most likely a permission error because the user isn't authenticated
+    // yet — harmless, the watcher will re-evaluate on the next relay change.
+    console.error(`Relay auto-off watcher: failed to turn off ${path}:`, err)
+  }
+}
+
+function watchRelay(path) {
+  const offAtPath = `${path}_off_at`
+  let expiryTimer = null
+
+  onValue(dbRef(db, path), async (snapshot) => {
+    if (expiryTimer) {
+      clearTimeout(expiryTimer)
+      expiryTimer = null
+    }
+
+    const isOn = snapshot.val() === true
+    if (!isOn) return
+
+    try {
+      const offAtSnap = await get(dbRef(db, offAtPath))
+      const offAt = offAtSnap.exists() ? offAtSnap.val() : null
+      if (typeof offAt !== 'number') return // no timed shutoff scheduled for this relay
+
+      const remainingMs = offAt - Date.now()
+      if (remainingMs <= 0) {
+        await turnOffExpiredRelay(path, offAtPath)
+      } else {
+        expiryTimer = setTimeout(() => turnOffExpiredRelay(path, offAtPath), remainingMs)
+      }
+    } catch (err) {
+      console.error(`Relay auto-off watcher: failed to read ${offAtPath}:`, err)
+    }
+  })
+}
+
+// Call once (e.g. from App.vue after the user is authenticated). Safe to
+// call multiple times — only the first call actually attaches listeners.
+export function startRelayAutoOffWatcher() {
+  if (started) return
+  started = true
+  RELAY_PATHS.forEach(watchRelay)
+}

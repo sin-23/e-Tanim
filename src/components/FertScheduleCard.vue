@@ -100,6 +100,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { db }                                     from '@/firebase'
 import { ref as dbRef, set, onValue }             from 'firebase/database'
+import { logActivity }                            from '@/composables/useActivityLog'
 
 const props = defineProps({
   readonly: { type: Boolean, default: false },
@@ -162,6 +163,10 @@ async function setSource(source) {
   try {
     await set(dbRef(db, 'config/fert_active_source'), source)
     await set(dbRef(db, 'config/fert_active_source_updated'), Math.floor(Date.now() / 1000))
+    logActivity(
+      `Fertilizer source switched to ${source === 'organic' ? 'Organic Fertilizer (Storebought)' : 'Compost Leachate (FFJ)'}`,
+      '#3b9dd2', 'source'
+    )
   } catch (err) {
     activeSource.value = previous
     console.error('Failed to switch fertilizer source:', err)
@@ -188,6 +193,10 @@ async function saveSchedule() {
       days: { ...days },
     })
     await set(dbRef(db, 'config/fert_schedule_updated'), Math.floor(Date.now() / 1000))
+    logActivity(
+      `Fertilizer schedule updated: ${startTime.value}–${endTime.value}`,
+      '#3b9dd2', 'schedule'
+    )
   } catch (err) {
     console.error('Failed to save fertilizer schedule:', err)
     alert('Failed to save fertilizer schedule. Check console for errors.')

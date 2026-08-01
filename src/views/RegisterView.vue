@@ -349,6 +349,75 @@ const STRENGTH_COLORS = ['', '#ef4444', '#f59e0b', '#f59e0b', '#2d7a4f']
 const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong']
 
 const strengthLabel = computed(() => password.value ? STRENGTH_LABELS[passwordStrength.value] : '')
+
+// ── Error messages ────────────────────────────────────────────────────────────
+function friendlyError(code) {
+  const map = {
+    'auth/email-already-in-use':   'An account with that email already exists.',
+    'auth/invalid-email':          'Please enter a valid email address.',
+    'auth/weak-password':          'Password is too weak. Use at least 8 characters.',
+    'auth/network-request-failed': 'Network error. Check your connection.',
+    'auth/popup-closed-by-user':   'Google sign-up was cancelled.',
+    'auth/operation-not-allowed':  'Email/password sign-up is not enabled.',
+  }
+  return map[code] ?? 'Something went wrong. Please try again.'
+}
+
+function redirectAfterRegister() {
+  router.push('/dashboard')
+}
+
+// ── Handlers ───────────────────────────────────────────────────────────────────
+async function handleRegister() {
+  v$.value.$touch()
+  if (v$.value.$invalid || loading.value) return
+
+  serverError.value = ''
+  loading.value = true
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email.value, password.value)
+
+    await updateProfile(cred.user, { displayName: displayName.value.trim() })
+
+    await set(dbRef(db, `users/${cred.user.uid}`), {
+      email:       cred.user.email ?? '',
+      displayName: displayName.value.trim(),
+      createdAt:   Date.now(),
+      lastLogin:   Date.now(),
+    })
+
+    success.value = true
+    setTimeout(redirectAfterRegister, 2200)
+  } catch (err) {
+    serverError.value = friendlyError(err.code)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleGoogle() {
+  if (loading.value) return
+  serverError.value = ''
+  loading.value = true
+  try {
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider())
+
+    await set(dbRef(db, `users/${cred.user.uid}`), {
+      email:       cred.user.email ?? '',
+      displayName: cred.user.displayName ?? cred.user.email ?? '',
+      photoURL:    cred.user.photoURL ?? '',
+      createdAt:   Date.now(),
+      lastLogin:   Date.now(),
+    })
+
+    success.value = true
+    setTimeout(redirectAfterRegister, 2200)
+  } catch (err) {
+    serverError.value = friendlyError(err.code)
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>

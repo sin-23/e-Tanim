@@ -81,7 +81,7 @@
             </svg>
             Irrigation &amp; Fertilization
           </h2>
-          <span class="text-[10px] font-semibold text-garden-dim bg-[#eef3f0] px-2 py-1 rounded-full">2 Circuits</span>
+          <span class="text-[10px] font-semibold text-garden-dim bg-[#eef3f0] px-2 py-1 rounded-full">3 Circuits</span>
         </div>
 
         <div class="space-y-2.5">
@@ -94,8 +94,8 @@
             <div class="flex items-center gap-2.5">
               <span class="text-lg">{{ c.emoji }}</span>
               <div>
-                <div class="text-xs font-medium text-garden-text">Pump {{ c.id }} — {{ c.title }}</div>
-                <div class="text-[10px] text-garden-dim">Pump · Relay · Solenoid · Sprinkler</div>
+                <div class="text-xs font-medium text-garden-text">{{ c.title }}</div>
+                <div class="text-[10px] text-garden-dim">{{ c.subtitle }}</div>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -136,7 +136,7 @@
         </h2>
       </div>
       <div v-if="activityLog.length === 0" class="text-center py-8 text-xs text-garden-dim">
-        No activity yet this session — pump events will appear here as they happen.
+        No activity yet — pump events, schedule changes, and detections will appear here as they happen.
       </div>
       <div v-else class="space-y-1 overflow-y-auto max-h-72 pr-1">
         <div
@@ -146,8 +146,10 @@
         >
           <div class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: log.color }" />
           <div class="min-w-0 flex-1">
-            <div class="text-xs font-semibold text-garden-text leading-snug">{{ log.msg }}</div>
-            <div class="text-[10px] text-garden-dim mt-0.5">{{ log.time }} today</div>
+            <div class="text-xs font-semibold text-garden-text leading-snug">{{ log.message }}</div>
+            <div class="text-[10px] text-garden-dim mt-0.5">
+              {{ formatLogTime(log.timestamp) }}<span v-if="log.by"> · by {{ log.by }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -159,6 +161,7 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import { db } from '@/firebase'
+import { useActivityFeed } from '@/composables/useActivityLog'
 
 const today = computed(() =>
   new Date().toLocaleDateString('en-PH', {
@@ -187,51 +190,40 @@ import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
 
 onUnmounted(() => { if (unsubAvg) unsubAvg() })
 
-// ── Live relay state (read-only summary — feeds circuit list + activity log) ─
+// ── Live relay state (read-only summary — feeds the circuit list only;
+// actual logging now happens at the point of action — see RelayControl.vue,
+// useRelayAutoOff.js, and FertScheduleCard.vue — via logActivity(), not here) ─
 const relay1On = ref(false)
 const relay2On = ref(false)
-const activityLog = ref([])
+const relay3On = ref(false)
 let unsubRelay1 = null
 let unsubRelay2 = null
-let logId = 0
-
-function pushLog(msg, color) {
-  const time = new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
-  activityLog.value.unshift({ id: logId++, msg, time, color })
-  if (activityLog.value.length > 20) activityLog.value.pop()
-}
+let unsubRelay3 = null
 
 import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
-  let firstRelay1 = true
   const relay1Ref = dbRef(db, 'control/relay')
-  const unsub1 = onValue(relay1Ref, (snapshot) => {
-    const val = snapshot.val() === true
-    if (!firstRelay1 && val !== relay1On.value) {
-      pushLog(`Pump 1 relay turned ${val ? 'ON' : 'OFF'}`, val ? '#22c55e' : '#94a3b8')
-    }
-    relay1On.value = val
-    firstRelay1 = false
-  })
+  const unsub1 = onValue(relay1Ref, (snapshot) => { relay1On.value = snapshot.val() === true })
   unsubRelay1 = () => off(relay1Ref, 'value', unsub1)
 
-  let firstRelay2 = true
   const relay2Ref = dbRef(db, 'control/relay2')
-  const unsub2 = onValue(relay2Ref, (snapshot) => {
-    const val = snapshot.val() === true
-    if (!firstRelay2 && val !== relay2On.value) {
-      pushLog(`Pump 2 relay turned ${val ? 'ON' : 'OFF'}`, val ? '#22c55e' : '#94a3b8')
-    }
-    relay2On.value = val
-    firstRelay2 = false
-  })
+  const unsub2 = onValue(relay2Ref, (snapshot) => { relay2On.value = snapshot.val() === true })
   unsubRelay2 = () => off(relay2Ref, 'value', unsub2)
+
+  const relay3Ref = dbRef(db, 'control/relay3')
+  const unsub3 = onValue(relay3Ref, (snapshot) => { relay3On.value = snapshot.val() === true })
+  unsubRelay3 = () => off(relay3Ref, 'value', unsub3)
 })
 
-onUnmounted(() => { if (unsubRelay1) unsubRelay1(); if (unsubRelay2) unsubRelay2() })
+onUnmounted(() => {
+  if (unsubRelay1) unsubRelay1()
+  if (unsubRelay2) unsubRelay2()
+  if (unsubRelay3) unsubRelay3()
+})
 
 const circuits = computed(() => [
-  { id: 1, title: 'Pump 1 Override', emoji: '💧', light: relay1On.value ? '#fef2f2' : '#f8fafc', border: relay1On.value ? '#fca5a5' : '#e2e8f0', relay: relay1On.value },
-  { id: 2, title: 'Pump 2 Override', emoji: '🧪', light: relay2On.value ? '#fef2f2' : '#f8fafc', border: relay2On.value ? '#fca5a5' : '#e2e8f0', relay: relay2On.value },
+  { id: 1, title: 'Water', subtitle: 'Irrigation', emoji: '💧', light: relay1On.value ? '#fef2f2' : '#f8fafc', border: relay1On.value ? '#fca5a5' : '#e2e8f0', relay: relay1On.value },
+  { id: 2, title: 'Compost Leachate', subtitle: 'Fertilizer (FFJ)', emoji: '🧪', light: relay2On.value ? '#fef2f2' : '#f8fafc', border: relay2On.value ? '#fca5a5' : '#e2e8f0', relay: relay2On.value },
+  { id: 3, title: 'Organic Fertilizer', subtitle: 'Fertilizer (Storebought)', emoji: '🌿', light: relay3On.value ? '#fef2f2' : '#f8fafc', border: relay3On.value ? '#fca5a5' : '#e2e8f0', relay: relay3On.value },
 ])
 
 const activePumpMessage = computed(() => {
@@ -239,4 +231,14 @@ const activePumpMessage = computed(() => {
   if (active.length === 0) return 'No pumps currently active.'
   return `${active.map(c => c.title).join(', ')} currently active.`
 })
+
+// ── Activity log — shared, persistent feed (see useActivityLog.js) ───────────
+const { entries: activityLog } = useActivityFeed(25)
+
+function formatLogTime(timestamp) {
+  const d = new Date(timestamp)
+  const isToday = d.toDateString() === new Date().toDateString()
+  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
+  return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
+}
 </script>

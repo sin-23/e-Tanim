@@ -44,11 +44,13 @@
 </template>
 
 <script setup>
-import { ref, computed }  from 'vue'
-import { useRoute }       from 'vue-router'
-import AppNavBar          from '@/components/AppNavBar.vue'
-import SidebarNav         from '@/components/SidebarNav.vue'
-import { isConfigured }   from '@/firebase'
+import { ref, computed, watch }        from 'vue'
+import { useRoute }                    from 'vue-router'
+import AppNavBar                       from '@/components/AppNavBar.vue'
+import SidebarNav                      from '@/components/SidebarNav.vue'
+import { isConfigured }                from '@/firebase'
+import { currentUser }                 from '@/auth/useAuth'
+import { startRelayAutoOffWatcher }    from '@/composables/useRelayAutoOff'
 
 const route   = useRoute()
 const showNav = computed(() =>
@@ -56,4 +58,12 @@ const showNav = computed(() =>
 )
 
 const sidebarOpen = ref(false)
+
+// Enforce relay auto-off deadlines app-wide, independent of which page is
+// currently mounted — see useRelayAutoOff.js for why this can't live inside
+// RelayControl.vue alone. Starts once a user is signed in, since turning a
+// relay off requires an authenticated write per the database rules.
+watch(currentUser, (user) => {
+  if (user) startRelayAutoOffWatcher()
+}, { immediate: true })
 </script>
