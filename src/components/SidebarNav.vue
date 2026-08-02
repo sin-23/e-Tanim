@@ -26,7 +26,7 @@
         </div>
       </div>
       <button
-        class="lg:hidden p-1 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+        class="lg:hidden p-1 rounded-lg text-white/60 hover:text-white hover:bg-garden-surface/10 transition-colors"
         @click="$emit('close')"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -44,7 +44,7 @@
         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-left"
         :class="isActive('dashboard')
           ? 'bg-garden-primary text-white shadow-sm'
-          : 'text-white/60 hover:text-white hover:bg-white/8'"
+          : 'text-white/60 hover:text-white hover:bg-garden-surface/8'"
         @click="$emit('close')"
       >
         <span :class="isActive('dashboard') ? 'text-white' : 'text-white/50'">
@@ -60,7 +60,7 @@
         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-left"
         :class="isActive('irrigation')
           ? 'bg-garden-primary text-white shadow-sm'
-          : 'text-white/60 hover:text-white hover:bg-white/8'"
+          : 'text-white/60 hover:text-white hover:bg-garden-surface/8'"
         @click="$emit('close')"
       >
         <span :class="isActive('irrigation') ? 'text-white' : 'text-white/50'">
@@ -69,6 +69,22 @@
           </svg>
         </span>
         Irrigation &amp; Fertilization
+      </router-link>
+
+      <router-link
+        to="/settings"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-left"
+        :class="isActive('settings')
+          ? 'bg-garden-primary text-white shadow-sm'
+          : 'text-white/60 hover:text-white hover:bg-white/8'"
+        @click="$emit('close')"
+      >
+        <span :class="isActive('settings') ? 'text-white' : 'text-white/50'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </span>
+        Settings
       </router-link>
 
       <!-- Upcoming pages — not built yet, shown for design parity, disabled -->
@@ -85,7 +101,7 @@
 
     <!-- System status footer -->
     <div class="px-4 py-4 border-t border-white/10">
-      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/5">
+      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-garden-surface/5">
         <div class="w-2 h-2 rounded-full bg-garden-live animate-pulse" />
         <div>
           <div class="text-xs font-semibold text-white">System Online</div>
@@ -115,6 +131,5 @@ const comingSoonItems = [
   // { id: 'reservoir', label: 'Reservoir Levels', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' },
   // { id: 'sensor-logs', label: 'Sensor Logs', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>' },
   // { id: 'analytics', label: 'Reports & Analytics', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>' },
-  { id: 'settings', label: 'Settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' },
 ]
 </script>

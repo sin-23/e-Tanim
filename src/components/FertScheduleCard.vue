@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-2xl border border-garden-border shadow-sm overflow-hidden">
+  <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
     <div class="h-1 bg-garden-primary" />
 
     <div class="p-4 space-y-4">
@@ -12,13 +12,13 @@
         <span
           v-if="sourceLoaded"
           class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0"
-          :style="activeSource === 'organic'
-            ? { backgroundColor: '#fef3c7', color: '#92400e', borderColor: '#fde68a' }
-            : { backgroundColor: '#dbeafe', color: '#1d4ed8', borderColor: '#93c5fd' }"
+          :class="activeSource === 'organic'
+            ? 'bg-garden-warn/15 text-garden-warn border-garden-warn/40'
+            : 'bg-garden-sky/15 text-garden-sky border-garden-sky/40'"
         >{{ activeSource === 'organic' ? 'ORGANIC (Storebought) ACTIVE' : 'LEACHATE (FFJ) ACTIVE' }}</span>
         <span
           v-else
-          class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0 bg-[#f4f8f5] text-garden-dim border-garden-border animate-pulse"
+          class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0 bg-garden-void text-garden-dim border-garden-border animate-pulse"
         >Loading…</span>
       </div>
 
@@ -31,8 +31,8 @@
           <button
             class="py-2.5 rounded-xl border text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
             :class="activeSource === 'leachate'
-              ? 'bg-[#2d7a4f] text-white border-[#2d7a4f]'
-              : 'bg-white text-garden-text border-garden-border hover:bg-garden-base'"
+              ? 'bg-garden-primary text-white border-garden-primary'
+              : 'bg-garden-surface text-garden-text border-garden-border hover:bg-garden-base'"
             :disabled="readonly || sourceSaving"
             @click="setSource('leachate')"
           >Leachate (FFJ)</button>
@@ -40,14 +40,14 @@
             class="py-2.5 rounded-xl border text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
             :class="activeSource === 'organic'
               ? 'bg-[#3b9dd2] text-white border-[#3b9dd2]'
-              : 'bg-white text-garden-text border-garden-border hover:bg-garden-base'"
+              : 'bg-garden-surface text-garden-text border-garden-border hover:bg-garden-base'"
             :disabled="readonly || sourceSaving"
             @click="setSource('organic')"
           >Organic Fertilizer (Storebought)</button>
         </div>
         <div v-else class="grid grid-cols-2 gap-2">
-          <div class="py-2.5 rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse h-[42px]" />
-          <div class="py-2.5 rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse h-[42px]" />
+          <div class="py-2.5 rounded-xl border border-garden-border bg-garden-void animate-pulse h-[42px]" />
+          <div class="py-2.5 rounded-xl border border-garden-border bg-garden-void animate-pulse h-[42px]" />
         </div>
       </div>
 
@@ -58,21 +58,21 @@
           <input
             v-model="startTime" type="time" :disabled="readonly"
             class="flex-1 px-3 py-2.5 rounded-xl border border-garden-border font-mono text-sm text-garden-text
-                   bg-[#f4f8f5] focus:outline-none focus:border-garden-primary focus:ring-2 focus:ring-garden-primary/20 transition
+                   bg-garden-void focus:outline-none focus:border-garden-primary focus:ring-2 focus:ring-garden-primary/20 transition
                    disabled:opacity-60"
           />
           <span class="text-garden-dim text-sm flex-shrink-0">to</span>
           <input
             v-model="endTime" type="time" :disabled="readonly"
             class="flex-1 px-3 py-2.5 rounded-xl border border-garden-border font-mono text-sm text-garden-text
-                   bg-[#f4f8f5] focus:outline-none focus:border-garden-primary focus:ring-2 focus:ring-garden-primary/20 transition
+                   bg-garden-void focus:outline-none focus:border-garden-primary focus:ring-2 focus:ring-garden-primary/20 transition
                    disabled:opacity-60"
           />
         </div>
         <div v-else class="flex items-center gap-2">
-          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse" />
+          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
           <span class="text-garden-dim text-sm flex-shrink-0">to</span>
-          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-[#f4f8f5] animate-pulse" />
+          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
         </div>
         <p v-if="scheduleLoaded && crossesMidnight" class="text-[11px] text-garden-dim mt-1.5">ⓘ Window crosses midnight.</p>
       </div>
@@ -88,12 +88,12 @@
             class="w-9 h-9 rounded-full text-xs font-semibold border transition flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             :class="days[d.key]
               ? 'bg-garden-primary text-white border-garden-primary'
-              : 'bg-white text-garden-dim border-garden-border hover:bg-garden-base'"
+              : 'bg-garden-surface text-garden-dim border-garden-border hover:bg-garden-base'"
             @click="days[d.key] = !days[d.key]"
           >{{ d.label }}</button>
         </div>
         <div v-else class="flex gap-1.5">
-          <div v-for="i in 7" :key="i" class="w-9 h-9 rounded-full border border-garden-border bg-[#f4f8f5] animate-pulse" />
+          <div v-for="i in 7" :key="i" class="w-9 h-9 rounded-full border border-garden-border bg-garden-void animate-pulse" />
         </div>
         <span v-if="daysError" class="block text-[11px] text-garden-danger mt-1.5">{{ daysError }}</span>
       </div>

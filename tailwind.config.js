@@ -4,6 +4,7 @@ export default {
     './index.html',
     './src/**/*.{vue,js,ts}'
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -12,34 +13,32 @@ export default {
         sans:    ['Nunito', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // Backed by CSS variables (see src/style.css) so every existing
+        // `garden-*` utility automatically re-themes when `.dark` is toggled
+        // on <html> — no need to sprinkle dark: variants everywhere.
         garden: {
-          // Base
-          void:     '#F4F8F5',  // page background
-          base:     '#EEF3F0',  // muted tint layer (was "muted")
-          surface:  '#FFFFFF',  // primary white surface / card
-          card:     '#FFFFFF',  // card fill
-          border:   '#D8E8DE',  // soft border
-          muted:    '#6B8070',  // de-emphasized ui elements (muted-foreground)
+          void:     'rgb(var(--garden-void) / <alpha-value>)',
+          base:     'rgb(var(--garden-base) / <alpha-value>)',
+          surface:  'rgb(var(--garden-surface) / <alpha-value>)',
+          card:     'rgb(var(--garden-card) / <alpha-value>)',
+          border:   'rgb(var(--garden-border) / <alpha-value>)',
+          muted:    'rgb(var(--garden-muted) / <alpha-value>)',
 
-          // Text
-          text:     '#1A2E22',  // primary body text / foreground
-          dim:      '#6B8070',  // secondary / captions (muted-foreground)
+          text:     'rgb(var(--garden-text) / <alpha-value>)',
+          dim:      'rgb(var(--garden-dim) / <alpha-value>)',
 
-          // Brand / accent
-          primary:  '#2D7A4F',  // primary green
-          live:     '#22C55E',  // active/live indicator (success)
-          sky:      '#3B9DD2',  // accent blue
-          earth:    '#8B5E3C',  // earth tone
+          primary:  'rgb(var(--garden-primary) / <alpha-value>)',
+          live:     'rgb(var(--garden-live) / <alpha-value>)',
+          sky:      'rgb(var(--garden-sky) / <alpha-value>)',
+          earth:    'rgb(var(--garden-earth) / <alpha-value>)',
 
-          // Plant identities
-          tomato:   '#EF4444',
-          okra:     '#22C55E',
-          eggplant: '#9C6BAE',
+          tomato:   'rgb(var(--garden-tomato) / <alpha-value>)',
+          okra:     'rgb(var(--garden-okra) / <alpha-value>)',
+          eggplant: 'rgb(var(--garden-eggplant) / <alpha-value>)',
 
-          // Status
-          warn:     '#F59E0B',
-          danger:   '#EF4444',
-          good:     '#22C55E',
+          warn:     'rgb(var(--garden-warn) / <alpha-value>)',
+          danger:   'rgb(var(--garden-danger) / <alpha-value>)',
+          good:     'rgb(var(--garden-good) / <alpha-value>)',
         }
       },
       borderRadius: {
@@ -52,6 +51,7 @@ export default {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'fade-in':    'fadeIn 0.6s ease forwards',
         'slide-up':   'slideUp 0.5s ease forwards',
+        'loading-bar': 'loadingBar 1s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -61,6 +61,10 @@ export default {
         slideUp: {
           from: { opacity: '0', transform: 'translateY(16px)' },
           to:   { opacity: '1', transform: 'translateY(0)' }
+        },
+        loadingBar: {
+          '0%':   { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(300%)' }
         }
       },
       boxShadow: {

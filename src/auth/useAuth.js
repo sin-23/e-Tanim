@@ -7,8 +7,13 @@ import {
   GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
   fetchSignInMethodsForEmail,
   onAuthStateChanged,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
 } from 'firebase/auth'
 import { ref as dbRef, set, get } from 'firebase/database'
 
@@ -109,6 +114,37 @@ export function useAuth() {
     return { isGoogleOnly }
   }
 
+  // Requires the user's current password since changing credentials is a
+  // sensitive operation Firebase gates behind a recent sign-in. Throws with
+  // Firebase's error codes (e.g. 'auth/wrong-password') on failure so the
+  // caller can show a specific message.
+  async function changePassword(currentPassword, newPassword) {
+    const user = auth.currentUser
+    if (!user || !user.email) {
+      const err = new Error('auth/no-current-user')
+      err.code = 'auth/no-current-user'
+      throw err
+    }
+
+    const credential = EmailAuthProvider.credential(user.email, currentPassword)
+    await reauthenticateWithCredential(user, credential)
+    await updatePassword(user, newPassword)
+  }
+
+  // Verifies the oobCode from the reset-password email link and returns the
+  // account's email if valid. Throws (e.g. 'auth/expired-action-code',
+  // 'auth/invalid-action-code') if the link is expired, already used, or
+  // malformed — the reset-password page uses this to show an error state
+  // before ever showing the "set new password" form.
+  async function verifyResetCode(oobCode) {
+    return verifyPasswordResetCode(auth, oobCode)
+  }
+
+  // Completes the reset: sets newPassword on the account tied to oobCode.
+  async function confirmReset(oobCode, newPassword) {
+    return confirmPasswordReset(auth, oobCode, newPassword)
+  }
+
   return {
     currentUser,
     authLoading,
@@ -119,5 +155,8 @@ export function useAuth() {
     logout,
     resetPassword,
     getSignInMethods,
+    changePassword,
+    verifyResetCode,
+    confirmReset,
   }
 }

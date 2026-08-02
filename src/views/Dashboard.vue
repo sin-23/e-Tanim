@@ -4,7 +4,7 @@
     <!-- Environmental Sensors -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-in" style="animation-delay:100ms">
 
-      <div class="bg-white rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 lg:col-span-1">
+      <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 lg:col-span-1">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-sm font-semibold text-garden-text tracking-tight flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -12,14 +12,13 @@
             </svg>
             Environmental Sensors
           </h2>
-          <span class="text-[10px] text-garden-dim font-semibold bg-[#eef3f0] px-2 py-0.5 rounded-full">DHT22</span>
         </div>
 
         <div class="space-y-3">
           <!-- Temperature -->
-          <div class="flex items-center justify-between p-3 rounded-xl bg-[#fff8ec] border border-[#fde68a]/60">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-garden-warn/10 border-garden-warn/30">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-[#fef3c7] flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-garden-warn/20 flex items-center justify-center flex-shrink-0">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
                 </svg>
@@ -29,15 +28,15 @@
                 <div class="text-[10px] text-garden-dim">Ambient air</div>
               </div>
             </div>
-            <span class="text-lg font-medium text-[#d97706]">
-              {{ averages.temperature !== null ? `${averages.temperature}°C` : '—' }}
+            <span class="text-lg font-medium text-garden-warn">
+              {{ averages.temperature !== null ? `${celsiusToDisplay(averages.temperature)}${unitLabel}` : '—' }}
             </span>
           </div>
 
           <!-- Humidity -->
-          <div class="flex items-center justify-between p-3 rounded-xl bg-[#eff8ff] border border-[#93c5fd]/40">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-garden-sky/10 border-garden-sky/30">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-[#dbeafe] flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-garden-sky/15 flex items-center justify-center flex-shrink-0">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                 </svg>
@@ -47,15 +46,15 @@
                 <div class="text-[10px] text-garden-dim">Relative humidity</div>
               </div>
             </div>
-            <span class="text-lg font-medium text-[#2563eb]">
+            <span class="text-lg font-medium text-garden-sky">
               {{ averages.humidity !== null ? `${averages.humidity}%` : '—' }}
             </span>
           </div>
 
           <!-- Soil moisture -->
-          <div class="flex items-center justify-between p-3 rounded-xl bg-[#f5ede6] border border-[#d97706]/20">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-garden-earth/10 border-garden-earth/30">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-[#fed7aa]/60 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-garden-warn/20 flex items-center justify-center flex-shrink-0">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
                 </svg>
@@ -65,7 +64,7 @@
                 <div class="text-[10px] text-garden-dim">Capacitive probe (avg.)</div>
               </div>
             </div>
-            <span class="text-lg font-medium text-[#8b5e3c]">
+            <span class="text-lg font-medium text-garden-earth">
               {{ averages.moisture !== null ? `${averages.moisture}%` : '—' }}
             </span>
           </div>
@@ -73,7 +72,7 @@
       </div>
 
       <!-- Irrigation Circuit Summary (read-only — controls live on the Irrigation page) -->
-      <div class="bg-white rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 lg:col-span-2">
+      <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-sm font-semibold text-garden-text tracking-tight flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -81,7 +80,7 @@
             </svg>
             Irrigation &amp; Fertilization
           </h2>
-          <span class="text-[10px] font-semibold text-garden-dim bg-[#eef3f0] px-2 py-1 rounded-full">3 Circuits</span>
+          <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">3 Circuits</span>
         </div>
 
         <div class="space-y-2.5">
@@ -89,7 +88,9 @@
             v-for="c in circuits"
             :key="c.id"
             class="flex items-center justify-between p-3 rounded-xl border"
-            :style="{ backgroundColor: c.light, borderColor: c.border }"
+            :class="c.relay
+              ? 'bg-garden-danger/10 border-garden-danger/30'
+              : 'bg-garden-base border-garden-border'"
           >
             <div class="flex items-center gap-2.5">
               <span class="text-lg">{{ c.emoji }}</span>
@@ -101,16 +102,16 @@
             <div class="flex items-center gap-2">
               <span
                 class="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
-                :style="c.relay
-                  ? { backgroundColor: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }
-                  : { backgroundColor: '#f1f5f9', color: '#475569', borderColor: '#cbd5e1' }"
+                :class="c.relay
+                  ? 'bg-garden-danger/15 text-garden-danger border-garden-danger/40'
+                  : 'bg-garden-base text-garden-dim border-garden-border'"
               >{{ c.relay ? 'FORCED ON' : 'AUTO' }}</span>
-              <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: c.relay ? '#22c55e' : '#94a3b8' }" />
+              <div class="w-2 h-2 rounded-full" :class="c.relay ? 'bg-garden-good' : 'bg-garden-muted'" />
             </div>
           </div>
         </div>
 
-        <div class="mt-4 pt-3 border-t border-[#eef3f0] flex items-center justify-between gap-3">
+        <div class="mt-4 pt-3 border-t border-garden-border flex items-center justify-between gap-3">
           <p class="text-[11px] text-garden-dim">
             {{ activePumpMessage }}
           </p>
@@ -126,7 +127,7 @@
     </section>
 
     <!-- Activity Log -->
-    <section class="bg-white rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 max-w-2xl">
+    <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 max-w-2xl">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-semibold text-garden-text tracking-tight flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -151,7 +152,7 @@
         <div
           v-for="log in activityLog"
           :key="log.id"
-          class="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-[#f4f8f5] transition-colors"
+          class="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-garden-base transition-colors"
         >
           <div class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: log.color }" />
           <div class="min-w-0 flex-1">
@@ -171,6 +172,9 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { db } from '@/firebase'
 import { useActivityFeed } from '@/composables/useActivityLog'
+import { useTempUnit } from '@/composables/useTempUnit'
+
+const { unitLabel, celsiusToDisplay } = useTempUnit()
 
 const today = computed(() =>
   new Date().toLocaleDateString('en-PH', {
@@ -230,9 +234,9 @@ onUnmounted(() => {
 })
 
 const circuits = computed(() => [
-  { id: 1, title: 'Water', subtitle: 'Irrigation', emoji: '💧', light: relay1On.value ? '#fef2f2' : '#f8fafc', border: relay1On.value ? '#fca5a5' : '#e2e8f0', relay: relay1On.value },
-  { id: 2, title: 'Compost Leachate', subtitle: 'Fertilizer (FFJ)', emoji: '🧪', light: relay2On.value ? '#fef2f2' : '#f8fafc', border: relay2On.value ? '#fca5a5' : '#e2e8f0', relay: relay2On.value },
-  { id: 3, title: 'Organic Fertilizer', subtitle: 'Fertilizer (Storebought)', emoji: '🌿', light: relay3On.value ? '#fef2f2' : '#f8fafc', border: relay3On.value ? '#fca5a5' : '#e2e8f0', relay: relay3On.value },
+  { id: 1, title: 'Water', subtitle: 'Irrigation', emoji: '💧', relay: relay1On.value },
+  { id: 2, title: 'Compost Leachate', subtitle: 'Fertilizer (FFJ)', emoji: '🧪', relay: relay2On.value },
+  { id: 3, title: 'Organic Fertilizer', subtitle: 'Fertilizer (Storebought)', emoji: '🌿', relay: relay3On.value },
 ])
 
 const activePumpMessage = computed(() => {

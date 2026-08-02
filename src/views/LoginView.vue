@@ -26,7 +26,7 @@
       <div class="relative z-10 flex flex-col h-full p-12">
         <!-- Logo -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-[#2d7a4f] flex items-center justify-center">
+          <div class="w-10 h-10 rounded-xl bg-garden-primary flex items-center justify-center">
             <span class="text-lg">🌱</span>
           </div>
           <div>
@@ -46,29 +46,20 @@
             Monitor soil moisture, automate irrigation, and get AI-powered harvest detection — all from one dashboard.
           </p>
         </div>
-
-        <!-- Bottom sensor strip — live Firebase averages -->
-        <div class="grid grid-cols-3 gap-3">
-          <div v-for="s in sensorStrip" :key="s.label" class="p-3 rounded-xl bg-white/6 border border-white/10">
-            <div class="text-base mb-1">{{ s.icon }}</div>
-            <div class="text-sm font-medium font-mono text-white">{{ s.value }}</div>
-            <div class="text-[10px] text-white/40 font-medium mt-0.5">{{ s.label }}</div>
-          </div>
-        </div>
       </div>
     </div>
 
     <!-- ── Right panel: form ──────────────────────────────────── -->
-    <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-[#f4f8f5]">
+    <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-garden-void">
 
       <!-- Mobile logo -->
       <div class="lg:hidden flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-xl bg-[#2d7a4f] flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-garden-primary flex items-center justify-center">
           <span class="text-lg">🌱</span>
         </div>
         <div>
-          <div class="text-xl font-bold text-[#1a2e22]">e-Tanim</div>
-          <div class="text-[10px] font-semibold tracking-widest uppercase text-[#6b8070]">Smart Garden AI</div>
+          <div class="text-xl font-bold text-garden-text">e-Tanim</div>
+          <div class="text-[10px] font-semibold tracking-widest uppercase text-garden-dim">Smart Garden AI</div>
         </div>
       </div>
 
@@ -77,37 +68,37 @@
         <!-- ── Forgot password sub-view ─────────────────────────── -->
         <template v-if="showForgot">
           <button
-            class="text-xs font-semibold text-[#6b8070] flex items-center gap-1 hover:text-[#1a2e22] transition-colors mb-6"
+            class="text-xs font-semibold text-garden-dim flex items-center gap-1 hover:text-garden-text transition-colors mb-6"
             @click="showForgot = false"
           >
             ← Back to Sign In
           </button>
 
           <div class="mb-6">
-            <h2 class="text-2xl font-semibold text-[#1a2e22] mb-1.5">Reset Password</h2>
-            <p class="text-sm text-[#6b8070] font-medium">Enter your email and we'll send a reset link.</p>
+            <h2 class="text-2xl font-semibold text-garden-text mb-1.5">Reset Password</h2>
+            <p class="text-sm text-garden-dim font-medium">Enter your email and we'll send a reset link.</p>
           </div>
 
           <div class="space-y-4">
             <div>
-              <label class="block text-xs font-medium text-[#1a2e22] mb-1.5">Email address</label>
+              <label class="block text-xs font-medium text-garden-text mb-1.5">Email address</label>
               <input
                 v-model="resetEmail"
                 type="email"
                 placeholder="you@etanim.ph"
-                class="w-full px-4 py-3 rounded-xl border border-[#d8e8de] bg-white text-sm font-semibold
-                       text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none focus:border-[#2d7a4f]
+                class="w-full px-4 py-3 rounded-xl border border-garden-border bg-garden-surface text-sm font-semibold
+                       text-garden-text placeholder:text-garden-dim/50 focus:outline-none focus:border-garden-primary
                        focus:ring-2 focus:ring-[#2d7a4f]/15 transition-all"
                 @keydown.enter="handleReset"
               />
             </div>
 
-            <p v-if="resetMsg" class="text-xs font-semibold" :class="resetError ? 'text-[#dc2626]' : 'text-[#15803d]'">
+            <p v-if="resetMsg" class="text-xs font-semibold" :class="resetError ? 'text-garden-danger' : 'text-garden-good'">
               {{ resetMsg }}
             </p>
 
             <button
-              class="w-full py-3 rounded-xl bg-[#2d7a4f] text-white font-medium text-sm
+              class="w-full py-3 rounded-xl bg-garden-primary text-white font-medium text-sm
                      hover:bg-[#246040] active:bg-[#1d5035] transition-colors shadow-sm
                      disabled:opacity-60 disabled:cursor-not-allowed"
               :disabled="resetLoading || !resetEmail || cooldownRemaining > 0"
@@ -121,22 +112,22 @@
         <!-- ── Login form ────────────────────────────────────────── -->
         <template v-else>
           <div class="mb-8">
-            <h2 class="text-2xl font-semibold text-[#1a2e22] mb-1.5">Welcome back</h2>
-            <p class="text-sm text-[#6b8070] font-medium">Sign in to your garden dashboard</p>
+            <h2 class="text-2xl font-semibold text-garden-text mb-1.5">Welcome back</h2>
+            <p class="text-sm text-garden-dim font-medium">Sign in to your garden dashboard</p>
           </div>
 
           <form class="space-y-4" @submit.prevent="handleEmail">
 
             <!-- Email -->
             <div>
-              <label class="block text-xs font-medium text-[#1a2e22] mb-1.5">Email address</label>
+              <label class="block text-xs font-medium text-garden-text mb-1.5">Email address</label>
               <input
                 v-model="email"
                 type="email"
                 autocomplete="email"
                 placeholder="you@etanim.ph"
-                class="w-full px-4 py-3 rounded-xl border border-[#d8e8de] bg-white text-sm font-semibold
-                       text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none focus:border-[#2d7a4f]
+                class="w-full px-4 py-3 rounded-xl border border-garden-border bg-garden-surface text-sm font-semibold
+                       text-garden-text placeholder:text-garden-dim/50 focus:outline-none focus:border-garden-primary
                        focus:ring-2 focus:ring-[#2d7a4f]/15 transition-all"
               />
             </div>
@@ -144,10 +135,10 @@
             <!-- Password -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label class="block text-xs font-medium text-[#1a2e22]">Password</label>
+                <label class="block text-xs font-medium text-garden-text">Password</label>
                 <button
                   type="button"
-                  class="text-xs font-semibold text-[#2d7a4f] hover:text-[#246040] transition-colors"
+                  class="text-xs font-semibold text-garden-primary hover:text-garden-primary/80 transition-colors"
                   @click="showForgot = true"
                 >
                   Forgot password?
@@ -159,14 +150,14 @@
                   :type="showPassword ? 'text' : 'password'"
                   autocomplete="current-password"
                   placeholder="••••••••"
-                  class="w-full px-4 py-3 pr-11 rounded-xl border border-[#d8e8de] bg-white text-sm font-semibold
-                         text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none focus:border-[#2d7a4f]
+                  class="w-full px-4 py-3 pr-11 rounded-xl border border-garden-border bg-garden-surface text-sm font-semibold
+                         text-garden-text placeholder:text-garden-dim/50 focus:outline-none focus:border-garden-primary
                          focus:ring-2 focus:ring-[#2d7a4f]/15 transition-all"
                 />
                 <button
                   type="button"
                   tabindex="-1"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-[#6b8070] hover:text-[#2d7a4f] transition-colors p-1"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-garden-dim hover:text-garden-primary transition-colors p-1"
                   @click="showPassword = !showPassword"
                 >
                   <svg v-if="showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -181,18 +172,18 @@
             </div>
 
             <!-- Error -->
-            <div v-if="errorMsg" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#fee2e2] border border-[#fca5a5]">
+            <div v-if="errorMsg" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-garden-danger/10 border border-garden-danger/40">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              <span class="text-xs font-semibold text-[#991b1b]">{{ errorMsg }}</span>
+              <span class="text-xs font-semibold text-garden-danger">{{ errorMsg }}</span>
             </div>
 
             <!-- Submit -->
             <button
               type="submit"
               :disabled="loading || !email || !password"
-              class="w-full py-3 rounded-xl bg-[#2d7a4f] text-white font-medium text-sm
+              class="w-full py-3 rounded-xl bg-garden-primary text-white font-medium text-sm
                      hover:bg-[#246040] active:bg-[#1d5035] transition-colors shadow-sm
                      disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
             >
@@ -205,17 +196,17 @@
 
           <!-- Divider -->
           <div class="flex items-center gap-3 my-5">
-            <div class="flex-1 h-px bg-[#d8e8de]" />
-            <span class="text-[10px] font-semibold text-[#6b8070] uppercase tracking-widest">or</span>
-            <div class="flex-1 h-px bg-[#d8e8de]" />
+            <div class="flex-1 h-px bg-garden-border" />
+            <span class="text-[10px] font-semibold text-garden-dim uppercase tracking-widest">or</span>
+            <div class="flex-1 h-px bg-garden-border" />
           </div>
 
           <!-- Google sign-in -->
           <button
             type="button"
             :disabled="loading"
-            class="w-full py-3 rounded-xl border border-[#d8e8de] bg-white text-[#1a2e22] font-medium text-sm
-                   hover:bg-[#eef3f0] hover:border-[#2d7a4f]/40 transition-colors flex items-center
+            class="w-full py-3 rounded-xl border border-garden-border bg-garden-surface text-garden-text font-medium text-sm
+                   hover:bg-garden-base hover:border-garden-primary/40 transition-colors flex items-center
                    justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             @click="handleGoogle"
           >
@@ -229,9 +220,9 @@
           </button>
 
           <!-- Register link -->
-          <p class="text-center text-[11px] text-[#6b8070] mt-6">
+          <p class="text-center text-[11px] text-garden-dim mt-6">
             Don't have an account?
-            <router-link to="/register" class="font-semibold text-[#2d7a4f] hover:underline">Create account →</router-link>
+            <router-link to="/register" class="font-semibold text-garden-primary hover:underline">Create account →</router-link>
           </p>
         </template>
 
@@ -253,7 +244,25 @@ const RESEND_COOLDOWN_MS = 60 * 1000
 
 const router = useRouter()
 const route  = useRoute()
-const { loginWithEmail, loginWithGoogle, resetPassword } = useAuth()
+const { loginWithEmail, loginWithGoogle, resetPassword, currentUser } = useAuth()
+
+// signInWith*() promises can resolve slightly before Firebase's
+// onAuthStateChanged listener (in useAuth.js) actually updates
+// `currentUser` — IndexedDB persistence writes add a small delay on the
+// first sign-in. Without waiting for that, redirectAfterLogin() pushes to
+// /dashboard while the router guard still sees currentUser as null, gets
+// bounced to /login, and only "arrives" once currentUser catches up —
+// which looks like the app stalled before loading. Waiting here keeps the
+// spinner running through that gap instead.
+function waitForCurrentUser(timeoutMs = 5000) {
+  if (currentUser.value) return Promise.resolve()
+  return new Promise((resolve) => {
+    const stop = watch(currentUser, (user) => {
+      if (user) { stop(); resolve() }
+    })
+    setTimeout(() => { stop(); resolve() }, timeoutMs)
+  })
+}
 
 const email        = ref('')
 const password     = ref('')
@@ -350,6 +359,10 @@ function friendlyError(code) {
     'auth/network-request-failed': 'Network error. Check your connection.',
     'auth/popup-closed-by-user':   'Google sign-in was cancelled.',
     'auth/invalid-credential':     'Incorrect email or password.',
+    'auth/quota-exceeded':         'Email sending quota exceeded for this project. Try again later.',
+    'auth/unauthorized-continue-uri': 'This domain isn\'t authorized in Firebase (Authentication → Settings → Authorized domains).',
+    'auth/operation-not-allowed':  'Email/Password sign-in isn\'t enabled for this project (Authentication → Sign-in method).',
+    'auth/internal-error':        'Firebase reported an internal error. Check the console for details.',
   }
   return map[code] ?? 'Something went wrong. Please try again.'
 }
@@ -365,6 +378,7 @@ async function handleEmail() {
   loading.value  = true
   try {
     await loginWithEmail(email.value, password.value)
+    await waitForCurrentUser()
     redirectAfterLogin()
   } catch (err) {
     errorMsg.value = friendlyError(err.code)
@@ -379,6 +393,7 @@ async function handleGoogle() {
   loading.value  = true
   try {
     await loginWithGoogle()
+    await waitForCurrentUser()
     redirectAfterLogin()
   } catch (err) {
     errorMsg.value = friendlyError(err.code)
@@ -424,6 +439,9 @@ async function handleReset() {
   } catch (err) {
     // Firebase intentionally returns success-shaped behavior for unknown
     // emails on some configs; still map known error codes if they surface.
+    // Logged so the real Firebase error code/message is visible in devtools
+    // instead of only the generic user-facing text below.
+    console.error('resetPassword failed:', err.code, err.message)
     resetError.value = true
     resetMsg.value   = friendlyError(err.code)
   } finally {

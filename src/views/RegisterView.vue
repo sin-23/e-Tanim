@@ -26,7 +26,7 @@
       <div class="relative z-10 flex flex-col h-full p-12">
         <!-- Logo -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-[#2d7a4f] flex items-center justify-center">
+          <div class="w-10 h-10 rounded-xl bg-garden-primary flex items-center justify-center">
             <span class="text-lg">🌱</span>
           </div>
           <div>
@@ -50,50 +50,50 @@
     </div>
 
     <!-- ── Right panel: form ──────────────────────────────────── -->
-    <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-[#f4f8f5]">
+    <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-garden-void">
 
       <!-- Mobile logo -->
       <div class="lg:hidden flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-xl bg-[#2d7a4f] flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-garden-primary flex items-center justify-center">
           <span class="text-lg">🌱</span>
         </div>
         <div>
-          <div class="text-xl font-bold text-[#1a2e22]">e-Tanim</div>
-          <div class="text-[10px] font-semibold tracking-widest uppercase text-[#6b8070]">Smart Garden AI</div>
+          <div class="text-xl font-bold text-garden-text">e-Tanim</div>
+          <div class="text-[10px] font-semibold tracking-widest uppercase text-garden-dim">Smart Garden AI</div>
         </div>
       </div>
 
       <!-- ── Success state ────────────────────────────────────── -->
       <div
         v-if="success"
-        class="w-full max-w-sm rounded-2xl p-8 text-center space-y-4 border bg-white"
-        style="border-color: #d8e8de; box-shadow: 0 8px 40px rgba(45,122,79,0.08)"
+        class="w-full max-w-sm rounded-2xl p-8 text-center space-y-4 border bg-garden-surface"
+        style="border-color: rgb(var(--garden-border)); box-shadow: 0 8px 40px rgba(45,122,79,0.08)"
       >
         <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto border"
              style="background: rgba(45,122,79,0.08); border-color: rgba(45,122,79,0.25)">
           ✓
         </div>
         <div>
-          <h2 class="text-xl font-semibold text-[#1a2e22] mb-1">Account Created</h2>
-          <p class="text-sm text-[#6b8070]">You're logged in and ready to use the dashboard.</p>
+          <h2 class="text-xl font-semibold text-garden-text mb-1">Account Created</h2>
+          <p class="text-sm text-garden-dim">You're logged in and ready to use the dashboard.</p>
         </div>
-        <p class="text-xs font-mono text-[#9bb5aa]">Redirecting to dashboard…</p>
-        <div class="h-1 w-full rounded-full overflow-hidden bg-[#d8e8de]">
-          <div class="h-full rounded-full bg-[#2d7a4f]" style="animation: progress 2.2s ease-in-out forwards" />
+        <p class="text-xs font-mono text-garden-dim">Redirecting to dashboard…</p>
+        <div class="h-1 w-full rounded-full overflow-hidden bg-garden-border">
+          <div class="h-full rounded-full bg-garden-primary" style="animation: progress 2.2s ease-in-out forwards" />
         </div>
       </div>
 
       <!-- ── Registration form ────────────────────────────────── -->
       <div v-else class="w-full max-w-sm">
         <div class="mb-8">
-          <h2 class="text-2xl font-semibold text-[#1a2e22] mb-1.5">Create Account</h2>
-          <p class="text-sm font-medium text-[#6b8070]">Sensor Dashboard · e-Tanim</p>
+          <h2 class="text-2xl font-semibold text-garden-text mb-1.5">Create Account</h2>
+          <p class="text-sm font-medium text-garden-dim">Sensor Dashboard · e-Tanim</p>
         </div>
 
         <!-- Google -->
         <button
-          class="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-[#d8e8de]
-                 bg-white text-[#1a2e22] font-medium text-sm hover:bg-[#eef3f0] hover:border-[#2d7a4f]/40
+          class="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-garden-border
+                 bg-garden-surface text-garden-text font-medium text-sm hover:bg-garden-base hover:border-garden-primary/40
                  transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           :disabled="loading"
           @click="handleGoogle"
@@ -109,9 +109,9 @@
 
         <!-- Divider -->
         <div class="flex items-center gap-3 mb-5">
-          <div class="flex-1 h-px bg-[#d8e8de]" />
-          <span class="text-[10px] font-semibold text-[#6b8070] uppercase tracking-widest">or</span>
-          <div class="flex-1 h-px bg-[#d8e8de]" />
+          <div class="flex-1 h-px bg-garden-border" />
+          <span class="text-[10px] font-semibold text-garden-dim uppercase tracking-widest">or</span>
+          <div class="flex-1 h-px bg-garden-border" />
         </div>
 
         <!-- Fields -->
@@ -119,61 +119,61 @@
 
           <!-- Display name -->
           <div>
-            <label class="block text-xs font-medium text-[#1a2e22] mb-1.5">Display Name</label>
+            <label class="block text-xs font-medium text-garden-text mb-1.5">Display Name</label>
             <input
               v-model="displayName"
               type="text"
               autocomplete="name"
               placeholder="Your name"
               maxlength="64"
-              class="w-full px-4 py-3 rounded-xl border bg-white text-sm font-semibold
-                     text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none
+              class="w-full px-4 py-3 rounded-xl border bg-garden-surface text-sm font-semibold
+                     text-garden-text placeholder:text-garden-dim/50 focus:outline-none
                      focus:ring-2 transition-all"
               :class="fieldBorderClass(v$.displayName)"
               @blur="v$.displayName.$touch()"
             />
-            <p v-if="v$.displayName.$error" class="mt-1 text-xs text-[#dc2626]">
+            <p v-if="v$.displayName.$error" class="mt-1 text-xs text-garden-danger">
               {{ v$.displayName.$errors[0].$message }}
             </p>
           </div>
 
           <!-- Email -->
           <div>
-            <label class="block text-xs font-medium text-[#1a2e22] mb-1.5">Email</label>
+            <label class="block text-xs font-medium text-garden-text mb-1.5">Email</label>
             <input
               v-model="email"
               type="email"
               autocomplete="email"
               placeholder="you@example.com"
-              class="w-full px-4 py-3 rounded-xl border bg-white text-sm font-semibold
-                     text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none
+              class="w-full px-4 py-3 rounded-xl border bg-garden-surface text-sm font-semibold
+                     text-garden-text placeholder:text-garden-dim/50 focus:outline-none
                      focus:ring-2 transition-all"
               :class="fieldBorderClass(v$.email)"
               @blur="v$.email.$touch()"
             />
-            <p v-if="v$.email.$error" class="mt-1 text-xs text-[#dc2626]">
+            <p v-if="v$.email.$error" class="mt-1 text-xs text-garden-danger">
               {{ v$.email.$errors[0].$message }}
             </p>
           </div>
 
           <!-- Password with strength meter -->
           <div>
-            <label class="block text-xs font-medium text-[#1a2e22] mb-1.5">Password</label>
+            <label class="block text-xs font-medium text-garden-text mb-1.5">Password</label>
             <div class="relative">
               <input
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="new-password"
                 placeholder="At least 8 characters"
-                class="w-full px-4 py-3 pr-14 rounded-xl border bg-white text-sm font-semibold
-                       text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none
+                class="w-full px-4 py-3 pr-14 rounded-xl border bg-garden-surface text-sm font-semibold
+                       text-garden-text placeholder:text-garden-dim/50 focus:outline-none
                        focus:ring-2 transition-all"
                 :class="fieldBorderClass(v$.password)"
                 @blur="v$.password.$touch()"
               />
               <button
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium
-                       text-[#6b8070] hover:text-[#1a2e22] transition-colors"
+                       text-garden-dim hover:text-garden-text transition-colors"
                 type="button"
                 tabindex="-1"
                 @click="showPassword = !showPassword"
@@ -188,47 +188,49 @@
                 v-for="n in 4"
                 :key="n"
                 class="flex-1 h-1 rounded-full transition-all duration-300"
-                :style="{ background: (password && n <= passwordStrength) ? STRENGTH_COLORS[passwordStrength] : '#d8e8de' }"
+                :style="{ background: (password && n <= passwordStrength) ? STRENGTH_COLORS[passwordStrength] : 'rgb(var(--garden-border))' }"
               />
             </div>
             <p v-if="password" class="mt-1 text-[10px] font-mono" :style="{ color: STRENGTH_COLORS[passwordStrength] }">
               {{ strengthLabel }}
             </p>
 
-            <p v-if="v$.password.$error" class="mt-1 text-xs text-[#dc2626]">
+            <p v-if="v$.password.$error" class="mt-1 text-xs text-garden-danger">
               {{ v$.password.$errors[0].$message }}
             </p>
           </div>
 
           <!-- Confirm password -->
           <div>
-            <label class="block text-xs font-medium text-[#1a2e22] mb-1.5">Confirm Password</label>
+            <label class="block text-xs font-medium text-garden-text mb-1.5">Confirm Password</label>
             <input
               v-model="confirmPassword"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="new-password"
               placeholder="Re-enter password"
-              class="w-full px-4 py-3 rounded-xl border bg-white text-sm font-semibold
-                     text-[#1a2e22] placeholder:text-[#b0bfb8] focus:outline-none
+              class="w-full px-4 py-3 rounded-xl border bg-garden-surface text-sm font-semibold
+                     text-garden-text placeholder:text-garden-dim/50 focus:outline-none
                      focus:ring-2 transition-all"
               :class="fieldBorderClass(v$.confirmPassword)"
               @blur="v$.confirmPassword.$touch()"
               @keydown.enter="handleRegister"
             />
-            <p v-if="v$.confirmPassword.$error" class="mt-1 text-xs text-[#dc2626]">
+            <p v-if="v$.confirmPassword.$error" class="mt-1 text-xs text-garden-danger">
               {{ v$.confirmPassword.$errors[0].$message }}
             </p>
           </div>
         </div>
 
         <!-- Server error -->
-        <p v-if="serverError" class="mt-3 text-xs text-[#dc2626]">{{ serverError }}</p>
+        <p v-if="serverError" class="mt-3 text-xs text-garden-danger">{{ serverError }}</p>
 
         <!-- Submit -->
         <button
-          class="w-full py-3 rounded-xl text-white font-medium text-sm transition-colors
-                 disabled:opacity-50 disabled:cursor-not-allowed mt-5"
-          :style="loading ? { background: '#d8e8de', color: '#6b8070' } : { background: '#1a2e22', color: '#fff' }"
+          class="w-full py-3 rounded-xl font-medium text-sm transition-colors
+                 disabled:cursor-not-allowed mt-5"
+          :class="loading
+            ? 'bg-garden-base text-garden-dim opacity-70'
+            : 'bg-garden-text text-garden-void'"
           :disabled="loading || v$.$invalid"
           @click="handleRegister"
         >
@@ -236,9 +238,9 @@
         </button>
 
         <!-- Sign in link -->
-        <p class="text-center text-[11px] text-[#6b8070] mt-6">
+        <p class="text-center text-[11px] text-garden-dim mt-6">
           Already have an account?
-          <router-link to="/login" class="font-semibold text-[#2d7a4f] hover:underline">Sign in</router-link>
+          <router-link to="/login" class="font-semibold text-garden-primary hover:underline">Sign in</router-link>
         </p>
       </div>
     </div>
@@ -306,10 +308,10 @@ const v$ = useVuelidate(rules, { displayName, email, password, confirmPassword }
 // ── Field border helper ───────────────────────────────────────────────────────
 function fieldBorderClass(field) {
   if (!field.$dirty)
-    return 'border-[#d8e8de] focus:border-[#2d7a4f] focus:ring-[#2d7a4f]/15'
+    return 'border-garden-border focus:border-garden-primary focus:ring-[#2d7a4f]/15'
   if (field.$error)
-    return 'border-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]/15'
-  return 'border-[#2d7a4f]/50 focus:border-[#2d7a4f] focus:ring-[#2d7a4f]/15'
+    return 'border-garden-danger focus:border-garden-danger focus:ring-garden-danger/15'
+  return 'border-garden-primary/50 focus:border-garden-primary focus:ring-garden-primary/15'
 }
 
 // ── Password strength ─────────────────────────────────────────────────────────

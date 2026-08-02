@@ -1,6 +1,6 @@
 <template>
   <article
-    class="bg-white rounded-2xl border shadow-sm overflow-hidden
+    class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden
            transition-all duration-500 animate-slide-up"
     :style="{ borderColor: plantColorBorder, animationDelay: `${delay}ms` }"
   >
@@ -70,8 +70,8 @@
         <!-- Temperature + Humidity stats -->
         <div class="grid grid-cols-2 gap-2">
           <SensorStat
-            :value="zone.sensors.temperature"
-            unit="°C"
+            :value="celsiusToDisplay(zone.sensors.temperature)"
+            :unit="unitLabel"
             label="Temperature"
             :color="plantColor"
             :status="tempStatus"
@@ -106,6 +106,10 @@ import { computed } from 'vue'
 import SensorGauge from './SensorGauge.vue'
 import SensorStat  from './SensorStat.vue'
 import { getSensorStatus } from '@/composables/useSensorData'
+import { isDarkMode } from '@/composables/useDarkMode'
+import { useTempUnit } from '@/composables/useTempUnit'
+
+const { unitLabel, celsiusToDisplay } = useTempUnit()
 
 const props = defineProps({
   zone:  { type: Object, required: true },
@@ -114,13 +118,25 @@ const props = defineProps({
 
 // ── Plant colour map (matches Figma pump zone colors) ──────────────────────
 const COLOR_MAP = {
-  tomato:   { main: '#dc2626', border: '#fca5a5' },
-  okra:     { main: '#2d7a4f', border: '#86efac' },
-  eggplant: { main: '#7c3aed', border: '#c4b5fd' },
+  tomato:   { main: '#dc2626' },
+  okra:     { main: '#2d7a4f' },
+  eggplant: { main: '#7c3aed' },
 }
 
-const plantColor       = computed(() => COLOR_MAP[props.zone.colorKey]?.main   ?? '#2d7a4f')
-const plantColorBorder = computed(() => COLOR_MAP[props.zone.colorKey]?.border ?? '#d8e8de')
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`
+}
+
+const plantColor = computed(() => COLOR_MAP[props.zone.colorKey]?.main ?? '#2d7a4f')
+
+// Previously a fixed bright pastel hex (e.g. #fca5a5) regardless of theme —
+// far too intense against the dark surface. Blending the same accent color
+// at low alpha keeps each zone's identity while staying subtle in both
+// modes, and dialed back further in dark mode where it read as a glow.
+const plantColorBorder = computed(() =>
+  `rgba(${hexToRgb(plantColor.value)}, ${isDarkMode.value ? 0.35 : 0.55})`
+)
 
 // ── Sensor status ──────────────────────────────────────────────────────────
 const { thresholds } = props.zone
@@ -150,7 +166,7 @@ const overallHealth = computed(() => {
 })
 
 const OVERALL_MAP = {
-  warn:    { icon: '⚠️', msg: 'One or more readings below optimal', strip: 'bg-[#fff7ed] border border-[#fed7aa]', text: 'text-[#9a3412]' },
+  warn:    { icon: '⚠️', msg: 'One or more readings below optimal', strip: 'bg-garden-warn/10 border-garden-warn/30', text: 'text-garden-warn' },
   danger:  { icon: '🔴', msg: 'Reading exceeds safe threshold',      strip: 'bg-garden-danger/5 border border-garden-danger/20', text: 'text-garden-danger' },
   unknown: { icon: '·',  msg: 'Waiting for sensor data',             strip: 'bg-garden-muted/5 border border-garden-border', text: 'text-garden-dim' },
 }

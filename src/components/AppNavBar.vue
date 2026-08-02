@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-10 bg-white border-b border-garden-border px-4 lg:px-6 py-3 flex items-center gap-3">
+  <header class="sticky top-0 z-10 bg-garden-surface border-b border-garden-border px-4 lg:px-6 py-3 flex items-center gap-3">
 
     <!-- Mobile menu button -->
     <button
@@ -101,6 +101,7 @@ const { currentUser, isLoggedIn, logout } = useAuth()
 const PAGE_TITLES = {
   dashboard:  'Dashboard Overview',
   irrigation: 'Irrigation & Fertilization',
+  settings:   'Settings',
 }
 const pageTitle = computed(() => PAGE_TITLES[route.name] || 'Dashboard Overview')
 

@@ -14,7 +14,7 @@
         :cx="cx" :cy="cy" :r="r"
         fill="none"
         :stroke-width="strokeWidth"
-        stroke="#e8f5ee"
+        stroke="rgb(var(--garden-border))"
         stroke-linecap="round"
       />
       <!-- Value arc -->
@@ -46,7 +46,7 @@
         :x="cx" :y="cy + valueFontSize * 0.85"
         text-anchor="middle"
         dominant-baseline="middle"
-        fill="#6B8070"
+        fill="rgb(var(--garden-dim))"
         :font-size="unitFontSize"
         font-family="'Nunito', sans-serif"
         font-weight="400"

@@ -1,15 +1,15 @@
 <template>
   <!-- ── Viewer read-only state ───────────────────────────────────────────── -->
-  <div v-if="readonly" class="bg-white rounded-2xl border shadow-sm overflow-hidden" :style="{ borderColor: accentBorder }">
+  <div v-if="readonly" class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden" :style="{ borderColor: accentBorder }">
     <div class="h-1" :style="{ backgroundColor: accent }" />
     <div class="p-4 space-y-3">
       <div class="flex items-center justify-between">
         <span class="text-[10px] font-medium uppercase tracking-widest text-garden-dim">Relay Status</span>
         <span
           class="px-2.5 py-1 rounded-full text-[10px] font-semibold border"
-          :style="relayOn
-            ? { backgroundColor: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }
-            : { backgroundColor: '#eef3f0', color: '#6b8070', borderColor: '#d8e8de' }"
+          :class="relayOn
+            ? 'bg-garden-danger/15 text-garden-danger border-garden-danger/40'
+            : 'bg-garden-base text-garden-dim border-garden-border'"
         >{{ relayOn ? 'ACTIVE' : 'INACTIVE' }}</span>
       </div>
       <p class="text-[11px] text-garden-dim leading-snug">
@@ -21,7 +21,7 @@
   </div>
 
   <!-- ── Admin full control ───────────────────────────────────────────────── -->
-  <div v-else class="bg-white rounded-2xl border shadow-sm overflow-hidden" :style="{ borderColor: accentBorder }">
+  <div v-else class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden" :style="{ borderColor: accentBorder }">
     <!-- Top accent strip -->
     <div class="h-1" :style="{ backgroundColor: accent }" />
 
@@ -37,7 +37,7 @@
         <div class="flex items-center gap-2 flex-shrink-0">
           <span
             class="px-2.5 py-1 rounded-full text-[10px] font-semibold border"
-            :style="modePillStyle"
+            :class="modePillClass"
           >{{ relayOn ? 'FORCED ON' : (props.showThresholdSettings ? 'AUTO' : 'OFF') }}</span>
           <button
             v-if="props.showThresholdSettings"
@@ -56,11 +56,11 @@
       <!-- ── FORCED ON body ─────────────────────────────────────────────── -->
       <div v-if="relayOn" class="space-y-3">
         <!-- Countdown -->
-        <div v-if="countdown > 0" class="flex flex-col items-center py-3 rounded-xl bg-[#fee2e2] border border-[#fca5a5]">
-          <div class="text-[10px] font-medium tracking-widest uppercase text-[#dc2626]/70 mb-1">
+        <div v-if="countdown > 0" class="flex flex-col items-center py-3 rounded-xl bg-garden-danger/10 border border-garden-danger/40">
+          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-danger/70 mb-1">
             Auto-Off In
           </div>
-          <div class="text-4xl font-bold font-mono text-[#dc2626] tracking-tight">
+          <div class="text-4xl font-bold font-mono text-garden-danger tracking-tight">
             {{ formattedCountdown }}
           </div>
         </div>
@@ -76,11 +76,11 @@
         </button>
 
         <!-- Warning strip -->
-        <div class="flex items-start gap-2 p-2.5 rounded-xl bg-[#fff7ed] border border-[#fed7aa]">
+        <div class="flex items-start gap-2 p-2.5 rounded-xl bg-garden-warn/10 border-garden-warn/30">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <p class="text-[11px] text-[#9a3412] font-semibold leading-snug">
+          <p class="text-[11px] text-garden-warn font-semibold leading-snug">
             {{ props.showThresholdSettings
               ? 'Relay is active. ESP32 is ignoring temperature thresholds.'
               : 'Relay is active and will turn off automatically after the countdown.' }}
@@ -99,7 +99,7 @@
                 v-model.number="inputMinutes"
                 type="number" min="0" max="99" placeholder="0"
                 class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-medium font-mono
-                       text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary
+                       text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary
                        focus:ring-2 focus:ring-garden-primary/20 transition"
               />
               <span class="text-xs font-medium text-garden-dim flex-shrink-0">MIN</span>
@@ -110,7 +110,7 @@
                 v-model.number="inputSeconds"
                 type="number" min="0" max="59" placeholder="0"
                 class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-medium font-mono
-                       text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary
+                       text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary
                        focus:ring-2 focus:ring-garden-primary/20 transition"
               />
               <span class="text-xs font-medium text-garden-dim flex-shrink-0">SEC</span>
@@ -141,7 +141,7 @@
     <Teleport to="body">
       <div v-if="showWarningModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeWarning">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xs border border-[#fca5a5] z-10" @click.stop>
+        <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-danger/40 z-10" @click.stop>
           <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border">
             <h3 class="text-base font-semibold text-garden-text">⚠️ Unfavorable Conditions</h3>
             <button
@@ -156,7 +156,7 @@
                 🌱 Soil Moisture: {{ sensorValues.moisture }}% (above {{ getComputedWarningThresholds().moistureWarn }}%)
               </li>
               <li v-if="warningReasons.temperature" class="text-xs font-mono text-garden-danger">
-                🌡️ Temperature: {{ sensorValues.temperature }}°C (below {{ getComputedWarningThresholds().temperatureWarn }}°C)
+                🌡️ Temperature: {{ celsiusToDisplay(sensorValues.temperature) }}{{ unitLabel }} (below {{ celsiusToDisplay(getComputedWarningThresholds().temperatureWarn) }}{{ unitLabel }})
               </li>
               <li v-if="warningReasons.humidity" class="text-xs font-mono text-garden-danger">
                 💧 Humidity: {{ sensorValues.humidity }}% (above {{ getComputedWarningThresholds().humidityWarn }}%)
@@ -165,7 +165,7 @@
             <p class="text-sm text-garden-dim italic">Proceed anyway?</p>
           </div>
           <div class="flex gap-2.5 px-5 pb-5">
-            <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-white text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeWarning">Cancel</button>
+            <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-garden-surface text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeWarning">Cancel</button>
             <button class="flex-1 py-2.5 rounded-xl bg-[#dc2626] text-white font-semibold text-sm hover:bg-[#b91c1c] transition" @click="proceedOverride">Proceed</button>
           </div>
         </div>
@@ -176,8 +176,8 @@
     <Teleport to="body">
       <div v-if="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeSettings">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xs border border-garden-border z-10 max-h-[85vh] overflow-y-auto" @click.stop>
-          <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border sticky top-0 bg-white">
+        <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-border z-10 max-h-[85vh] overflow-y-auto" @click.stop>
+          <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border sticky top-0 bg-garden-surface">
             <div>
               <div class="text-[10px] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
               <h3 class="text-base font-semibold text-garden-text">Threshold Settings — Pump {{ props.pumpNumber }}</h3>
@@ -194,14 +194,14 @@
               <div class="space-y-3">
                 <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Temperature</h4>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">Temp ON (°C) — relay turns on above this</label>
-                  <input v-model.number="editThresholds.tempOn" type="number" step="0.5"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary" />
+                  <label class="text-xs font-semibold text-garden-text block">Temp ON ({{ unitLabel }}) — relay turns on above this</label>
+                  <input v-model.number="tempOnDisplay" type="number" step="0.5"
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">Temp OFF (°C) — relay turns off below this</label>
-                  <input v-model.number="editThresholds.tempOff" type="number" step="0.5"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary" />
+                  <label class="text-xs font-semibold text-garden-text block">Temp OFF ({{ unitLabel }}) — relay turns off below this</label>
+                  <input v-model.number="tempOffDisplay" type="number" step="0.5"
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
               </div>
 
@@ -210,17 +210,17 @@
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">Moisture ON (%) — relay turns on when soil drops below this</label>
                   <input v-model.number="editThresholds.moistureOn" type="number" min="0" max="100"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary" />
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">Moisture OFF (%) — relay turns off when soil rises above this</label>
                   <input v-model.number="editThresholds.moistureOff" type="number" min="0" max="100"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary" />
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
               </div>
 
-              <div class="rounded-xl bg-[#dcfce7] border border-[#86efac] p-3">
-                <p class="text-xs text-[#15803d] leading-snug">ⓘ Warning thresholds are automatically set to ON thresholds. Warnings show when soil moisture or temperature are unfavorable during manual override.</p>
+              <div class="rounded-xl bg-garden-good/10 border-garden-good/30 p-3">
+                <p class="text-xs text-garden-good leading-snug">ⓘ Warning thresholds are automatically set to ON thresholds. Warnings show when soil moisture or temperature are unfavorable during manual override.</p>
               </div>
             </template>
 
@@ -231,20 +231,20 @@
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">TDS ON — relay turns on below this value</label>
                   <input v-model.number="editThresholds.tdsOn" type="number" min="0"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary" />
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">TDS OFF — relay turns off above this value</label>
                   <input v-model.number="editThresholds.tdsOff" type="number" min="0"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-[#f4f8f5] focus:outline-none focus:border-garden-primary" />
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
               </div>
             </template>
           </div>
 
-          <div class="flex gap-2 px-5 pb-5 sticky bottom-0 bg-white pt-2">
-            <button class="px-3 py-2.5 rounded-xl bg-[#f59e0b] text-white font-medium text-xs hover:opacity-85 transition" @click="resetThresholds">↺ Reset</button>
-            <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-white text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeSettings">Cancel</button>
+          <div class="flex gap-2 px-5 pb-5 sticky bottom-0 bg-garden-surface pt-2">
+            <button class="px-3 py-2.5 rounded-xl bg-garden-warn text-white font-medium text-xs hover:opacity-85 transition" @click="resetThresholds">↺ Reset</button>
+            <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-garden-surface text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeSettings">Cancel</button>
             <button class="flex-1 py-2.5 rounded-xl text-white font-medium text-sm hover:opacity-90 transition" :style="{ backgroundColor: accent }" @click="saveThresholds">Save</button>
           </div>
         </div>
@@ -258,6 +258,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { db }                                     from '@/firebase'
 import { ref as dbRef, set, update, onValue, get, off } from 'firebase/database'
 import { logActivity } from '@/composables/useActivityLog'
+import { isDarkMode }  from '@/composables/useDarkMode'
+import { useTempUnit } from '@/composables/useTempUnit'
+
+const { unitLabel, celsiusToDisplay, displayToCelsius } = useTempUnit()
 
 const props = defineProps({
   currentMoisture:       { type: Number, default: null },
@@ -271,13 +275,20 @@ const props = defineProps({
   pumpNumber:            { type: Number, default: 1 },
 })
 
-// Accent color per pump (matches Figma's per-zone accent pattern)
+// Accent color per pump (matches Figma's per-zone accent pattern).
+// accentBorder used to be a fixed bright pastel (#86efac / #93c5fd) that
+// was way too intense on the dark surface — alpha-blend the same accent
+// instead, dialed back further in dark mode.
 const accent       = computed(() => props.pumpNumber === 1 ? '#2d7a4f' : '#3b9dd2')
-const accentBorder = computed(() => props.pumpNumber === 1 ? '#86efac' : '#93c5fd')
-const modePillStyle = computed(() => {
-  if (relayOn.value) return { backgroundColor: '#fee2e2', color: '#991b1b', borderColor: '#fca5a5' }
-  if (props.showThresholdSettings) return { backgroundColor: '#dcfce7', color: '#15803d', borderColor: '#86efac' }
-  return { backgroundColor: '#eef3f0', color: '#6b8070', borderColor: '#d8e8de' }
+const accentBorder = computed(() =>
+  props.pumpNumber === 1
+    ? `rgba(45, 122, 79, ${isDarkMode.value ? 0.35 : 0.55})`
+    : `rgba(59, 157, 210, ${isDarkMode.value ? 0.35 : 0.55})`
+)
+const modePillClass = computed(() => {
+  if (relayOn.value) return 'bg-garden-danger/15 text-garden-danger border-garden-danger/40'
+  if (props.showThresholdSettings) return 'bg-garden-good/15 text-garden-good border-garden-good/40'
+  return 'bg-garden-base text-garden-dim border-garden-border'
 })
 
 // State
@@ -308,6 +319,19 @@ const defaultPump2Thresholds = {
 
 const thresholds = ref(props.pumpNumber === 1 ? { ...defaultPump1Thresholds } : { ...defaultPump2Thresholds })
 const editThresholds = ref({ ...thresholds.value })
+
+// editThresholds.tempOn/tempOff always stay in Celsius (that's what's saved
+// to Firebase and compared against by the ESP32). These give the inputs a
+// view/edit surface in whichever unit the user picked, converting back to
+// Celsius on write.
+const tempOnDisplay = computed({
+  get: () => celsiusToDisplay(editThresholds.value.tempOn),
+  set: (value) => { editThresholds.value.tempOn = displayToCelsius(value) },
+})
+const tempOffDisplay = computed({
+  get: () => celsiusToDisplay(editThresholds.value.tempOff),
+  set: (value) => { editThresholds.value.tempOff = displayToCelsius(value) },
+})
 
 let unsubscribe    = null
 let countdownTimer = null

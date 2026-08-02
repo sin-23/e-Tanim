@@ -3,10 +3,15 @@ import { createApp }    from 'vue'
 import './style.css'
 import App              from './App.vue'
 import router           from './router'
-import { initAuth }     from './auth/useAuth'
-import { isConfigured } from './firebase'
+import { initAuth }      from './auth/useAuth'
+import { isConfigured }  from './firebase'
+import { initDarkMode }  from './composables/useDarkMode'
+import { initTempUnit }  from './composables/useTempUnit'
 
 async function bootstrap() {
+  initDarkMode()
+  initTempUnit()
+
   const app = createApp(App)
   app.use(router)
 
