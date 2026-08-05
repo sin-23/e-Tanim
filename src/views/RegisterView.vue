@@ -83,11 +83,23 @@
         </div>
       </div>
 
+      <!-- ── Device access gate (must scan/enter code before form shows) ── -->
+      <DeviceAccessGate v-else-if="!deviceVerified" @verified="onDeviceVerified" />
+
       <!-- ── Registration form ────────────────────────────────── -->
       <div v-else class="w-full max-w-sm">
         <div class="mb-8">
+          <button
+            class="text-xs font-semibold text-garden-dim flex items-center gap-1 hover:text-garden-text transition-colors mb-4"
+            @click="deviceVerified = false"
+          >
+            ← Back
+          </button>
           <h2 class="text-2xl font-semibold text-garden-text mb-1.5">Create Account</h2>
-          <p class="text-sm font-medium text-garden-dim">Sensor Dashboard · e-Tanim</p>
+          <p class="text-sm font-medium text-garden-dim">
+            Sensor Dashboard · e-Tanim
+            <span class="block mt-1 font-mono text-[11px] text-garden-primary">Device: {{ deviceSystemId }}</span>
+          </p>
         </div>
 
         <!-- Google -->
@@ -265,8 +277,26 @@ import {
   updateProfile,
 }                         from 'firebase/auth'
 import { ref as dbRef, set } from 'firebase/database'
+import DeviceAccessGate      from '@/components/DeviceAccessGate.vue'
+import { claimDeviceAccessCode } from '@/auth/useDeviceAccessCode'
 
 const router = useRouter()
+
+// ── Device access gate ───────────────────────────────────────────────────────
+// The registration form (and the Google sign-up button) stays hidden until
+// a valid, unclaimed device code has been scanned/entered. See
+// DeviceAccessGate.vue and src/auth/useDeviceAccessCode.js for the actual
+// verification + claim logic, and the security note in that file for the
+// limits of what this does and doesn't protect against.
+const deviceVerified = ref(false)
+const deviceCode      = ref('')
+const deviceSystemId  = ref('')
+
+function onDeviceVerified({ code, systemId }) {
+  deviceCode.value     = code
+  deviceSystemId.value = systemId
+  deviceVerified.value = true
+}
 
 // ── Form state ────────────────────────────────────────────────────────────────
 const displayName     = ref('')
@@ -367,17 +397,19 @@ async function handleRegister() {
       lastLogin:   Date.now(),
     })
 
+    await claimDeviceAccessCode(deviceCode.value, cred.user.uid)
+
     success.value = true
     setTimeout(redirectAfterRegister, 2200)
   } catch (err) {
-    serverError.value = friendlyError(err.code)
+    serverError.value = err.code ? friendlyError(err.code) : err.message
   } finally {
     loading.value = false
   }
 }
 
 async function handleGoogle() {
-  if (loading.value) return
+  if (loading.value || !deviceVerified.value) return
   serverError.value = ''
   loading.value = true
   try {
@@ -391,10 +423,12 @@ async function handleGoogle() {
       lastLogin:   Date.now(),
     })
 
+    await claimDeviceAccessCode(deviceCode.value, cred.user.uid)
+
     success.value = true
     setTimeout(redirectAfterRegister, 2200)
   } catch (err) {
-    serverError.value = friendlyError(err.code)
+    serverError.value = err.code ? friendlyError(err.code) : err.message
   } finally {
     loading.value = false
   }
