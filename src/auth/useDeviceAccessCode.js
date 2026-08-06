@@ -1,8 +1,14 @@
 // src/auth/useDeviceAccessCode.js
 //
-// Looks up and claims "device access codes" — short codes printed as a QR
+// Looks up and joins "device access codes" — short codes printed as a QR
 // code (and as plain text) on each physical e-Tanim unit. A code must be
 // verified here before RegisterView unlocks the account-creation form.
+//
+// A code is a reusable JOIN code, not single-use — multiple accounts (e.g.
+// a household) can register against the same code, the way several family
+// members might all get added to one shared garden. Every account that
+// joins is added under deviceAccessCodes/{code}/members, and the code
+// itself stays valid unless an admin sets its "active" flag to false.
 //
 // IMPORTANT — read this before relying on it in production:
 // This is a client-side UX gate, not a hard security boundary. The lookup
@@ -10,14 +16,14 @@
 // has to be a public read (see database.rules.json: "deviceAccessCodes").
 // A technically determined person could still read the codes list directly
 // via the Firebase REST API and register without ever opening the app.
-// Treat this the same way you'd treat an invite code: it keeps out casual/
-// opportunistic sign-ups, not a motivated attacker. For a hard guarantee
-// (e.g. once this goes past a class prototype), move validation into a
-// Cloud Function that mints a custom token only for a valid, unclaimed
+// Treat this the same way you'd treat a family Wi-Fi password: it keeps out
+// casual/opportunistic sign-ups, not a motivated attacker. For a hard
+// guarantee (e.g. once this goes past a class prototype), move validation
+// into a Cloud Function that mints a custom token only for a valid, active
 // code, and stop exposing the codes list to unauthenticated reads.
 
 import { db } from '@/firebase'
-import { ref as dbRef, get, update, runTransaction } from 'firebase/database'
+import { ref as dbRef, get, update } from 'firebase/database'
 
 // Codes are short, human-typeable, and case-insensitive (normalized to
 // upper-case) so the "enter code manually" fallback isn't painful on mobile.
@@ -48,12 +54,12 @@ export function extractCodeFromScan(rawValue) {
 }
 
 /**
- * Checks whether a device access code exists and hasn't been claimed yet.
- * Read-only — does NOT claim the code. Claiming happens after the account
- * is actually created (see claimDeviceAccessCode) so a code isn't burned
- * if the user backs out of the registration form.
+ * Checks whether a device access code exists and is still active.
+ * Read-only — does NOT add the caller as a member yet. Joining happens
+ * after the account is actually created (see joinDeviceBySystemCode) so
+ * nothing is written if the user backs out of the registration form.
  *
- * @returns {Promise<{ ok: true, systemId: string } | { ok: false, error: string }>}
+ * @returns {Promise<{ ok: true, systemId: string, code: string } | { ok: false, error: string }>}
  */
 export async function checkDeviceAccessCode(code) {
   const normalized = normalizeCode(code)
@@ -74,38 +80,43 @@ export async function checkDeviceAccessCode(code) {
   }
 
   const entry = snap.val()
-  if (entry.claimed) {
-    return { ok: false, error: 'This device has already been registered to an account.' }
+  if (entry.active === false) {
+    return { ok: false, error: 'This device code has been deactivated. Ask the system owner for a new one.' }
   }
 
   return { ok: true, systemId: entry.systemId ?? normalized, code: normalized }
 }
 
 /**
- * Marks a device access code as claimed by a newly-created user. Called
- * right after createUserWithEmailAndPassword()/signInWithPopup() succeeds,
- * once the caller is authenticated (RTDB rules require auth for this write).
- * Uses a transaction so two people finishing registration with the same
- * code at the same moment can't both "win" the claim.
+ * Adds a newly-created user as a member of the system tied to this code.
+ * Called right after createUserWithEmailAndPassword()/signInWithPopup()
+ * succeeds, once the caller is authenticated (RTDB rules require a user
+ * to write only their own uid under members). Codes are reusable, so this
+ * can be called by any number of accounts (e.g. a whole family) without
+ * locking anyone else out.
  */
-export async function claimDeviceAccessCode(code, uid) {
+export async function joinDeviceBySystemCode(code, uid) {
   const normalized = normalizeCode(code)
-  const codeRef = dbRef(db, `deviceAccessCodes/${normalized}`)
+  const codeSnap = await get(dbRef(db, `deviceAccessCodes/${normalized}`))
 
-  const result = await runTransaction(codeRef, (entry) => {
-    if (!entry) return entry            // code vanished — abort, nothing to claim
-    if (entry.claimed) return           // already claimed — abort transaction
-    entry.claimed   = true
-    entry.claimedBy = uid
-    entry.claimedAt = Date.now()
-    return entry
-  })
-
-  if (!result.committed) {
-    throw new Error('This device code was just claimed by someone else. Please contact support.')
+  if (!codeSnap.exists()) {
+    throw new Error('This device code no longer exists. Please contact support.')
+  }
+  const entry = codeSnap.val()
+  if (entry.active === false) {
+    throw new Error('This device code has been deactivated.')
   }
 
-  // Keep a reverse pointer on the user's own profile too, so the dashboard
-  // can show which physical system this account controls.
-  await update(dbRef(db, `users/${uid}`), { systemId: result.snapshot.val()?.systemId ?? normalized })
+  const systemId = entry.systemId ?? normalized
+
+  await Promise.all([
+    // Add this account to the system's member list.
+    update(dbRef(db, `deviceAccessCodes/${normalized}/members`), { [uid]: true }),
+    // Keep a reverse pointer on the user's own profile, so the dashboard
+    // knows which physical system this account controls.
+    update(dbRef(db, `users/${uid}`), { systemId }),
+  ])
 }
+
+// Kept as an alias so any older import of claimDeviceAccessCode still works.
+export const claimDeviceAccessCode = joinDeviceBySystemCode
