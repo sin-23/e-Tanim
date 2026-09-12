@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /activity_log/system/entries/{entryId} {
+      // System-wide log is shared across all browser sessions and does not
+      // belong to any individual user account.
+      allow read: if true;
+
+      // Entries are append-only: create allowed (with validation below),
+      // no update or delete from the client.
+      allow update, delete: if false;
+
+      allow create: if isValidEntry(request.resource.data);
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+
+  function isValidEntry(data) {
+    return data.keys().hasAll(['message', 'color', 'type', 'timestamp'])
+      && data.keys().hasOnly(['message', 'color', 'type', 'timestamp', 'createdAt', 'by'])
+      && data.message is string
+      && data.message.size() > 0
+      && data.message.size() <= 300
+      && data.color is string
+      && data.color.matches('^#[0-9a-fA-F]{6}$')
+      && data.type is string
+      && data.type.size() <= 50
+      && data.timestamp is number
+      && data.timestamp > (request.time.toMillis() - 5 * 60 * 1000)
+      && data.timestamp < (request.time.toMillis() + 5 * 60 * 1000)
+      && (!('by' in data) || (data.by is string && data.by.size() <= 100));
+  }
+}

@@ -42,54 +42,62 @@
     "control": {
       ".read": true,
       "relay": {
-        ".write": "auth != null"
+        ".write": true
+      },
+      "relay_off_at": {
+        ".write": true
+      },
+      "relay2": {
+        ".write": true
+      },
+      "relay2_off_at": {
+        ".write": true
+      },
+      "relay3": {
+        ".write": true
+      },
+      "relay3_off_at": {
+        ".write": true
       }
     },
 
     "config": {
       ".read": true,
       "thresholds": {
-        ".write": "auth != null"
+        ".write": true
       },
       "thresholds_updated": {
-        ".write": "auth != null"
-      }
-    },
-
-    "deviceAccessCodes": {
-      "$code": {
-        ".read": true,
-        ".write": "auth != null && !data.exists()",
-        ".validate": "newData.hasChildren(['systemId'])",
-
-        "systemId": {
-          ".validate": "newData.isString() && newData.val().length <= 32"
-        },
-        "active": {
-          ".validate": "newData.isBoolean()"
-        },
-        "claimed": {
-          ".validate": "newData.isBoolean()"
-        },
-        "members": {
-          ".read": true,
-          "$uid": {
-            ".write": "auth != null && auth.uid === $uid",
-            ".validate": "newData.isBoolean() && newData.val() === true"
-          }
-        },
-        "$other": {
-          ".validate": false
-        }
-      }
-    },
-
-    "users": {
-      ".read": "auth != null",
-      ".write": "auth != null",
-      "$uid": {
-        ".read": "auth != null",
-        ".write": "$uid === auth.uid"
+        ".write": true
+      },
+      "thresholds_pump2": {
+        ".write": true
+      },
+      "thresholds_pump2_updated": {
+        ".write": true
+      },
+      "irrigation": {
+        ".write": true
+      },
+      "irrigation_updated": {
+        ".write": true
+      },
+      "irrigation_override_zone": {
+        ".write": true
+      },
+      "irrigation_override_zone_updated": {
+        ".write": true
+      },
+      "fert_schedule": {
+        ".write": true
+      },
+      "fert_schedule_updated": {
+        ".write": true
+      },
+      "fert_active_source": {
+        ".write": true
+      },
+      "fert_active_source_updated": {
+        ".write": true
       }
     }
   }

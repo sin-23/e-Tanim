@@ -77,20 +77,20 @@
           :current-moisture="averages.moisture"
           :current-temperature="averages.temperature"
           :current-humidity="averages.humidity"
-          :readonly="!isLoggedIn"
+          :readonly="false"
           title="Pump 1 — Irrigation"
           :show-threshold-settings="true"
           :pump-number="1"
         />
         <RelayControl
-          :readonly="!isLoggedIn"
+          :readonly="false"
           controlPath="control/relay2"
           title="Pump 2 — Leachate (FFJ)"
           :show-threshold-settings="false"
           :pump-number="2"
         />
         <RelayControl
-          :readonly="!isLoggedIn"
+          :readonly="false"
           controlPath="control/relay3"
           title="Pump 3 — Organic Fertilizer (Storebought)"
           :show-threshold-settings="false"
@@ -106,7 +106,7 @@
         Fertilizer Schedule &amp; Source
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FertScheduleCard :readonly="!isLoggedIn" />
+        <FertScheduleCard :readonly="false" />
       </div>
     </div>
 
@@ -130,19 +130,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
-import ZoneCard        from '@/components/ZoneCard.vue'
-import RelayControl    from '@/components/RelayControl.vue'
+import { ref, onUnmounted } from 'vue'
+import ZoneCard from '@/components/ZoneCard.vue'
+import RelayControl from '@/components/RelayControl.vue'
 import FertScheduleCard from '@/components/FertScheduleCard.vue'
 import { useSensorData } from '@/composables/useSensorData'
-import { useAuth }  from '@/auth/useAuth'
-import { db }       from '@/firebase'
+import { db } from '@/firebase'
 import { useTempUnit } from '@/composables/useTempUnit'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 
-const { zones }      = useSensorData()
-const { isLoggedIn } = useAuth()
+const { zones } = useSensorData()
 
 const averages = ref({ moisture: null, temperature: null, humidity: null, tds: null })
 let unsubAvg   = null
