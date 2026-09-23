@@ -152,6 +152,28 @@
       </div>
     </section>
 
+    <!-- Harvest Maturity (AI detections from the Mini PC) -->
+    <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 animate-fade-in" style="animation-delay:200ms">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-garden-text tracking-tight flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+          Harvest Maturity
+        </h2>
+        <span
+          class="text-[10px] font-semibold px-2 py-1 rounded-full border"
+          :class="totalRipe > 0
+            ? 'bg-garden-good/15 text-garden-good border-garden-good/40'
+            : 'bg-garden-base text-garden-dim border-garden-border'"
+        >{{ totalRipe > 0 ? `${totalRipe} ripe` : 'None ripe yet' }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <DetectionCard v-for="d in detections" :key="d.id" :detection="d" />
+      </div>
+    </section>
+
     <!-- Activity Log -->
     <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 max-w-2xl">
       <div class="flex items-center justify-between mb-3">
@@ -201,9 +223,12 @@ import { useActivityFeed } from '@/composables/useActivityLog'
 import { useTempUnit } from '@/composables/useTempUnit'
 import { useReservoirs } from '@/composables/useReservoirs'
 import ReservoirCard from '@/components/ReservoirCard.vue'
+import { useDetections } from '@/composables/useDetections'
+import DetectionCard from '@/components/DetectionCard.vue'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 const { reservoirs, lowReservoirs } = useReservoirs()
+const { detections, totalRipe } = useDetections()
 
 const today = computed(() =>
   new Date().toLocaleDateString('en-PH', {

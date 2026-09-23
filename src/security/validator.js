@@ -158,3 +158,60 @@ export function validateReservoirPayload(raw) {
     },
   }
 }
+
+// ── Harvest detection payloads (detections/{tomato|eggplant|bell_pepper}) ────
+// Written by the Mini PC. Matches the database rules: underripe/ripe/damaged
+// are counts (0 or more), confidence is 0-1, updatedAt is epoch ms, and any
+// other key is rejected.
+export const DETECTION_CROPS = ['tomato', 'eggplant', 'bell_pepper']
+
+const DETECTION_FIELDS = new Set(['underripe', 'ripe', 'damaged', 'confidence', 'updatedAt'])
+
+/**
+ * @param {unknown} raw - raw snapshot.val() of detections/{crop}
+ * @returns {{ ok: true, data: { underripe: number, ripe: number, damaged: number, confidence: number|null, updatedAt: number|null } } | { ok: false, error: string }}
+ */
+export function validateDetectionPayload(raw) {
+  if (raw === null || raw === undefined) return { ok: false, error: 'No data at this path.' }
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, error: 'Malformed payload: expected object.' }
+  }
+  if (JSON.stringify(raw).length > MAX_PAYLOAD_BYTES) {
+    return { ok: false, error: 'Oversized payload.' }
+  }
+  const unknown = Object.keys(raw).filter(k => !DETECTION_FIELDS.has(k))
+  if (unknown.length > 0) {
+    return { ok: false, error: `Unexpected fields in payload: ${unknown.join(', ')}` }
+  }
+
+  for (const field of ['underripe', 'ripe', 'damaged']) {
+    const v = raw[field]
+    if (v === undefined || v === null) continue
+    if (typeof v !== 'number' || !isFinite(v) || v < 0) {
+      return { ok: false, error: `Field '${field}' must be a count of 0 or more.` }
+    }
+  }
+  const { confidence, updatedAt } = raw
+  if (confidence !== undefined && confidence !== null) {
+    if (typeof confidence !== 'number' || !isFinite(confidence) || confidence < 0 || confidence > 1) {
+      return { ok: false, error: "Field 'confidence' must be a number from 0 to 1." }
+    }
+  }
+  if (updatedAt !== undefined && updatedAt !== null) {
+    if (typeof updatedAt !== 'number' || !isFinite(updatedAt) || updatedAt <= 0) {
+      return { ok: false, error: "Field 'updatedAt' must be a positive number." }
+    }
+  }
+
+  const count = (v) => (typeof v === 'number' ? Math.floor(v) : 0)
+  return {
+    ok: true,
+    data: {
+      underripe:  count(raw.underripe),
+      ripe:       count(raw.ripe),
+      damaged:    count(raw.damaged),
+      confidence: typeof confidence === 'number' ? +confidence.toFixed(2) : null,
+      updatedAt:  typeof updatedAt  === 'number' ? Math.floor(updatedAt)  : null,
+    },
+  }
+}
