@@ -2,27 +2,40 @@
   <article
     class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden
            transition-all duration-500 animate-slide-up"
-    :style="{ borderColor: plantColorBorder, animationDelay: `${delay}ms` }"
+    :style="{ borderColor: zoneColorBorder, animationDelay: `${delay}ms` }"
   >
     <!-- Top accent strip -->
-    <div class="h-1" :style="{ backgroundColor: plantColor }" />
+    <div class="h-1" :style="{ backgroundColor: zoneColor }" />
 
     <div class="p-4">
       <!-- Header -->
       <div class="flex items-center justify-between mb-1 gap-2">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: plantColor }" />
-          <span class="text-[10px] font-medium uppercase tracking-widest text-garden-dim whitespace-nowrap">
-            {{ zone.label }}
-          </span>
-          <span class="text-sm font-semibold text-garden-text truncate">
-            {{ zone.emoji }} {{ zone.plant }}
-          </span>
+          <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: zoneColor }" />
+          <span class="text-sm font-semibold text-garden-text truncate">{{ zone.label }}</span>
         </div>
         <span class="text-[10px] font-mono text-garden-dim flex-shrink-0">
           <template v-if="zone.loading">syncing…</template>
           <template v-else-if="zone.error">error</template>
           <template v-else>{{ lastUpdated }}</template>
+        </span>
+      </div>
+
+      <!-- Crops in this zone -->
+      <div class="flex flex-wrap gap-1.5 mb-2">
+        <span
+          v-for="c in zone.crops"
+          :key="c.nodeId"
+          class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+          :class="c.error
+            ? 'bg-garden-danger/10 text-garden-danger border-garden-danger/30'
+            : 'bg-garden-base text-garden-dim border-garden-border'"
+          :title="c.error || `sensors/${c.nodeId}`"
+        >
+          {{ c.emoji }} {{ c.label }}<template v-if="c.error"> ⚠</template>
+        </span>
+        <span v-if="zone.crops.length > 1" class="text-[10px] text-garden-dim self-center">
+          · readings averaged
         </span>
       </div>
 
@@ -41,7 +54,9 @@
       <!-- Error state -->
       <div v-else-if="zone.error" class="py-6 text-center">
         <p class="text-garden-danger font-mono text-sm">{{ zone.error }}</p>
-        <p class="text-garden-dim text-xs mt-1">Check Firebase path: sensors/{{ zone.id }}</p>
+        <p class="text-garden-dim text-xs mt-1">
+          Check Firebase paths: {{ zone.crops.map(c => `sensors/${c.nodeId}`).join(', ') }}
+        </p>
       </div>
 
       <!-- Sensor readings -->
@@ -55,7 +70,7 @@
               :max="100"
               unit="%"
               label="Soil Moisture"
-              :color="plantColor"
+              :color="zoneColor"
               :status="moistureStatus"
               :size="144"
               :stroke-width="10"
@@ -67,22 +82,52 @@
           </div>
         </div>
 
-        <!-- Temperature + Humidity stats -->
-        <div class="grid grid-cols-2 gap-2">
+        <!-- Temperature + Humidity + VPD -->
+        <div class="grid grid-cols-3 gap-2">
           <SensorStat
             :value="celsiusToDisplay(zone.sensors.temperature)"
             :unit="unitLabel"
             label="Temperature"
-            :color="plantColor"
+            :color="zoneColor"
             :status="tempStatus"
           />
           <SensorStat
             :value="zone.sensors.humidity"
             unit="%"
             label="Humidity"
-            :color="plantColor"
+            :color="zoneColor"
             :status="humidityStatus"
           />
+          <SensorStat
+            :value="zone.vpd"
+            unit=" kPa"
+            label="VPD"
+            :color="zoneColor"
+            :status="vpdStatus"
+          />
+        </div>
+
+        <!-- Irrigation trigger score (dashboard estimate) -->
+        <div class="mt-3 p-2.5 rounded-xl bg-garden-void border border-garden-border">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[9px] font-medium uppercase tracking-widest text-garden-dim">
+              Irrigation Score
+            </span>
+            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border whitespace-nowrap"
+                  :class="scoreBadge.class">
+              {{ scoreBadge.text }}
+            </span>
+          </div>
+          <div class="relative h-2 rounded-full bg-garden-border overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-700"
+                 :style="{ width: `${zone.score ?? 0}%`, backgroundColor: zoneColor }" />
+            <div class="absolute top-0 bottom-0 w-px bg-garden-text/60"
+                 :style="{ left: `${zone.score_cfg.triggerAt}%` }" />
+          </div>
+          <div class="flex justify-between mt-1 text-[10px] font-mono text-garden-dim">
+            <span>{{ zone.score !== null ? zone.score : '—' }} / 100</span>
+            <span>trigger ≥ {{ zone.score_cfg.triggerAt }}</span>
+          </div>
         </div>
 
         <!-- Warning strip -->
@@ -116,11 +161,10 @@ const props = defineProps({
   delay: { type: Number, default: 0 },
 })
 
-// ── Plant colour map (matches Figma pump zone colors) ──────────────────────
+// ── Zone colours (match pump colours on the override cards) ────────────────
 const COLOR_MAP = {
-  tomato:   { main: '#dc2626' },
-  okra:     { main: '#2d7a4f' },
-  eggplant: { main: '#7c3aed' },
+  lowland:  { main: '#2d7a4f' },
+  highland: { main: '#3b9dd2' },
 }
 
 function hexToRgb(hex) {
@@ -128,39 +172,36 @@ function hexToRgb(hex) {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`
 }
 
-const plantColor = computed(() => COLOR_MAP[props.zone.colorKey]?.main ?? '#2d7a4f')
-
-// Previously a fixed bright pastel hex (e.g. #fca5a5) regardless of theme —
-// far too intense against the dark surface. Blending the same accent color
-// at low alpha keeps each zone's identity while staying subtle in both
-// modes, and dialed back further in dark mode where it read as a glow.
-const plantColorBorder = computed(() =>
-  `rgba(${hexToRgb(plantColor.value)}, ${isDarkMode.value ? 0.35 : 0.55})`
+const zoneColor = computed(() => COLOR_MAP[props.zone.colorKey]?.main ?? '#2d7a4f')
+const zoneColorBorder = computed(() =>
+  `rgba(${hexToRgb(zoneColor.value)}, ${isDarkMode.value ? 0.35 : 0.55})`
 )
 
 // ── Sensor status ──────────────────────────────────────────────────────────
-const { thresholds } = props.zone
+const th = computed(() => props.zone.thresholds)
+const moistureStatus = computed(() => getSensorStatus(props.zone.sensors?.moisture,    th.value.moisture))
+const tempStatus     = computed(() => getSensorStatus(props.zone.sensors?.temperature, th.value.temperature))
+const humidityStatus = computed(() => getSensorStatus(props.zone.sensors?.humidity,    th.value.humidity))
+const vpdStatus      = computed(() => getSensorStatus(props.zone.vpd,                  th.value.vpd))
 
-const moistureStatus = computed(() =>
-  getSensorStatus(props.zone.sensors?.moisture, thresholds.moisture)
-)
-const tempStatus = computed(() =>
-  getSensorStatus(props.zone.sensors?.temperature, thresholds.temperature)
-)
-const humidityStatus = computed(() =>
-  getSensorStatus(props.zone.sensors?.humidity, thresholds.humidity)
-)
+// ── Irrigation score badge ─────────────────────────────────────────────────
+const scoreBadge = computed(() => {
+  const s = props.zone.score
+  if (s === null || s === undefined)
+    return { text: 'NO DATA', class: 'bg-garden-base text-garden-dim border-garden-border' }
+  return s >= props.zone.score_cfg.triggerAt
+    ? { text: 'WATER NEEDED', class: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' }
+    : { text: 'HOLD',         class: 'bg-garden-good/15 text-garden-good border-garden-good/40' }
+})
 
 // ── Overall health ─────────────────────────────────────────────────────────
 const allStatuses = computed(() => [
-  moistureStatus.value,
-  tempStatus.value,
-  humidityStatus.value,
+  moistureStatus.value, tempStatus.value, humidityStatus.value, vpdStatus.value,
 ])
 
 const overallHealth = computed(() => {
-  if (allStatuses.value.includes('high'))    return 'danger'
-  if (allStatuses.value.includes('low'))     return 'warn'
+  if (allStatuses.value.includes('high'))       return 'danger'
+  if (allStatuses.value.includes('low'))        return 'warn'
   if (allStatuses.value.every(s => s === 'ok')) return 'ok'
   return 'unknown'
 })
@@ -180,10 +221,6 @@ const overallTextClass    = computed(() => OVERALL_MAP[overallHealth.value]?.tex
 const lastUpdated = computed(() => {
   const ts = props.zone.sensors?.updatedAt
   if (!ts) return '—'
-  return new Date(ts).toLocaleTimeString('en-PH', {
-    hour:   '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+  return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 })
 </script>

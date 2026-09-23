@@ -16,11 +16,17 @@ import { ref as dbRef, onValue, get, update } from 'firebase/database'
 import { db } from '@/firebase'
 import { logSystemActivity } from './useActivityLog'
 
-const RELAY_PATHS = ['control/relay', 'control/relay2', 'control/relay3']
+const RELAY_PATHS = [
+  'control/relay_lowland',
+  'control/relay_highland',
+  'control/relay_fert',
+  'control/relay_mist',
+]
 const RELAY_LABELS = {
-  'control/relay':  'Water pump',
-  'control/relay2': 'Compost leachate pump',
-  'control/relay3': 'Organic fertilizer pump',
+  'control/relay_lowland':  'Lowland irrigation',
+  'control/relay_highland': 'Highland irrigation',
+  'control/relay_fert':     'Fertilizer pump',
+  'control/relay_mist':     'Highland misting',
 }
 
 let started = false

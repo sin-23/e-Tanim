@@ -189,8 +189,8 @@
           </div>
 
           <div class="p-5 space-y-5">
-            <!-- Pump 1: Temperature & Moisture Thresholds -->
-            <template v-if="props.pumpNumber === 1">
+            <!-- Irrigation pumps (lowland / highland): temperature & moisture thresholds -->
+            <template v-if="thresholdCfg?.kind === 'irrigation'">
               <div class="space-y-3">
                 <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Temperature</h4>
                 <div class="space-y-1.5">
@@ -224,18 +224,18 @@
               </div>
             </template>
 
-            <!-- Pump 2: TDS Thresholds Only -->
-            <template v-else>
+            <!-- Misting: temperature & humidity thresholds -->
+            <template v-else-if="thresholdCfg?.kind === 'misting'">
               <div class="space-y-3">
-                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — TDS (Total Dissolved Solids)</h4>
+                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Misting</h4>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">TDS ON — relay turns on below this value</label>
-                  <input v-model.number="editThresholds.tdsOn" type="number" min="0"
+                  <label class="text-xs font-semibold text-garden-text block">Temp ON ({{ unitLabel }}) — misting starts above this</label>
+                  <input v-model.number="tempOnDisplay" type="number" step="0.5"
                     class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">TDS OFF — relay turns off above this value</label>
-                  <input v-model.number="editThresholds.tdsOff" type="number" min="0"
+                  <label class="text-xs font-semibold text-garden-text block">Humidity ON (%) — misting starts above this</label>
+                  <input v-model.number="editThresholds.humidityOn" type="number" min="0" max="100"
                     class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
               </div>
@@ -267,9 +267,8 @@ const props = defineProps({
   currentMoisture:       { type: Number, default: null },
   currentTemperature:    { type: Number, default: null },
   currentHumidity:       { type: Number, default: null },
-  currentTds:            { type: Number, default: null },
   readonly:              { type: Boolean, default: false },
-  controlPath:           { type: String, default: 'control/relay' },
+  controlPath:           { type: String, default: 'control/relay_lowland' },
   title:                 { type: String, default: 'Relay Override' },
   showThresholdSettings: { type: Boolean, default: true },
   pumpNumber:            { type: Number, default: 1 },
@@ -301,23 +300,22 @@ const durationError    = ref('')
 const showWarningModal = ref(false)
 const showSettings     = ref(false)
 const warningReasons   = ref({ moisture: false, temperature: false, humidity: false })
-const sensorValues     = ref({ moisture: null, temperature: null, humidity: null, tds: null })
+const sensorValues     = ref({ moisture: null, temperature: null, humidity: null })
 
-// Default thresholds for Pump 1 (no warning thresholds - computed dynamically)
-const defaultPump1Thresholds = {
-  tempOn:      40,
-  tempOff:     15,
-  moistureOn:  30,
-  moistureOff: 60,
+// Per-pump threshold config. Paths must match database.rules.json:
+//   config/thresholds, config/thresholds_highland, config/misting (each with a
+//   sibling *_updated change marker the ESP32 polls).
+// Defaults are PROVISIONAL — keep in sync with the firmware constants.
+const IRRIGATION_DEFAULTS = { tempOn: 40, tempOff: 15, moistureOn: 30, moistureOff: 60 }
+const THRESHOLD_CONFIG = {
+  1: { path: 'config/thresholds',          kind: 'irrigation', defaults: IRRIGATION_DEFAULTS },
+  2: { path: 'config/thresholds_highland', kind: 'irrigation', defaults: IRRIGATION_DEFAULTS },
+  4: { path: 'config/misting',             kind: 'misting',    defaults: { tempOn: 32, humidityOn: 70 } },
 }
+const thresholdCfg = THRESHOLD_CONFIG[props.pumpNumber] ?? null   // pump 3 (fertilizer) has none
+const isIrrigation = thresholdCfg?.kind === 'irrigation'
 
-// Default thresholds for Pump 2 (TDS only, no warnings)
-const defaultPump2Thresholds = {
-  tdsOn:  500,
-  tdsOff: 700,
-}
-
-const thresholds = ref(props.pumpNumber === 1 ? { ...defaultPump1Thresholds } : { ...defaultPump2Thresholds })
+const thresholds = ref({ ...(thresholdCfg?.defaults ?? {}) })
 const editThresholds = ref({ ...thresholds.value })
 
 // editThresholds.tempOn/tempOff always stay in Celsius (that's what's saved
@@ -352,13 +350,12 @@ function updateSensorValues() {
     moisture:    props.currentMoisture,
     temperature: props.currentTemperature,
     humidity:    props.currentHumidity,
-    tds:         props.currentTds,
   }
 }
 
-// Get computed warning thresholds (for Pump 1 only)
+// Get computed warning thresholds (irrigation pumps only)
 function getComputedWarningThresholds() {
-  if (props.pumpNumber !== 1) return {}
+  if (!isIrrigation) return {}
   return {
     moistureWarn:    thresholds.value.moistureOn,  // Warn at ON threshold
     temperatureWarn: thresholds.value.tempOn,      // Warn at ON threshold
@@ -367,7 +364,7 @@ function getComputedWarningThresholds() {
 }
 
 function checkUnfavorableConditions() {
-  if (props.pumpNumber !== 1) return false  // Pump 2 has no warnings
+  if (!isIrrigation) return false  // only irrigation pumps show unfavorable-condition warnings
 
   updateSensorValues()
   const computedWarnings = getComputedWarningThresholds()
@@ -400,8 +397,8 @@ async function writeRelay(value, offAt = null) {
 
 async function loadThresholds() {
   try {
-    const path = props.pumpNumber === 1 ? 'config/thresholds' : 'config/thresholds_pump2'
-    const snapshot = await get(dbRef(db, path))
+    if (!thresholdCfg) return
+    const snapshot = await get(dbRef(db, thresholdCfg.path))
     if (snapshot.exists()) {
       thresholds.value     = { ...thresholds.value, ...snapshot.val() }
       editThresholds.value = { ...thresholds.value }
@@ -414,21 +411,14 @@ async function loadThresholds() {
 async function saveThresholds() {
   try {
     loading.value = true
-    const path = props.pumpNumber === 1 ? 'config/thresholds' : 'config/thresholds_pump2'
-    // Only save the editable fields (no warning thresholds for Pump 1)
-    const dataToSave = props.pumpNumber === 1
-      ? {
-          tempOn: editThresholds.value.tempOn,
-          tempOff: editThresholds.value.tempOff,
-          moistureOn: editThresholds.value.moistureOn,
-          moistureOff: editThresholds.value.moistureOff,
-        }
-      : {
-          tdsOn: editThresholds.value.tdsOn,
-          tdsOff: editThresholds.value.tdsOff,
-        }
-    await set(dbRef(db, path), dataToSave)
-    await set(dbRef(db, `config/thresholds${props.pumpNumber === 1 ? '' : '_pump2'}_updated`), Math.floor(Date.now() / 1000))
+    if (!thresholdCfg) return
+    // Save only the editable fields for this pump's kind
+    const t = editThresholds.value
+    const dataToSave = isIrrigation
+      ? { tempOn: t.tempOn, tempOff: t.tempOff, moistureOn: t.moistureOn, moistureOff: t.moistureOff }
+      : { tempOn: t.tempOn, humidityOn: t.humidityOn }
+    await set(dbRef(db, thresholdCfg.path), dataToSave)
+    await set(dbRef(db, `${thresholdCfg.path}_updated`), Math.floor(Date.now() / 1000))
     thresholds.value     = { ...editThresholds.value }
     loading.value        = false
     showSettings.value   = false
@@ -441,7 +431,8 @@ async function saveThresholds() {
 }
 
 async function resetThresholds() {
-  const defaultThresholds = props.pumpNumber === 1 ? defaultPump1Thresholds : defaultPump2Thresholds
+  if (!thresholdCfg) return
+  const defaultThresholds = thresholdCfg.defaults
   const confirmed = confirm(`Reset Pump ${props.pumpNumber} thresholds to defaults?`)
   if (confirmed) {
     editThresholds.value = { ...defaultThresholds }

@@ -38,5 +38,5 @@ import { isConfigured } from '@/firebase'
 import { startRelayAutoOffWatcher } from '@/composables/useRelayAutoOff'
 
 const sidebarOpen = ref(false)
-startRelayAutoOffWatcher()
+if (isConfigured) startRelayAutoOffWatcher()
 </script>

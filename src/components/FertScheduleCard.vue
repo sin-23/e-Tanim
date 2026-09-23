@@ -4,51 +4,9 @@
 
     <div class="p-4 space-y-4">
       <!-- Header -->
-      <div class="flex items-center justify-between gap-2">
-        <div class="min-w-0">
-          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim">Dual Fertilizer System</div>
-          <div class="text-sm font-semibold text-garden-text truncate">Shared Schedule</div>
-        </div>
-        <span
-          v-if="sourceLoaded"
-          class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0"
-          :class="activeSource === 'organic'
-            ? 'bg-garden-warn/15 text-garden-warn border-garden-warn/40'
-            : 'bg-garden-sky/15 text-garden-sky border-garden-sky/40'"
-        >{{ activeSource === 'organic' ? 'ORGANIC (Storebought) ACTIVE' : 'LEACHATE (FFJ) ACTIVE' }}</span>
-        <span
-          v-else
-          class="px-2.5 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0 bg-garden-void text-garden-dim border-garden-border animate-pulse"
-        >Loading…</span>
-      </div>
-
-      <!-- Source selector -->
-      <div>
-        <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">
-          Fertilizer Source <span class="normal-case font-normal">— only this pump will fire on schedule</span>
-        </div>
-        <div v-if="sourceLoaded" class="grid grid-cols-2 gap-2">
-          <button
-            class="py-2.5 rounded-xl border text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="activeSource === 'leachate'
-              ? 'bg-garden-primary text-white border-garden-primary'
-              : 'bg-garden-surface text-garden-text border-garden-border hover:bg-garden-base'"
-            :disabled="readonly || sourceSaving"
-            @click="setSource('leachate')"
-          >Leachate (FFJ)</button>
-          <button
-            class="py-2.5 rounded-xl border text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="activeSource === 'organic'
-              ? 'bg-[#3b9dd2] text-white border-[#3b9dd2]'
-              : 'bg-garden-surface text-garden-text border-garden-border hover:bg-garden-base'"
-            :disabled="readonly || sourceSaving"
-            @click="setSource('organic')"
-          >Organic Fertilizer (Storebought)</button>
-        </div>
-        <div v-else class="grid grid-cols-2 gap-2">
-          <div class="py-2.5 rounded-xl border border-garden-border bg-garden-void animate-pulse h-[42px]" />
-          <div class="py-2.5 rounded-xl border border-garden-border bg-garden-void animate-pulse h-[42px]" />
-        </div>
+      <div class="min-w-0">
+        <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim">Liquid Fertilizer</div>
+        <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing (all crops)</div>
       </div>
 
       <!-- Time window -->
@@ -107,7 +65,7 @@
       >{{ scheduleSaving ? 'Saving…' : 'Save Schedule' }}</button>
 
       <p v-else class="text-[11px] text-garden-dim text-center leading-snug">
-        Log in to edit the fertilizer schedule or source.
+        Read-only view. Editing is disabled.
       </p>
     </div>
   </div>
@@ -136,15 +94,11 @@ const dayList = [
 const startTime = ref('06:00')
 const endTime   = ref('06:15')
 const days = reactive({ sun: false, mon: true, tue: false, wed: true, thu: false, fri: true, sat: false })
-const activeSource   = ref('leachate')
-const sourceLoaded   = ref(false)
 const scheduleLoaded = ref(false)
 const scheduleSaving = ref(false)
-const sourceSaving   = ref(false)
 const daysError       = ref('')
 
 let unsubSchedule = null
-let unsubSource   = null
 
 const pad = (n) => n.toString().padStart(2, '0')
 
@@ -165,38 +119,11 @@ onMounted(() => {
     scheduleLoaded.value = true
   })
 
-  unsubSource = onValue(dbRef(db, 'config/fert_active_source'), (snapshot) => {
-    const v = snapshot.val()
-    if (v === 'leachate' || v === 'organic') activeSource.value = v
-    sourceLoaded.value = true
-  })
 })
 
 onUnmounted(() => {
   if (unsubSchedule) unsubSchedule()
-  if (unsubSource)   unsubSource()
 })
-
-async function setSource(source) {
-  if (props.readonly || sourceSaving.value) return
-  const previous = activeSource.value
-  activeSource.value = source
-  sourceSaving.value = true
-  try {
-    await set(dbRef(db, 'config/fert_active_source'), source)
-    await set(dbRef(db, 'config/fert_active_source_updated'), Math.floor(Date.now() / 1000))
-    logActivity(
-      `Fertilizer source switched to ${source === 'organic' ? 'Organic Fertilizer (Storebought)' : 'Compost Leachate (FFJ)'}`,
-      '#3b9dd2', 'source'
-    )
-  } catch (err) {
-    activeSource.value = previous
-    console.error('Failed to switch fertilizer source:', err)
-    alert('Failed to switch fertilizer source. Check console for errors.')
-  } finally {
-    sourceSaving.value = false
-  }
-}
 
 async function saveSchedule() {
   daysError.value = ''

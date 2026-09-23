@@ -72,29 +72,40 @@
         <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
         Pump Override Controls
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <RelayControl
-          :current-moisture="averages.moisture"
-          :current-temperature="averages.temperature"
-          :current-humidity="averages.humidity"
+          :current-moisture="lowland?.sensors.moisture ?? null"
+          :current-temperature="lowland?.sensors.temperature ?? null"
+          :current-humidity="lowland?.sensors.humidity ?? null"
           :readonly="false"
-          title="Pump 1 — Irrigation"
+          controlPath="control/relay_lowland"
+          title="Lowland Irrigation (Tomato, Eggplant)"
           :show-threshold-settings="true"
           :pump-number="1"
         />
         <RelayControl
+          :current-moisture="highland?.sensors.moisture ?? null"
+          :current-temperature="highland?.sensors.temperature ?? null"
+          :current-humidity="highland?.sensors.humidity ?? null"
           :readonly="false"
-          controlPath="control/relay2"
-          title="Pump 2 — Leachate (FFJ)"
-          :show-threshold-settings="false"
+          controlPath="control/relay_highland"
+          title="Highland Irrigation (Bell Pepper)"
+          :show-threshold-settings="true"
           :pump-number="2"
         />
         <RelayControl
           :readonly="false"
-          controlPath="control/relay3"
-          title="Pump 3 — Organic Fertilizer (Storebought)"
+          controlPath="control/relay_fert"
+          title="Fertilizer (All Crops)"
           :show-threshold-settings="false"
           :pump-number="3"
+        />
+        <RelayControl
+          :readonly="false"
+          controlPath="control/relay_mist"
+          title="Highland Misting"
+          :show-threshold-settings="true"
+          :pump-number="4"
         />
       </div>
     </div>
@@ -103,7 +114,7 @@
     <div>
       <h2 class="text-sm font-semibold text-garden-text tracking-tight mb-3 flex items-center gap-2">
         <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
-        Fertilizer Schedule &amp; Source
+        Fertilizer Schedule
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FertScheduleCard :readonly="false" />
@@ -114,9 +125,9 @@
     <div>
       <h2 class="text-sm font-semibold text-garden-text tracking-tight mb-3 flex items-center gap-2">
         <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
-        Zone Sensor Readings
+        Climate Zone Readings
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ZoneCard
           v-for="(zone, i) in zones"
           :key="zone.id"
@@ -130,7 +141,7 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import ZoneCard from '@/components/ZoneCard.vue'
 import RelayControl from '@/components/RelayControl.vue'
 import FertScheduleCard from '@/components/FertScheduleCard.vue'
@@ -141,8 +152,10 @@ import { useTempUnit } from '@/composables/useTempUnit'
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 
 const { zones } = useSensorData()
+const lowland  = computed(() => zones.value.find(z => z.id === 'lowland'))
+const highland = computed(() => zones.value.find(z => z.id === 'highland'))
 
-const averages = ref({ moisture: null, temperature: null, humidity: null, tds: null })
+const averages = ref({ moisture: null, temperature: null, humidity: null })
 let unsubAvg   = null
 
 import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
@@ -154,7 +167,6 @@ import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
         moisture:    data.moisture    ?? null,
         temperature: data.temperature ?? null,
         humidity:    data.humidity    ?? null,
-        tds:         data.tds         ?? null,
       }
     }
   })

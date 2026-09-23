@@ -80,7 +80,7 @@
             </svg>
             Irrigation &amp; Fertilization
           </h2>
-          <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">3 Circuits</span>
+          <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">4 Circuits</span>
         </div>
 
         <div class="space-y-2.5">
@@ -124,6 +124,32 @@
         </div>
       </div>
 
+    </section>
+
+    <!-- Reservoir Levels & low-level alert -->
+    <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 animate-fade-in" style="animation-delay:150ms">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-garden-text tracking-tight flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+          Reservoir Levels
+        </h2>
+        <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">Low at ≤ 30%</span>
+      </div>
+
+      <div
+        v-if="lowReservoirs.length"
+        role="alert"
+        class="mb-3 flex items-start gap-2 p-3 rounded-xl bg-garden-danger/10 border border-garden-danger/40 text-xs text-garden-danger font-medium"
+      >
+        <span aria-hidden="true">⚠️</span>
+        <span>Refill needed: {{ lowReservoirs.map(r => r.label).join(' and ') }} {{ lowReservoirs.length > 1 ? 'are' : 'is' }} at or below 30%.</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <ReservoirCard v-for="r in reservoirs" :key="r.id" :reservoir="r" />
+      </div>
     </section>
 
     <!-- Activity Log -->
@@ -173,8 +199,11 @@ import { ref, computed, onUnmounted } from 'vue'
 import { db } from '@/firebase'
 import { useActivityFeed } from '@/composables/useActivityLog'
 import { useTempUnit } from '@/composables/useTempUnit'
+import { useReservoirs } from '@/composables/useReservoirs'
+import ReservoirCard from '@/components/ReservoirCard.vue'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
+const { reservoirs, lowReservoirs } = useReservoirs()
 
 const today = computed(() =>
   new Date().toLocaleDateString('en-PH', {
@@ -182,7 +211,7 @@ const today = computed(() =>
   })
 )
 
-const averages = ref({ moisture: null, temperature: null, humidity: null, tds: null })
+const averages = ref({ moisture: null, temperature: null, humidity: null })
 let unsubAvg   = null
 
 import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
@@ -194,7 +223,6 @@ import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
         moisture:    data.moisture    ?? null,
         temperature: data.temperature ?? null,
         humidity:    data.humidity    ?? null,
-        tds:         data.tds         ?? null,
       }
     }
   })
@@ -206,38 +234,28 @@ onUnmounted(() => { if (unsubAvg) unsubAvg() })
 // ── Live relay state (read-only summary — feeds the circuit list only;
 // actual logging now happens at the point of action — see RelayControl.vue,
 // useRelayAutoOff.js, and FertScheduleCard.vue — via logActivity(), not here) ─
-const relay1On = ref(false)
-const relay2On = ref(false)
-const relay3On = ref(false)
-let unsubRelay1 = null
-let unsubRelay2 = null
-let unsubRelay3 = null
+const RELAY_CIRCUITS = [
+  { id: 1, path: 'control/relay_lowland',  title: 'Lowland Irrigation',  subtitle: 'Tomato, Eggplant',      emoji: '💧' },
+  { id: 2, path: 'control/relay_highland', title: 'Highland Irrigation', subtitle: 'Bell Pepper',           emoji: '⛰️' },
+  { id: 3, path: 'control/relay_fert',     title: 'Fertilizer',          subtitle: 'Shared line, all crops', emoji: '🌿' },
+  { id: 4, path: 'control/relay_mist',     title: 'Highland Misting',    subtitle: 'Bell Pepper cooling',   emoji: '🌫️' },
+]
+const relayState = ref({})
+const relayUnsubs = []
 
 import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
-  const relay1Ref = dbRef(db, 'control/relay')
-  const unsub1 = onValue(relay1Ref, (snapshot) => { relay1On.value = snapshot.val() === true })
-  unsubRelay1 = () => off(relay1Ref, 'value', unsub1)
-
-  const relay2Ref = dbRef(db, 'control/relay2')
-  const unsub2 = onValue(relay2Ref, (snapshot) => { relay2On.value = snapshot.val() === true })
-  unsubRelay2 = () => off(relay2Ref, 'value', unsub2)
-
-  const relay3Ref = dbRef(db, 'control/relay3')
-  const unsub3 = onValue(relay3Ref, (snapshot) => { relay3On.value = snapshot.val() === true })
-  unsubRelay3 = () => off(relay3Ref, 'value', unsub3)
+  RELAY_CIRCUITS.forEach(({ id, path }) => {
+    const r = dbRef(db, path)
+    const cb = onValue(r, (snapshot) => { relayState.value = { ...relayState.value, [id]: snapshot.val() === true } })
+    relayUnsubs.push(() => off(r, 'value', cb))
+  })
 })
 
-onUnmounted(() => {
-  if (unsubRelay1) unsubRelay1()
-  if (unsubRelay2) unsubRelay2()
-  if (unsubRelay3) unsubRelay3()
-})
+onUnmounted(() => relayUnsubs.forEach(fn => fn()))
 
-const circuits = computed(() => [
-  { id: 1, title: 'Water', subtitle: 'Irrigation', emoji: '💧', relay: relay1On.value },
-  { id: 2, title: 'Compost Leachate', subtitle: 'Fertilizer (FFJ)', emoji: '🧪', relay: relay2On.value },
-  { id: 3, title: 'Organic Fertilizer', subtitle: 'Fertilizer (Storebought)', emoji: '🌿', relay: relay3On.value },
-])
+const circuits = computed(() =>
+  RELAY_CIRCUITS.map(c => ({ ...c, relay: relayState.value[c.id] === true }))
+)
 
 const activePumpMessage = computed(() => {
   const active = circuits.value.filter(c => c.relay)
