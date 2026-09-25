@@ -152,6 +152,19 @@
       </div>
     </section>
 
+    <!-- Highland Misting status (heat-triggered cooling for bell pepper) -->
+    <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 animate-fade-in" style="animation-delay:175ms">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-garden-text tracking-tight flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+          Misting Status
+        </h2>
+      </div>
+      <MistingStatusCard :water-low="waterLow" />
+    </section>
+
     <!-- Harvest Maturity (AI detections from the Mini PC) -->
     <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 animate-fade-in" style="animation-delay:200ms">
       <div class="flex items-center justify-between mb-4">
@@ -225,9 +238,11 @@ import { useReservoirs } from '@/composables/useReservoirs'
 import ReservoirCard from '@/components/ReservoirCard.vue'
 import { useDetections } from '@/composables/useDetections'
 import DetectionCard from '@/components/DetectionCard.vue'
+import MistingStatusCard from '@/components/MistingStatusCard.vue'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 const { reservoirs, lowReservoirs } = useReservoirs()
+const waterLow = computed(() => lowReservoirs.value.some(r => r.id === 'water'))
 const { detections, totalRipe } = useDetections()
 
 const today = computed(() =>
