@@ -39,24 +39,112 @@
       ".write": false
     },
 
+    "reservoirs": {
+      ".read": true,
+      ".write": false,
+
+      "water": {
+        ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
+        "level": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "low": {
+          ".validate": "newData.isBoolean()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "$other": { ".validate": false }
+      },
+      "fertilizer": {
+        ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
+        "level": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "low": {
+          ".validate": "newData.isBoolean()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "$other": { ".validate": false }
+      },
+      "$other": { ".validate": false }
+    },
+
+    "detections": {
+      ".read": true,
+      ".write": false,
+
+      "tomato":      { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
+      "eggplant":    { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
+      "bell_pepper": { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
+
+      "$crop": {
+        "$entry": {
+          "stage": {
+            ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
+          },
+          "confidence": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+          },
+          "timestamp": {
+            ".validate": "newData.isNumber() && newData.val() > 0"
+          },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "notifications": {
+      ".read": true,
+      ".write": false,
+
+      "$id": {
+        ".validate": "newData.hasChildren(['type', 'message', 'createdAt'])",
+        "type": {
+          ".validate": "newData.val() == 'reservoir_low' || newData.val() == 'harvest_ready'"
+        },
+        "source": {
+          ".validate": "newData.isString() && newData.val().length <= 64"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
     "control": {
       ".read": true,
-      "relay": {
+
+      "relay_lowland": {
         ".write": true
       },
-      "relay_off_at": {
+      "relay_lowland_off_at": {
         ".write": true
       },
-      "relay2": {
+      "relay_highland": {
         ".write": true
       },
-      "relay2_off_at": {
+      "relay_highland_off_at": {
         ".write": true
       },
-      "relay3": {
+      "relay_fert": {
         ".write": true
       },
-      "relay3_off_at": {
+      "relay_fert_off_at": {
+        ".write": true
+      },
+      "relay_mist": {
+        ".write": true
+      },
+      "relay_mist_off_at": {
         ".write": true
       }
     },
@@ -75,6 +163,12 @@
       "thresholds_pump2_updated": {
         ".write": true
       },
+      "thresholds_highland": {
+        ".write": true
+      },
+      "thresholds_highland_updated": {
+        ".write": true
+      },
       "irrigation": {
         ".write": true
       },
@@ -85,6 +179,12 @@
         ".write": true
       },
       "irrigation_override_zone_updated": {
+        ".write": true
+      },
+      "misting": {
+        ".write": true
+      },
+      "misting_updated": {
         ".write": true
       },
       "fert_schedule": {

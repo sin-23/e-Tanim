@@ -1,204 +1,25 @@
 {
-  "rules": {
-    ".read":  false,
-    ".write": false,
-
-    "sensors": {
-      ".read": true,
-      ".write": false,
-
-      "$zone": {
-        ".read": true,
-        ".write": false,
-
-        ".validate": "newData.hasChildren(['moisture', 'temperature', 'humidity', 'updatedAt'])",
-
-        "moisture": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "temperature": {
-          ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 85"
-        },
-        "humidity": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "plant": {
-          ".validate": "newData.isString() && newData.val().length <= 32"
-        },
-        "$other": {
-          ".validate": false
-        }
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*"],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "X-XSS-Protection", "value": "1; mode=block" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
+        ]
       }
-    },
-
-    "averages": {
-      ".read": true,
-      ".write": false
-    },
-
-    "reservoirs": {
-      ".read": true,
-      ".write": false,
-
-      "water": {
-        ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
-        "level": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "low": {
-          ".validate": "newData.isBoolean()"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "$other": { ".validate": false }
-      },
-      "fertilizer": {
-        ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
-        "level": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "low": {
-          ".validate": "newData.isBoolean()"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "$other": { ".validate": false }
-      },
-      "$other": { ".validate": false }
-    },
-
-    "detections": {
-      ".read": true,
-      ".write": false,
-
-      "tomato":      { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
-      "eggplant":    { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
-      "bell_pepper": { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
-
-      "$crop": {
-        "$entry": {
-          "stage": {
-            ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
-          },
-          "confidence": {
-            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
-          },
-          "timestamp": {
-            ".validate": "newData.isNumber() && newData.val() > 0"
-          },
-          "$other": { ".validate": false }
-        }
-      }
-    },
-
-    "notifications": {
-      ".read": true,
-      ".write": false,
-
-      "$id": {
-        ".validate": "newData.hasChildren(['type', 'message', 'createdAt'])",
-        "type": {
-          ".validate": "newData.val() == 'reservoir_low' || newData.val() == 'harvest_ready'"
-        },
-        "source": {
-          ".validate": "newData.isString() && newData.val().length <= 64"
-        },
-        "message": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
-        },
-        "createdAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "$other": {
-          ".validate": false
-        }
-      }
-    },
-
-    "control": {
-      ".read": true,
-
-      "relay_lowland": {
-        ".write": true
-      },
-      "relay_lowland_off_at": {
-        ".write": true
-      },
-      "relay_highland": {
-        ".write": true
-      },
-      "relay_highland_off_at": {
-        ".write": true
-      },
-      "relay_fert": {
-        ".write": true
-      },
-      "relay_fert_off_at": {
-        ".write": true
-      },
-      "relay_mist": {
-        ".write": true
-      },
-      "relay_mist_off_at": {
-        ".write": true
-      }
-    },
-
-    "config": {
-      ".read": true,
-      "thresholds": {
-        ".write": true
-      },
-      "thresholds_updated": {
-        ".write": true
-      },
-      "thresholds_pump2": {
-        ".write": true
-      },
-      "thresholds_pump2_updated": {
-        ".write": true
-      },
-      "thresholds_highland": {
-        ".write": true
-      },
-      "thresholds_highland_updated": {
-        ".write": true
-      },
-      "irrigation": {
-        ".write": true
-      },
-      "irrigation_updated": {
-        ".write": true
-      },
-      "irrigation_override_zone": {
-        ".write": true
-      },
-      "irrigation_override_zone_updated": {
-        ".write": true
-      },
-      "misting": {
-        ".write": true
-      },
-      "misting_updated": {
-        ".write": true
-      },
-      "fert_schedule": {
-        ".write": true
-      },
-      "fert_schedule_updated": {
-        ".write": true
-      },
-      "fert_active_source": {
-        ".write": true
-      },
-      "fert_active_source_updated": {
-        ".write": true
-      }
-    }
+    ]
+  },
+  "database": {
+    "rules": "database.rules.json"
   }
 }
