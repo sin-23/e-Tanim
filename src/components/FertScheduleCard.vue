@@ -142,8 +142,10 @@ async function saveSchedule() {
       days: { ...days },
     })
     await set(dbRef(db, 'config/fert_schedule_updated'), Math.floor(Date.now() / 1000))
+    const dayNames = { sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat' }
+    const dayList  = Object.keys(dayNames).filter(k => days[k]).map(k => dayNames[k]).join(', ')
     logActivity(
-      `Fertilizer schedule updated: ${startTime.value}–${endTime.value}`,
+      `Fertilizer schedule updated: ${startTime.value}–${endTime.value} on ${dayList}`,
       '#3b9dd2', 'schedule'
     )
   } catch (err) {

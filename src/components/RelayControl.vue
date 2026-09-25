@@ -258,6 +258,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { db }                                     from '@/firebase'
 import { ref as dbRef, set, update, onValue, get, off } from 'firebase/database'
 import { logActivity } from '@/composables/useActivityLog'
+import { expireRelay } from '@/composables/useRelayAutoOff'
 import { isDarkMode }  from '@/composables/useDarkMode'
 import { useTempUnit } from '@/composables/useTempUnit'
 
@@ -422,7 +423,13 @@ async function saveThresholds() {
     thresholds.value     = { ...editThresholds.value }
     loading.value        = false
     showSettings.value   = false
-    logActivity(`${props.title} auto-mode thresholds updated`, '#3b9dd2', 'threshold')
+    // Values are logged in Celsius (the stored unit) so entries read the same
+    // whichever display unit was selected when they were written.
+    const c = (v) => +Number(v).toFixed(1)
+    const summary = isIrrigation
+      ? `temp on ${c(t.tempOn)}°C / off ${c(t.tempOff)}°C, moisture on ${c(t.moistureOn)}% / off ${c(t.moistureOff)}%`
+      : `temp ≥ ${c(t.tempOn)}°C, humidity ≥ ${c(t.humidityOn)}%`
+    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold')
   } catch (err) {
     loading.value = false
     console.error(`Failed to save thresholds for pump ${props.pumpNumber}:`, err)
@@ -449,7 +456,7 @@ function startCountdown(seconds) {
     if (countdown.value <= 0) {
       clearInterval(countdownTimer)
       loading.value = true
-      await writeRelay(false)
+      await expireRelay(props.controlPath)   // turns off and logs once, even if the app-level watcher fires too
       loading.value = false
     }
   }, 1000)

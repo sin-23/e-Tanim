@@ -12,7 +12,7 @@
 // long as the browser tab stays open. It's the single source of truth for
 // actually turning relays off; RelayControl.vue's local countdown is only
 // there to render a live "MM:SS" display for whoever is looking at it.
-import { ref as dbRef, onValue, get, update } from 'firebase/database'
+import { ref as dbRef, onValue, get, update, runTransaction } from 'firebase/database'
 import { db } from '@/firebase'
 import { logSystemActivity } from './useActivityLog'
 
@@ -31,10 +31,32 @@ const RELAY_LABELS = {
 
 let started = false
 
-async function turnOffExpiredRelay(path, offAtPath) {
+/**
+ * Turn a timed relay off because its timer expired, and log it exactly once.
+ * Both this watcher and RelayControl's countdown can reach zero at nearly the
+ * same moment (or in two tabs); the transaction only commits for whichever
+ * caller actually flips the relay from ON to OFF, so only that caller logs.
+ * Returns true if this call turned the relay off.
+ */
+export async function expireRelay(path) {
+  const offAtPath = `${path}_off_at`
   try {
-    await update(dbRef(db), { [path]: false, [offAtPath]: null })
+    const result = await runTransaction(dbRef(db, path), (current) =>
+      current === false ? undefined : false   // abort if it is already known to be off
+    )
+    if (!result.committed) return false
+    await update(dbRef(db), { [offAtPath]: null })
     logSystemActivity(`${RELAY_LABELS[path] ?? path} auto-off — timer expired`, '#94a3b8', 'relay')
+    return true
+  } catch (err) {
+    console.error(`Relay auto-off: failed to turn off ${path}:`, err)
+    return false
+  }
+}
+
+async function turnOffExpiredRelay(path) {
+  try {
+    await expireRelay(path)
   } catch (err) {
     // Most likely a permission error because the user isn't authenticated
     // yet — harmless, the watcher will re-evaluate on the next relay change.
@@ -62,9 +84,9 @@ function watchRelay(path) {
 
       const remainingMs = offAt - Date.now()
       if (remainingMs <= 0) {
-        await turnOffExpiredRelay(path, offAtPath)
+        await turnOffExpiredRelay(path)
       } else {
-        expiryTimer = setTimeout(() => turnOffExpiredRelay(path, offAtPath), remainingMs)
+        expiryTimer = setTimeout(() => turnOffExpiredRelay(path), remainingMs)
       }
     } catch (err) {
       console.error(`Relay auto-off watcher: failed to read ${offAtPath}:`, err)

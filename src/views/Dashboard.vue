@@ -207,7 +207,7 @@
         </div>
       </div>
       <div v-else-if="activityLog.length === 0" class="text-center py-8 text-xs text-garden-dim">
-        No activity yet — pump events, schedule changes, and detections will appear here as they happen.
+        No activity yet — manual overrides, timer shutoffs, threshold changes, and schedule changes will appear here as they happen.
       </div>
       <div v-else class="space-y-1 overflow-y-auto max-h-72 pr-1">
         <div
