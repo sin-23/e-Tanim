@@ -215,3 +215,51 @@ export function validateDetectionPayload(raw) {
     },
   }
 }
+
+// ── Notification payloads (notifications/{notificationId}) ───────────────────
+// Written by the ESP32 (reservoir_low) or the Mini PC (harvest_ready); the
+// dashboard only reads. Matches the paper schema: type, source, message,
+// createdAt. Any other key is rejected.
+export const NOTIFICATION_TYPES = ['reservoir_low', 'harvest_ready']
+
+const NOTIFICATION_FIELDS = new Set(['type', 'source', 'message', 'createdAt'])
+const NOTIFICATION_MAX_TEXT = 200
+
+/**
+ * @param {unknown} raw - raw child value of notifications/{id}
+ * @returns {{ ok: true, data: { type: string, source: string, message: string, createdAt: number } } | { ok: false, error: string }}
+ */
+export function validateNotificationPayload(raw) {
+  if (raw === null || raw === undefined || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, error: 'Malformed notification.' }
+  }
+  if (JSON.stringify(raw).length > MAX_PAYLOAD_BYTES) {
+    return { ok: false, error: 'Oversized notification.' }
+  }
+  const unknown = Object.keys(raw).filter(k => !NOTIFICATION_FIELDS.has(k))
+  if (unknown.length > 0) {
+    return { ok: false, error: `Unexpected fields: ${unknown.join(', ')}` }
+  }
+
+  const { type, source, message, createdAt } = raw
+  if (!NOTIFICATION_TYPES.includes(type)) {
+    return { ok: false, error: "Field 'type' must be reservoir_low or harvest_ready." }
+  }
+  if (typeof message !== 'string' || message.length === 0 || message.length > NOTIFICATION_MAX_TEXT) {
+    return { ok: false, error: "Field 'message' must be a string up to 200 characters." }
+  }
+  if (source !== undefined && source !== null &&
+      (typeof source !== 'string' || source.length > 64)) {
+    return { ok: false, error: "Field 'source' must be a string up to 64 characters." }
+  }
+  if (typeof createdAt !== 'number' || !isFinite(createdAt) || createdAt <= 0) {
+    return { ok: false, error: "Field 'createdAt' must be a positive number." }
+  }
+
+  // Accept epoch seconds as well as epoch ms (values below 1e12 are seconds).
+  const ms = createdAt < 1e12 ? Math.floor(createdAt * 1000) : Math.floor(createdAt)
+  return {
+    ok: true,
+    data: { type, source: typeof source === 'string' ? source : '', message, createdAt: ms },
+  }
+}
