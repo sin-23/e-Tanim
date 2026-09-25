@@ -109,15 +109,21 @@ export function validateSensorPayload(raw, zoneId) {
 }
 
 // ── Reservoir payloads (reservoirs/{water|fertilizer}) ───────────────────────
-// Matches the database rules: levelPct 0-100, low boolean, updatedAt epoch ms,
-// any other key is rejected.
+// Matches the deployed database rules: level 0-100, low boolean, updatedAt
+// epoch ms, any other key is rejected. The rules field is "level" (decision
+// log item 13 / flag F9 — the paper's earlier "levelPct" name is legacy on
+// the dashboard side only; the wire field has always been "level").
 export const RESERVOIR_LOW_PCT = 30   // paper: low at 30% of capacity or below
 
-const RESERVOIR_FIELDS = new Set(['levelPct', 'low', 'updatedAt'])
+const RESERVOIR_FIELDS = new Set(['level', 'low', 'updatedAt'])
 
 /**
  * @param {unknown} raw - raw snapshot.val() of reservoirs/{name}
  * @returns {{ ok: true, data: { levelPct: number|null, low: boolean, updatedAt: number|null } } | { ok: false, error: string }}
+ *
+ * Note: the wire field is "level" (matches the deployed rules). The returned
+ * `data.levelPct` name is kept as-is so ReservoirCard.vue and useReservoirs.js
+ * don't need to change.
  */
 export function validateReservoirPayload(raw) {
   if (raw === null || raw === undefined) return { ok: false, error: 'No data at this path.' }
@@ -132,10 +138,10 @@ export function validateReservoirPayload(raw) {
     return { ok: false, error: `Unexpected fields in payload: ${unknown.join(', ')}` }
   }
 
-  const { levelPct, low, updatedAt } = raw
+  const { level: levelPct, low, updatedAt } = raw
   if (levelPct !== undefined && levelPct !== null) {
     if (typeof levelPct !== 'number' || !isFinite(levelPct) || levelPct < 0 || levelPct > 100) {
-      return { ok: false, error: "Field 'levelPct' must be a number from 0 to 100." }
+      return { ok: false, error: "Field 'level' must be a number from 0 to 100." }
     }
   }
   if (low !== undefined && low !== null && typeof low !== 'boolean') {
