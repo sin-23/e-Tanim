@@ -33,7 +33,6 @@ export default {
           earth:    'rgb(var(--garden-earth) / <alpha-value>)',
 
           tomato:   'rgb(var(--garden-tomato) / <alpha-value>)',
-          okra:     'rgb(var(--garden-okra) / <alpha-value>)',
           eggplant: 'rgb(var(--garden-eggplant) / <alpha-value>)',
 
           warn:     'rgb(var(--garden-warn) / <alpha-value>)',
@@ -69,7 +68,6 @@ export default {
       },
       boxShadow: {
         'glow-tomato':   '0 0 24px 0 rgba(217, 79,  79,  0.14)',
-        'glow-okra':     '0 0 24px 0 rgba(46,  158, 110, 0.14)',
         'glow-eggplant': '0 0 24px 0 rgba(156, 107, 174, 0.14)',
         'glow-live':     '0 0 12px 0 rgba(0,   165, 80,  0.28)',
         'card':          '0 2px 16px 0 rgba(27,  58, 42,  0.08)',
