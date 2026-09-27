@@ -4,7 +4,7 @@
 // one per crop) grouped into TWO climate zones on the dashboard:
 //   Lowland  = tomato (zone-1) + eggplant (zone-2)  -> readings averaged
 //   Highland = bell pepper (zone-3)
-// Irrigation is scored per climate zone from soil moisture + VPD.
+// Irrigation is a per-zone VPD-gated soil-moisture state machine (decision log items 1-2).
 import { ref, computed, onUnmounted }                          from 'vue'
 import { db, isDemoMode }                                      from '@/firebase'
 import { validateSensorPayload }                               from '@/security/validator'
@@ -17,14 +17,15 @@ export const CROPS = [
   { nodeId: 'zone-3', crop: 'bell_pepper', label: 'Bell Pepper', emoji: '🫑', climate: 'highland' },
 ]
 
-// PROVISIONAL display values. The ESP32 firmware decides irrigation; keep the
-// weights/cut-offs below in sync with its constants so the dashboard estimate
-// matches what the hardware actually does.
-const SCORE_DEFAULTS = {
-  weights:     { moisture: 0.6, vpd: 0.4 },
-  moistureDry: 30,   // % soil moisture treated as fully dry  (dryness = 1)
-  moistureWet: 60,   // % soil moisture treated as fully wet  (dryness = 0)
-  triggerAt:   50,   // score (0-100) at or above which irrigation is requested
+// Irrigation state, per zone, mirrors the ESP32's evaluateZone() decision
+// (decision log items 1-2; DOC-CAP §2.3/2.5): a threshold state machine on
+// soil moisture (% field capacity), gated by VPD for a Normal start only.
+// Defaults MUST match RelayControl.vue's LOWLAND_/HIGHLAND_IRRIGATION_DEFAULTS
+// (both read/write config/thresholds and config/thresholds_highland) and, once
+// it's updated (decision log flag F2), the firmware constants.
+const IRRIGATION_DEFAULTS = {
+  lowland:  { smNormal: 70, smEmergency: 60, smStop: 80, vpdGate: 0.6 },
+  highland: { smNormal: 75, smEmergency: 70, smStop: 80, vpdGate: 0.6 },
 }
 
 export const ZONE_META = [
@@ -39,7 +40,7 @@ export const ZONE_META = [
       humidity:    { low: 40, high: 85 },
       vpd:         { low: 0.4, high: 1.6 },   // kPa
     },
-    score: { ...SCORE_DEFAULTS, vpdLow: 0.8, vpdHigh: 1.6 },
+    irrigation: IRRIGATION_DEFAULTS.lowland,
   },
   {
     id:       'highland',
@@ -52,26 +53,40 @@ export const ZONE_META = [
       humidity:    { low: 50, high: 90 },
       vpd:         { low: 0.4, high: 1.2 },   // cooler crop → tighter VPD band
     },
-    score: { ...SCORE_DEFAULTS, vpdLow: 0.6, vpdHigh: 1.2 },
+    irrigation: IRRIGATION_DEFAULTS.highland,
   },
 ]
 
 // ── Pure helpers ────────────────────────────────────────────────────────────
-const clamp01 = (x) => Math.max(0, Math.min(1, x))
-
-/** Vapor pressure deficit (kPa) from air temp (°C) and RH (%). Tetens equation. */
+/** Vapor pressure deficit (kPa) from air temp (°C) and RH (%). Magnus-Tetens
+ *  equation, per decision log item 41. */
 export function computeVpd(tempC, rh) {
   if (typeof tempC !== 'number' || typeof rh !== 'number') return null
   const svp = 0.6108 * Math.exp((17.27 * tempC) / (tempC + 237.3))
   return +(svp * (1 - rh / 100)).toFixed(2)
 }
 
-/** Weighted irrigation trigger score, 0-100 (higher = needs water more). */
-export function computeIrrigationScore(moisture, vpd, cfg) {
-  if (typeof moisture !== 'number' || typeof vpd !== 'number') return null
-  const dryness = clamp01((cfg.moistureWet - moisture) / (cfg.moistureWet - cfg.moistureDry))
-  const stress  = clamp01((vpd - cfg.vpdLow) / (cfg.vpdHigh - cfg.vpdLow))
-  return Math.round((cfg.weights.moisture * dryness + cfg.weights.vpd * stress) * 100)
+/**
+ * Instantaneous read of the evaluateZone() state machine from the current
+ * moisture/VPD snapshot alone (decision log items 1-2):
+ *   - moisture >= smStop            -> 'stop'      (a running session would end)
+ *   - moisture <= smEmergency       -> 'emergency'  (waters regardless of VPD)
+ *   - moisture <= smNormal AND
+ *     vpd >= vpdGate                -> 'normal'     (a Normal start would begin)
+ *   - otherwise                     -> 'idle'       (no request right now)
+ * This does NOT reproduce the firmware's latch: a session that is already
+ * running stays open until smStop regardless of VPD, and the dashboard has
+ * no visibility into that in-progress state, only the live sensor reading.
+ * Treat this as "would the state machine request water right now", not as
+ * the true relay state.
+ */
+export function computeIrrigationState(moisture, vpd, cfg) {
+  if (typeof moisture !== 'number') return { state: null, label: 'NO DATA' }
+  if (moisture >= cfg.smStop)       return { state: 'stop',      label: 'STOP — soil saturated' }
+  if (moisture <= cfg.smEmergency)  return { state: 'emergency', label: 'EMERGENCY — waters regardless of VPD' }
+  if (moisture <= cfg.smNormal && typeof vpd === 'number' && vpd >= cfg.vpdGate)
+    return { state: 'normal', label: 'NORMAL START' }
+  return { state: 'idle', label: 'IDLE — no request' }
 }
 
 export function getSensorStatus(value, thresholds) {
@@ -108,8 +123,8 @@ function buildZone(meta, nodes) {
     error: !loading && live.length === 0 ? (crops.find(c => c.error)?.error ?? 'No data.') : null,
     sensors,
     vpd,
-    score: computeIrrigationScore(sensors.moisture, vpd, meta.score),
-    score_cfg: meta.score,
+    irrigationState: computeIrrigationState(sensors.moisture, vpd, meta.irrigation),
+    irrigationCfg:   meta.irrigation,
   }
 }
 

@@ -152,14 +152,11 @@
           <div class="p-5 space-y-3">
             <p class="text-sm text-garden-text">Current conditions may harm the plants:</p>
             <ul class="space-y-2">
-              <li v-if="warningReasons.moisture" class="text-xs font-mono text-garden-danger">
-                🌱 Soil Moisture: {{ sensorValues.moisture }}% (above {{ getComputedWarningThresholds().moistureWarn }}%)
+              <li v-if="warningReasons.overWet" class="text-xs font-mono text-garden-danger">
+                🌱 Soil Moisture: {{ sensorValues.moisture }}% (at or above the {{ thresholds.smStop }}% stop point — overwatering risk)
               </li>
-              <li v-if="warningReasons.temperature" class="text-xs font-mono text-garden-danger">
-                🌡️ Temperature: {{ celsiusToDisplay(sensorValues.temperature) }}{{ unitLabel }} (below {{ celsiusToDisplay(getComputedWarningThresholds().temperatureWarn) }}{{ unitLabel }})
-              </li>
-              <li v-if="warningReasons.humidity" class="text-xs font-mono text-garden-danger">
-                💧 Humidity: {{ sensorValues.humidity }}% (above {{ getComputedWarningThresholds().humidityWarn }}%)
+              <li v-if="warningReasons.notNeeded" class="text-xs font-mono text-garden-danger">
+                💨 VPD: {{ sensorValues.vpd ?? '—' }} kPa (below the {{ thresholds.vpdGate }} kPa gate, moisture above the {{ thresholds.smNormal }}% normal-start point — conditions don't call for irrigation right now)
               </li>
             </ul>
             <p class="text-sm text-garden-dim italic">Proceed anyway?</p>
@@ -189,38 +186,41 @@
           </div>
 
           <div class="p-5 space-y-5">
-            <!-- Irrigation pumps (lowland / highland): temperature & moisture thresholds -->
+            <!-- Irrigation pumps (lowland / highland): VPD-gated state-machine breakpoints,
+                 per decision log item 1/2 and DOC-CAP §2.3/2.5. Soil moisture (% of field
+                 capacity) is checked against three breakpoints; VPD gates a Normal start
+                 but never stops a running session. -->
             <template v-if="thresholdCfg?.kind === 'irrigation'">
               <div class="space-y-3">
-                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Temperature</h4>
+                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Soil Moisture Breakpoints (% FC)</h4>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">Temp ON ({{ unitLabel }}) — relay turns on above this</label>
-                  <input v-model.number="tempOnDisplay" type="number" step="0.5"
+                  <label class="text-xs font-semibold text-garden-text block">Normal start — waters when moisture is at or below this AND VPD gate is met</label>
+                  <input v-model.number="editThresholds.smNormal" type="number" min="0" max="100"
                     class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">Temp OFF ({{ unitLabel }}) — relay turns off below this</label>
-                  <input v-model.number="tempOffDisplay" type="number" step="0.5"
+                  <label class="text-xs font-semibold text-garden-text block">Emergency start — waters immediately regardless of VPD</label>
+                  <input v-model.number="editThresholds.smEmergency" type="number" min="0" max="100"
+                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-xs font-semibold text-garden-text block">Stop — session ends when moisture reaches or exceeds this</label>
+                  <input v-model.number="editThresholds.smStop" type="number" min="0" max="100"
                     class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
               </div>
 
               <div class="space-y-3">
-                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Soil Moisture</h4>
+                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — VPD Gate</h4>
                 <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">Moisture ON (%) — relay turns on when soil drops below this</label>
-                  <input v-model.number="editThresholds.moistureOn" type="number" min="0" max="100"
-                    class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="text-xs font-semibold text-garden-text block">Moisture OFF (%) — relay turns off when soil rises above this</label>
-                  <input v-model.number="editThresholds.moistureOff" type="number" min="0" max="100"
+                  <label class="text-xs font-semibold text-garden-text block">VPD gate (kPa) — a Normal start also needs VPD at or above this</label>
+                  <input v-model.number="editThresholds.vpdGate" type="number" min="0" max="5" step="0.1"
                     class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary" />
                 </div>
               </div>
 
               <div class="rounded-xl bg-garden-good/10 border-garden-good/30 p-3">
-                <p class="text-xs text-garden-good leading-snug">ⓘ Warning thresholds are automatically set to ON thresholds. Warnings show when soil moisture or temperature are unfavorable during manual override.</p>
+                <p class="text-xs text-garden-good leading-snug">ⓘ Emergency moisture starts a session regardless of VPD, and VPD never stops a running session — it only gates a Normal start. Warnings during manual override show when the current reading doesn't call for irrigation.</p>
               </div>
             </template>
 
@@ -268,6 +268,7 @@ const props = defineProps({
   currentMoisture:       { type: Number, default: null },
   currentTemperature:    { type: Number, default: null },
   currentHumidity:       { type: Number, default: null },
+  currentVpd:            { type: Number, default: null },
   readonly:              { type: Boolean, default: false },
   controlPath:           { type: String, default: 'control/relay_lowland' },
   title:                 { type: String, default: 'Relay Override' },
@@ -300,17 +301,24 @@ const countdown        = ref(0)
 const durationError    = ref('')
 const showWarningModal = ref(false)
 const showSettings     = ref(false)
-const warningReasons   = ref({ moisture: false, temperature: false, humidity: false })
-const sensorValues     = ref({ moisture: null, temperature: null, humidity: null })
+const warningReasons   = ref({ overWet: false, notNeeded: false })
+const sensorValues     = ref({ moisture: null, temperature: null, humidity: null, vpd: null })
 
-// Per-pump threshold config. Paths must match database.rules.json:
+// Per-pump threshold config. Paths must match database.rules.json (legacy
+// config/thresholds and config/thresholds_highland paths — not yet read by
+// the firmware; see decision log flag F2/F6):
 //   config/thresholds, config/thresholds_highland, config/misting (each with a
 //   sibling *_updated change marker the ESP32 polls).
-// Defaults are PROVISIONAL — keep in sync with the firmware constants.
-const IRRIGATION_DEFAULTS = { tempOn: 40, tempOff: 15, moistureOn: 30, moistureOff: 60 }
+// Irrigation shape follows decision log items 1-2 and DOC-CAP §2.3/2.5: a
+// per-zone soil-moisture (% field capacity) state machine (smNormal,
+// smEmergency, smStop) gated by VPD (kPa) for a Normal start only. Defaults
+// below match the §2.5 pin/threshold table and are PROVISIONAL — keep in
+// sync with the firmware constants once it's updated to match (F2).
+const LOWLAND_IRRIGATION_DEFAULTS  = { smNormal: 70, smEmergency: 60, smStop: 80, vpdGate: 0.6 }
+const HIGHLAND_IRRIGATION_DEFAULTS = { smNormal: 75, smEmergency: 70, smStop: 80, vpdGate: 0.6 }
 const THRESHOLD_CONFIG = {
-  1: { path: 'config/thresholds',          kind: 'irrigation', defaults: IRRIGATION_DEFAULTS },
-  2: { path: 'config/thresholds_highland', kind: 'irrigation', defaults: IRRIGATION_DEFAULTS },
+  1: { path: 'config/thresholds',          kind: 'irrigation', defaults: LOWLAND_IRRIGATION_DEFAULTS },
+  2: { path: 'config/thresholds_highland', kind: 'irrigation', defaults: HIGHLAND_IRRIGATION_DEFAULTS },
   4: { path: 'config/misting',             kind: 'misting',    defaults: { tempOn: 32, humidityOn: 70 } },
 }
 const thresholdCfg = THRESHOLD_CONFIG[props.pumpNumber] ?? null   // pump 3 (fertilizer) has none
@@ -351,30 +359,27 @@ function updateSensorValues() {
     moisture:    props.currentMoisture,
     temperature: props.currentTemperature,
     humidity:    props.currentHumidity,
+    vpd:         props.currentVpd,
   }
 }
 
-// Get computed warning thresholds (irrigation pumps only)
-function getComputedWarningThresholds() {
-  if (!isIrrigation) return {}
-  return {
-    moistureWarn:    thresholds.value.moistureOn,  // Warn at ON threshold
-    temperatureWarn: thresholds.value.tempOn,      // Warn at ON threshold
-    humidityWarn:    50,                            // Fixed value
-  }
-}
-
+// Mirrors the evaluateZone() decision from decision log items 1-2 / DOC-CAP
+// §2.3: a Normal start needs moisture at or below smNormal AND VPD at or
+// above vpdGate; Emergency moisture waters regardless of VPD. A manual
+// override is flagged "unfavorable" here only to warn the user, not to
+// block them — the dashboard never runs the actual state machine.
 function checkUnfavorableConditions() {
   if (!isIrrigation) return false  // only irrigation pumps show unfavorable-condition warnings
 
   updateSensorValues()
-  const computedWarnings = getComputedWarningThresholds()
-  const reasons = {
-    moisture:    sensorValues.value.moisture    !== null && sensorValues.value.moisture    > computedWarnings.moistureWarn,
-    temperature: sensorValues.value.temperature !== null && sensorValues.value.temperature < computedWarnings.temperatureWarn,
-    humidity:    sensorValues.value.humidity    !== null && sensorValues.value.humidity    > computedWarnings.humidityWarn,
-  }
-  return Object.values(reasons).some(r => r)
+  const { moisture, vpd } = sensorValues.value
+  const { smNormal, smEmergency, smStop } = thresholds.value
+  const overWet   = moisture !== null && moisture >= smStop
+  const emergency = moisture !== null && moisture <= smEmergency
+  const notNeeded = !emergency && moisture !== null && moisture > smNormal &&
+                     (vpd === null || vpd < thresholds.value.vpdGate)
+  warningReasons.value = { overWet, notNeeded }
+  return overWet || notNeeded
 }
 
 // Companion path that stores the epoch-ms timestamp this relay should
@@ -416,18 +421,18 @@ async function saveThresholds() {
     // Save only the editable fields for this pump's kind
     const t = editThresholds.value
     const dataToSave = isIrrigation
-      ? { tempOn: t.tempOn, tempOff: t.tempOff, moistureOn: t.moistureOn, moistureOff: t.moistureOff }
+      ? { smNormal: t.smNormal, smEmergency: t.smEmergency, smStop: t.smStop, vpdGate: t.vpdGate }
       : { tempOn: t.tempOn, humidityOn: t.humidityOn }
     await set(dbRef(db, thresholdCfg.path), dataToSave)
     await set(dbRef(db, `${thresholdCfg.path}_updated`), Math.floor(Date.now() / 1000))
     thresholds.value     = { ...editThresholds.value }
     loading.value        = false
     showSettings.value   = false
-    // Values are logged in Celsius (the stored unit) so entries read the same
-    // whichever display unit was selected when they were written.
+    // Values are logged in Celsius/kPa (the stored units) so entries read the
+    // same whichever display unit was selected when they were written.
     const c = (v) => +Number(v).toFixed(1)
     const summary = isIrrigation
-      ? `temp on ${c(t.tempOn)}°C / off ${c(t.tempOff)}°C, moisture on ${c(t.moistureOn)}% / off ${c(t.moistureOff)}%`
+      ? `moisture normal ≤${c(t.smNormal)}%, emergency ≤${c(t.smEmergency)}%, stop ≥${c(t.smStop)}%, VPD gate ≥${c(t.vpdGate)} kPa`
       : `temp ≥ ${c(t.tempOn)}°C, humidity ≥ ${c(t.humidityOn)}%`
     logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold')
   } catch (err) {
@@ -494,12 +499,6 @@ async function handleClick() {
       return
     }
     if (props.showThresholdSettings && checkUnfavorableConditions()) {
-      const computedWarnings = getComputedWarningThresholds()
-      warningReasons.value = {
-        moisture:    sensorValues.value.moisture    > computedWarnings.moistureWarn,
-        temperature: sensorValues.value.temperature < computedWarnings.temperatureWarn,
-        humidity:    sensorValues.value.humidity    > computedWarnings.humidityWarn,
-      }
       showWarningModal.value = true
       return
     }

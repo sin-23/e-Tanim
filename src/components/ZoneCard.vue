@@ -107,26 +107,32 @@
           />
         </div>
 
-        <!-- Irrigation trigger score (dashboard estimate) -->
+        <!-- Irrigation state (dashboard estimate of evaluateZone(), decision log items 1-2) -->
         <div class="mt-3 p-2.5 rounded-xl bg-garden-void border border-garden-border">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-[9px] font-medium uppercase tracking-widest text-garden-dim">
-              Irrigation Score
+              Irrigation State
             </span>
             <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border whitespace-nowrap"
-                  :class="scoreBadge.class">
-              {{ scoreBadge.text }}
+                  :class="stateBadge.class">
+              {{ stateBadge.text }}
             </span>
           </div>
           <div class="relative h-2 rounded-full bg-garden-border overflow-hidden">
+            <!-- Moisture position on the smNormal..smStop band (inverted: lower = drier) -->
             <div class="h-full rounded-full transition-all duration-700"
-                 :style="{ width: `${zone.score ?? 0}%`, backgroundColor: zoneColor }" />
+                 :style="{ width: `${moisturePositionPct}%`, backgroundColor: zoneColor }" />
             <div class="absolute top-0 bottom-0 w-px bg-garden-text/60"
-                 :style="{ left: `${zone.score_cfg.triggerAt}%` }" />
+                 :style="{ left: `${normalMarkPct}%` }" title="Normal start" />
+            <div class="absolute top-0 bottom-0 w-px bg-garden-danger/70"
+                 :style="{ left: `${emergencyMarkPct}%` }" title="Emergency start" />
           </div>
           <div class="flex justify-between mt-1 text-[10px] font-mono text-garden-dim">
-            <span>{{ zone.score !== null ? zone.score : '—' }} / 100</span>
-            <span>trigger ≥ {{ zone.score_cfg.triggerAt }}</span>
+            <span>{{ zone.sensors.moisture !== null ? `${zone.sensors.moisture}% FC` : '—' }}</span>
+            <span>normal ≤{{ zone.irrigationCfg.smNormal }}% · emerg ≤{{ zone.irrigationCfg.smEmergency }}% · stop ≥{{ zone.irrigationCfg.smStop }}%</span>
+          </div>
+          <div class="mt-1 text-[10px] font-mono text-garden-dim">
+            VPD gate ≥{{ zone.irrigationCfg.vpdGate }} kPa{{ zone.vpd !== null ? ` (currently ${zone.vpd} kPa)` : '' }}
           </div>
         </div>
 
@@ -184,15 +190,28 @@ const tempStatus     = computed(() => getSensorStatus(props.zone.sensors?.temper
 const humidityStatus = computed(() => getSensorStatus(props.zone.sensors?.humidity,    th.value.humidity))
 const vpdStatus      = computed(() => getSensorStatus(props.zone.vpd,                  th.value.vpd))
 
-// ── Irrigation score badge ─────────────────────────────────────────────────
-const scoreBadge = computed(() => {
-  const s = props.zone.score
-  if (s === null || s === undefined)
-    return { text: 'NO DATA', class: 'bg-garden-base text-garden-dim border-garden-border' }
-  return s >= props.zone.score_cfg.triggerAt
-    ? { text: 'WATER NEEDED', class: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' }
-    : { text: 'HOLD',         class: 'bg-garden-good/15 text-garden-good border-garden-good/40' }
+// ── Irrigation state badge and moisture-band position ──────────────────────
+// The bar spans 0-100% soil moisture; the fill shows the current reading and
+// the two tick marks show the Normal and Emergency start breakpoints for
+// this zone. Filed under "dashboard estimate" — see computeIrrigationState()
+// for what this can't see (the firmware's in-progress-session latch).
+const STATE_BADGE_MAP = {
+  emergency: { text: 'EMERGENCY',    class: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' },
+  normal:    { text: 'NORMAL START', class: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' },
+  idle:      { text: 'IDLE',         class: 'bg-garden-good/15 text-garden-good border-garden-good/40' },
+  stop:      { text: 'STOP',         class: 'bg-garden-base text-garden-dim border-garden-border' },
+}
+const stateBadge = computed(() =>
+  STATE_BADGE_MAP[props.zone.irrigationState?.state] ??
+  { text: 'NO DATA', class: 'bg-garden-base text-garden-dim border-garden-border' }
+)
+
+const moisturePositionPct = computed(() => {
+  const m = props.zone.sensors?.moisture
+  return typeof m === 'number' ? Math.max(0, Math.min(100, m)) : 0
 })
+const normalMarkPct    = computed(() => props.zone.irrigationCfg.smNormal)
+const emergencyMarkPct = computed(() => props.zone.irrigationCfg.smEmergency)
 
 // ── Overall health ─────────────────────────────────────────────────────────
 const allStatuses = computed(() => [
