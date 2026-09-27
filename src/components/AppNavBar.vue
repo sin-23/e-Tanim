@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-10 bg-garden-surface border-b border-garden-border px-4 lg:px-6 py-3 flex items-center gap-3">
+  <header class="sticky top-0 z-10 bg-garden-surface border-b border-garden-border px-4 lg:px-6 py-3 flex items-center gap-3 transition-colors duration-200">
     <button
       class="lg:hidden p-2 rounded-xl text-garden-dim hover:bg-garden-base hover:text-garden-primary transition-colors"
       @click="$emit('menu-click')"
@@ -10,25 +10,19 @@
     </button>
 
     <div class="flex-1 min-w-0">
-      <h1 class="text-base font-semibold text-garden-text truncate hidden sm:block">
+      <h1 class="text-base font-bold text-garden-text truncate hidden sm:block">
         {{ pageTitle }}
       </h1>
     </div>
 
-    <NotificationBell />
-
-    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-garden-good/10 border border-garden-good/30">
-      <span class="relative flex h-1.5 w-1.5">
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-garden-live opacity-60"></span>
-        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-garden-live"></span>
-      </span>
-      <span class="text-xs font-semibold text-garden-good">Online</span>
-    </div>
-
-    <div class="hidden lg:block text-right">
+    <!-- Date/time -->
+    <div class="text-right hidden sm:block">
       <div class="text-xs font-semibold text-garden-text">{{ dateStr }}</div>
       <div class="text-[10px] font-mono text-garden-dim">{{ clock }}</div>
     </div>
+    <div class="sm:hidden text-[10px] font-mono text-garden-dim">{{ clock }}</div>
+
+    <NotificationBell />
   </header>
 </template>
 
@@ -42,11 +36,11 @@ defineEmits(['menu-click'])
 const route = useRoute()
 
 const PAGE_TITLES = {
-  dashboard: 'Dashboard Overview',
+  dashboard: 'Dashboard',
   irrigation: 'Irrigation & Fertilization',
   settings: 'Settings',
 }
-const pageTitle = computed(() => PAGE_TITLES[route.name] || 'Dashboard Overview')
+const pageTitle = computed(() => PAGE_TITLES[route.name] || 'Dashboard')
 
 const clock = ref('')
 const dateStr = ref('')
