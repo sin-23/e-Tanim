@@ -69,11 +69,6 @@
                   {{ zone.vpd !== null ? zone.vpd : '—' }}
                   <span v-if="zone.vpd !== null" class="text-[8px] text-garden-dim ml-1">kPa</span>
                 </div>
-                <div
-                  v-if="zone.vpd !== null"
-                  class="inline-flex mt-1 text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-                  :style="{ backgroundColor: `${vpdStatus(zone.vpd).color}26`, color: vpdStatus(zone.vpd).color }"
-                >{{ vpdStatus(zone.vpd).label }}</div>
               </div>
             </div>
           </div>

@@ -9,20 +9,31 @@
 
     <div class="p-4">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-1 gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: zoneColor }" />
-          <span class="text-sm font-semibold text-garden-text truncate">{{ zone.label }}</span>
+      <div class="flex items-start justify-between mb-3 gap-2">
+        <div class="min-w-0">
+          <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim">
+            Zone Summary
+          </div>
+          <div class="flex items-center gap-2 min-w-0 mt-0.5">
+            <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: zoneColor }" />
+            <span class="text-base font-extrabold text-garden-text truncate">{{ zone.label }}</span>
+          </div>
         </div>
-        <span class="text-[10px] font-mono text-garden-dim flex-shrink-0">
-          <template v-if="zone.loading">syncing…</template>
-          <template v-else-if="zone.error">error</template>
-          <template v-else>{{ lastUpdated }}</template>
-        </span>
+        <div class="flex flex-col items-end gap-1 flex-shrink-0">
+          <span
+            class="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap"
+            :class="zoneStatusBadge.class"
+          >{{ zoneStatusBadge.text }}</span>
+          <span class="text-[9px] font-mono text-garden-dim">
+            <template v-if="zone.loading">syncing…</template>
+            <template v-else-if="zone.error">error</template>
+            <template v-else>{{ lastUpdated }}</template>
+          </span>
+        </div>
       </div>
 
       <!-- Crops in this zone -->
-      <div class="flex flex-wrap gap-1.5 mb-2">
+      <div v-if="!compact" class="flex flex-wrap gap-1.5 mb-3">
         <span
           v-for="c in zone.crops"
           :key="c.nodeId"
@@ -61,54 +72,40 @@
 
       <!-- Sensor readings -->
       <template v-else>
-        <!-- Soil gauge -->
-        <div class="my-3">
-          <div class="flex justify-center">
-            <SensorGauge
-              :value="zone.sensors.moisture"
-              :min="0"
-              :max="100"
-              unit="%"
-              label="Soil Moisture"
-              :color="zoneColor"
-              :status="moistureStatus"
-              :size="144"
-              :stroke-width="10"
-              :show-label="false"
-            />
-          </div>
-          <div class="text-center text-[10px] font-medium tracking-widest uppercase text-garden-dim mt-1">
-            Soil Moisture
-          </div>
-        </div>
-
-        <!-- Temperature + Humidity + VPD -->
-        <div class="grid grid-cols-3 gap-2">
+        <!-- Moisture + Temperature + Humidity + VPD -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <SensorStat
+            :value="zone.sensors.moisture"
+            unit="%"
+            label="Moisture"
+            variant="good"
+            :status="moistureStatus"
+          />
           <SensorStat
             :value="celsiusToDisplay(zone.sensors.temperature)"
             :unit="unitLabel"
             label="Temperature"
-            :color="zoneColor"
+            variant="warn"
             :status="tempStatus"
           />
           <SensorStat
             :value="zone.sensors.humidity"
             unit="%"
             label="Humidity"
-            :color="zoneColor"
+            variant="sky"
             :status="humidityStatus"
           />
           <SensorStat
             :value="zone.vpd"
-            unit=" kPa"
+            unit="kPa"
             label="VPD"
-            :color="zoneColor"
+            variant="primary"
             :status="vpdStatus"
           />
         </div>
 
         <!-- Irrigation state (dashboard estimate of evaluateZone(), decision log items 1-2) -->
-        <div class="mt-3 p-2.5 rounded-xl bg-garden-void border border-garden-border">
+        <div v-if="!compact" class="mt-3 p-2.5 rounded-xl bg-garden-void border border-garden-border">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-[9px] font-medium uppercase tracking-widest text-garden-dim">
               Irrigation State
@@ -138,7 +135,7 @@
 
         <!-- Warning strip -->
         <div
-          v-if="overallHealth !== 'ok'"
+          v-if="!compact && overallHealth !== 'ok'"
           class="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl"
           :class="overallStripClasses"
         >
@@ -154,7 +151,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import SensorGauge from './SensorGauge.vue'
 import SensorStat  from './SensorStat.vue'
 import { getSensorStatus } from '@/composables/useSensorData'
 import { isDarkMode } from '@/composables/useDarkMode'
@@ -163,8 +159,11 @@ import { useTempUnit } from '@/composables/useTempUnit'
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 
 const props = defineProps({
-  zone:  { type: Object, required: true },
-  delay: { type: Number, default: 0 },
+  zone:    { type: Object, required: true },
+  delay:   { type: Number, default: 0 },
+  // Dashboard shows only the header + reading grid; Irrigation shows the
+  // full card (crop badges, irrigation-state bar, warning strip) below.
+  compact: { type: Boolean, default: false },
 })
 
 // ── Zone colours (match pump colours on the override cards) ────────────────
@@ -204,6 +203,21 @@ const STATE_BADGE_MAP = {
 const stateBadge = computed(() =>
   STATE_BADGE_MAP[props.zone.irrigationState?.state] ??
   { text: 'NO DATA', class: 'bg-garden-base text-garden-dim border-garden-border' }
+)
+
+// Header status pill (design's "NEEDS WATER" / "NORMAL" badge) — reuses the
+// same irrigationState the "Irrigation State" section below is built from,
+// just relabelled for an at-a-glance zone summary instead of the technical
+// state-machine name.
+const ZONE_BADGE_MAP = {
+  emergency: { text: 'EMERGENCY',   class: 'bg-garden-danger/15 text-garden-danger' },
+  normal:    { text: 'NEEDS WATER', class: 'bg-garden-warn/15 text-garden-warn' },
+  idle:      { text: 'NORMAL',      class: 'bg-garden-good/15 text-garden-good' },
+  stop:      { text: 'SATURATED',   class: 'bg-garden-sky/15 text-garden-sky' },
+}
+const zoneStatusBadge = computed(() =>
+  ZONE_BADGE_MAP[props.zone.irrigationState?.state] ??
+  { text: 'NO DATA', class: 'bg-garden-base text-garden-dim' }
 )
 
 const moisturePositionPct = computed(() => {
