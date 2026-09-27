@@ -252,4 +252,3 @@ performance efficiency (prompt response to user input) and a simple user interfa
 - **Events that happen on the devices are not in the activity log.** Automatic irrigation, misting and fertilizer runs, low-reservoir events and detections are not written to Firestore, because the ESP32 and Mini PC write only to the Realtime Database.
 - **Notifications are never deleted.** The dashboard shows only the newest 20 and tracks read state in the browser (localStorage). A retention policy is not defined.
 - **Single user only,** by design.
-- `package.json` still uses the old name `guarden-dashboard`, and `tailwind.config.js` still defines an unused `okra` color.
