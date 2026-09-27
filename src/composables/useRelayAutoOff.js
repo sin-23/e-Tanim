@@ -14,7 +14,7 @@
 // there to render a live "MM:SS" display for whoever is looking at it.
 import { ref as dbRef, onValue, get, update, runTransaction } from 'firebase/database'
 import { db } from '@/firebase'
-import { logSystemActivity } from './useActivityLog'
+import { logActivity } from './useActivityLog'
 
 const RELAY_PATHS = [
   'control/relay_lowland',
@@ -27,6 +27,15 @@ const RELAY_LABELS = {
   'control/relay_highland': 'Highland irrigation',
   'control/relay_fert':     'Fertilizer pump',
   'control/relay_mist':     'Highland misting',
+}
+
+// Same category derivation as RelayControl.vue's logCategory, keyed off the
+// same controlPath values, so auto-off entries land in the same Activity
+// Log bucket as the manual toggles for that same control.
+function relayCategory(path) {
+  if (path === 'control/relay_mist') return 'misting'
+  if (path === 'control/relay_fert') return 'fertilization'
+  return 'irrigation' // control/relay_lowland, control/relay_highland
 }
 
 let started = false
@@ -46,7 +55,7 @@ export async function expireRelay(path) {
     )
     if (!result.committed) return false
     await update(dbRef(db), { [offAtPath]: null })
-    logSystemActivity(`${RELAY_LABELS[path] ?? path} auto-off — timer expired`, '#94a3b8', 'relay')
+    logActivity(`${RELAY_LABELS[path] ?? path} auto-off — timer expired`, '#94a3b8', 'relay', { category: relayCategory(path) })
     return true
   } catch (err) {
     console.error(`Relay auto-off: failed to turn off ${path}:`, err)

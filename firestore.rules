@@ -22,7 +22,7 @@ service cloud.firestore {
 
   function isValidEntry(data) {
     return data.keys().hasAll(['message', 'color', 'type', 'timestamp'])
-      && data.keys().hasOnly(['message', 'color', 'type', 'timestamp', 'createdAt', 'by'])
+      && data.keys().hasOnly(['message', 'color', 'type', 'timestamp', 'createdAt', 'by', 'category', 'manual'])
       && data.message is string
       && data.message.size() > 0
       && data.message.size() <= 300
@@ -33,6 +33,8 @@ service cloud.firestore {
       && data.timestamp is number
       && data.timestamp > (request.time.toMillis() - 5 * 60 * 1000)
       && data.timestamp < (request.time.toMillis() + 5 * 60 * 1000)
-      && (!('by' in data) || (data.by is string && data.by.size() <= 100));
+      && (!('by' in data) || (data.by is string && data.by.size() <= 100))
+      && (!('category' in data) || (data.category is string && data.category.size() <= 50))
+      && (!('manual' in data) || data.manual is bool);
   }
 }

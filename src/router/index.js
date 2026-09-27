@@ -28,6 +28,13 @@ const routes = [
   },
 
   {
+    path: '/activity-log',
+    name: 'activity-log',
+    component: () => import('@/views/ActivityLogView.vue'),
+    meta: { title: 'Activity Log' },
+  },
+
+  {
     path: '/settings',
     name: 'settings',
     component: () => import('@/views/SettingsView.vue'),

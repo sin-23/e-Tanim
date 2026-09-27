@@ -276,6 +276,15 @@ const props = defineProps({
   pumpNumber:            { type: Number, default: 1 },
 })
 
+// Which Activity Log category this control belongs to — read straight off
+// controlPath, since that's the exact, already-known source of truth for
+// what this control is, rather than re-guessing it from message text later.
+const logCategory = computed(() => {
+  if (props.controlPath === 'control/relay_mist') return 'misting'
+  if (props.controlPath === 'control/relay_fert') return 'fertilization'
+  return 'irrigation' // control/relay_lowland, control/relay_highland
+})
+
 // Accent color per pump (matches Figma's per-zone accent pattern).
 // accentBorder used to be a fixed bright pastel (#86efac / #93c5fd) that
 // was way too intense on the dark surface — alpha-blend the same accent
@@ -434,7 +443,7 @@ async function saveThresholds() {
     const summary = isIrrigation
       ? `moisture normal ≤${c(t.smNormal)}%, emergency ≤${c(t.smEmergency)}%, stop ≥${c(t.smStop)}%, VPD gate ≥${c(t.vpdGate)} kPa`
       : `temp ≥ ${c(t.tempOn)}°C, humidity ≥ ${c(t.humidityOn)}%`
-    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold')
+    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold', { category: logCategory.value })
   } catch (err) {
     loading.value = false
     console.error(`Failed to save thresholds for pump ${props.pumpNumber}:`, err)
@@ -474,7 +483,7 @@ async function turnOnRelay() {
   loading.value = false
   if (ok) {
     startCountdown(totalSeconds.value)
-    logActivity(`${props.title} manually turned ON for ${formattedCountdown.value}`, '#22c55e', 'relay')
+    logActivity(`${props.title} manually turned ON for ${formattedCountdown.value}`, '#22c55e', 'relay', { category: logCategory.value, manual: true })
   }
 }
 
@@ -509,7 +518,7 @@ async function handleClick() {
     loading.value   = true
     await writeRelay(false)
     loading.value   = false
-    logActivity(`${props.title} manually turned OFF`, '#94a3b8', 'relay')
+    logActivity(`${props.title} manually turned OFF`, '#94a3b8', 'relay', { category: logCategory.value, manual: true })
   }
 }
 

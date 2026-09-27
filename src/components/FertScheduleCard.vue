@@ -146,7 +146,7 @@ async function saveSchedule() {
     const dayList  = Object.keys(dayNames).filter(k => days[k]).map(k => dayNames[k]).join(', ')
     logActivity(
       `Fertilizer schedule updated: ${startTime.value}–${endTime.value} on ${dayList}`,
-      '#3b9dd2', 'schedule'
+      '#3b9dd2', 'schedule', { category: 'fertilization', manual: true }
     )
   } catch (err) {
     console.error('Failed to save fertilizer schedule:', err)
