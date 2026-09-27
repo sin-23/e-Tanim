@@ -92,17 +92,16 @@ const ICON = {
   activity: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
 }
 
-// Real, working routes
+// Real, working routes — order follows the Figma design's sidebar
 const navItems = [
   { id: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: ICON.home },
+  { id: 'crop-monitor', to: '/crop-monitor', label: 'Crop Monitor', icon: ICON.leaf },
   { id: 'irrigation', to: '/irrigation', label: 'Irrigation & Fertilization', icon: ICON.droplet },
   { id: 'reservoir', to: '/reservoir', label: 'Reservoir Levels', icon: ICON.database },
-  { id: 'settings', to: '/settings', label: 'Settings', icon: ICON.settings },
   { id: 'activity-log', to: '/activity-log', label: 'Activity Log', icon: ICON.activity },
+  { id: 'settings', to: '/settings', label: 'Settings', icon: ICON.settings },
 ]
 
-// Design includes these pages, but they aren't built yet — shown disabled for parity
-const comingSoonItems = [
-  { id: 'crop-monitor', label: 'Crop Monitor', icon: ICON.leaf },
-]
+// All design pages are now built — nothing left disabled.
+const comingSoonItems = []
 </script>

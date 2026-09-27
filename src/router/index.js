@@ -14,6 +14,13 @@ const routes = [
   },
 
   {
+    path: '/crop-monitor',
+    name: 'crop-monitor',
+    component: () => import('@/views/CropMonitorView.vue'),
+    meta: { title: 'Crop Monitor' },
+  },
+
+  {
     path: '/irrigation',
     name: 'irrigation',
     component: () => import('@/views/IrrigationView.vue'),
