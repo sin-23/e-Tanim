@@ -34,13 +34,7 @@ import NotificationBell from '@/components/NotificationBell.vue'
 defineEmits(['menu-click'])
 
 const route = useRoute()
-
-const PAGE_TITLES = {
-  dashboard: 'Dashboard',
-  irrigation: 'Irrigation & Fertilization',
-  settings: 'Settings',
-}
-const pageTitle = computed(() => PAGE_TITLES[route.name] || 'Dashboard')
+const pageTitle = computed(() => route.meta?.title || 'e-Tanim')
 
 const clock = ref('')
 const dateStr = ref('')
