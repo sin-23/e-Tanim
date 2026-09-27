@@ -14,18 +14,11 @@ export const RESERVOIRS = [
   { id: 'fertilizer', label: 'Fertilizer Reservoir', subtitle: 'Liquid fertilizer',    emoji: '🌿' },
 ]
 
-// The ESP32 sends a heartbeat every 60 s, so no update for 3 minutes means
-// the reading can no longer be trusted (Wi-Fi down, sensor fault, power loss).
-export const STALE_AFTER_MS = 3 * 60 * 1000
-
 const blank = () => ({ levelPct: null, low: false, updatedAt: null, loading: true, error: null })
 
 export function useReservoirs() {
   const state = ref({ water: blank(), fertilizer: blank() })
-  const now = ref(Date.now())
   const unsubs = []
-
-  const tick = setInterval(() => { now.value = Date.now() }, 15000)
 
   import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
     RESERVOIRS.forEach(({ id }) => {
@@ -55,16 +48,11 @@ export function useReservoirs() {
   })
 
   onUnmounted(() => {
-    clearInterval(tick)
     unsubs.forEach(fn => fn())
   })
 
   const reservoirs = computed(() =>
-    RESERVOIRS.map(meta => {
-      const s = state.value[meta.id]
-      const stale = s.updatedAt !== null && now.value - s.updatedAt > STALE_AFTER_MS
-      return { ...meta, ...s, stale }
-    })
+    RESERVOIRS.map(meta => ({ ...meta, ...state.value[meta.id] }))
   )
 
   const lowReservoirs = computed(() =>

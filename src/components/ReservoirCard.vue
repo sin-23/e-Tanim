@@ -53,7 +53,6 @@
       <p class="mt-2 text-[10px]" :class="reservoir.low && !unavailable ? 'text-garden-danger font-medium' : 'text-garden-dim'">
         <template v-if="reservoir.error">{{ reservoir.error }}</template>
         <template v-else-if="reservoir.low">Low level. Refill soon, pumps on this tank may be interlocked.</template>
-        <template v-else-if="reservoir.stale">No update for over 3 minutes. Last: {{ lastUpdated }}</template>
         <template v-else>Updated {{ lastUpdated }}</template>
       </p>
     </template>
@@ -71,10 +70,7 @@ const props = defineProps({
 // No usable reading: still loading, errored, or nothing received yet.
 const unavailable = computed(() => props.reservoir.loading || !!props.reservoir.error || props.reservoir.levelPct === null)
 
-const levelTextClass = computed(() => {
-  if (props.reservoir.low) return 'text-garden-danger'
-  return props.reservoir.stale ? 'text-garden-warn' : 'text-garden-text'
-})
+const levelTextClass = computed(() => props.reservoir.low ? 'text-garden-danger' : 'text-garden-text')
 
 const barClass = computed(() => {
   if (props.reservoir.low) return 'bg-garden-danger'
@@ -87,7 +83,6 @@ const badge = computed(() => {
   if (r.loading)             return { text: 'SYNCING', classes: 'bg-garden-base text-garden-dim border-garden-border' }
   if (r.error || r.levelPct === null) return { text: 'NO DATA', classes: 'bg-garden-base text-garden-dim border-garden-border' }
   if (r.low)                 return { text: 'LOW',     classes: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' }
-  if (r.stale)               return { text: 'STALE',   classes: 'bg-garden-warn/15 text-garden-warn border-garden-warn/40' }
   return { text: 'OK', classes: 'bg-garden-good/15 text-garden-good border-garden-good/40' }
 })
 
