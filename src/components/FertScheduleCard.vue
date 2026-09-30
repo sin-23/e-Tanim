@@ -1,12 +1,19 @@
 <template>
   <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
-    <div class="h-1 bg-garden-primary" />
-
     <div class="p-4 space-y-4">
       <!-- Header -->
-      <div class="min-w-0">
-        <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim">Liquid Fertilizer</div>
-        <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing (all crops)</div>
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim">Liquid Fertilizer</div>
+          <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing (all crops)</div>
+        </div>
+        <span v-if="scheduleActive !== null"
+          class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+          :class="scheduleActive ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
+        >
+          <span class="w-1.5 h-1.5 rounded-full" :class="scheduleActive ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
+          {{ scheduleActive ? 'Active Now' : 'Inactive' }}
+        </span>
       </div>
 
       <!-- Time window -->
@@ -79,6 +86,8 @@ import { logActivity }                            from '@/composables/useActivit
 
 const props = defineProps({
   readonly: { type: Boolean, default: false },
+  // Optional: shows the Active Now / Inactive badge in the header when provided.
+  scheduleActive: { type: Boolean, default: null },
 })
 
 const dayList = [

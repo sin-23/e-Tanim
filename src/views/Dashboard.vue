@@ -9,7 +9,6 @@
           </svg>
           Zone Status
         </h2>
-        <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">Live Sensors</span>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -70,95 +69,69 @@
     </section>
 
     <!-- ───────────────── RESERVOIR LEVELS ───────────────── -->
-    <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5">
-      <div class="flex items-center justify-between mb-4">
+    <section>
+      <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
           </svg>
           Reservoir Levels
         </h2>
-        <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">Lock threshold: 30%</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <ReservoirCard v-for="r in reservoirs" :key="r.id" :reservoir="r" />
       </div>
     </section>
 
     <!-- ───────────────── HARVEST MATURITY ───────────────── -->
     <!-- Real feature (AI detections from the Mini PC) — not in the design file, kept since it's live data, not mock. -->
-    <section class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5">
-      <div class="flex items-center justify-between mb-4">
+    <section>
+      <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
           </svg>
           Harvest Maturity
         </h2>
-        <span
-          class="text-[10px] font-semibold px-2 py-1 rounded-full border"
-          :class="totalRipe > 0
-            ? 'bg-garden-good/15 text-garden-good border-garden-good/40'
-            : 'bg-garden-base text-garden-dim border-garden-border'"
-        >{{ totalRipe > 0 ? `${totalRipe} ripe` : 'None ripe yet' }}</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <DetectionCard v-for="d in detections" :key="d.id" :detection="d" />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <DetectionCard v-for="d in detections" :key="d.id" :detection="d" :show-fruit-log="false" />
       </div>
     </section>
 
     <!-- ───────────────── ACTIVITY LOG & ALERTS ───────────────── -->
+    <!-- Titles sit outside the cards (like every other section); the two columns stay side by side. -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-      <!-- Activity Log (not in the design file, kept per instruction) -->
-      <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5">
+      <!-- Activity Log: compact version of the Activity Log page -->
+      <div class="flex flex-col">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
             Activity Log
           </h2>
         </div>
-        <div v-if="!activityLogLoaded" class="space-y-1">
-          <div v-for="i in 4" :key="i" class="flex items-start gap-2.5 p-2.5">
-            <div class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-garden-border animate-pulse" />
-            <div class="min-w-0 flex-1 space-y-1.5">
-              <div class="h-3 w-2/3 rounded bg-garden-border animate-pulse" />
-              <div class="h-2.5 w-1/3 rounded bg-garden-border animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div v-else-if="activityLog.length === 0" class="text-center py-8 text-xs text-garden-dim">
-          No activity yet — manual overrides, timer shutoffs, threshold changes, and schedule changes will appear here as they happen.
-        </div>
-        <div v-else class="space-y-1 overflow-y-auto max-h-72 pr-1">
-          <div
-            v-for="log in activityLog"
-            :key="log.id"
-            class="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-garden-base transition-colors"
-          >
-            <div class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: log.color }" />
-            <div class="min-w-0 flex-1">
-              <div class="text-xs font-semibold text-garden-text leading-snug">{{ log.message }}</div>
-              <div class="text-[10px] text-garden-dim mt-0.5">
-                {{ formatLogTime(log.timestamp) }}<span v-if="log.by"> · by {{ log.by }}</span>
-              </div>
-            </div>
-          </div>
+
+        <!-- The Activity Log page itself, in compact mode, inside a scrolling container -->
+        <div class="flex-1 bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 overflow-y-auto max-h-[28rem]">
+          <ActivityLogView embedded />
         </div>
       </div>
 
       <!-- Alerts -->
-      <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4 lg:p-5 flex flex-col">
+      <div class="flex flex-col">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <h2 class="text-sm font-bold text-garden-text">Alerts</h2>
+            <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Alerts
+            </h2>
             <span
               v-if="unreadAlertCount > 0"
               class="w-5 h-5 rounded-full bg-garden-danger text-white text-[9px] font-bold flex items-center justify-center"
@@ -171,28 +144,30 @@
           >Mark all read</button>
         </div>
 
-        <p v-if="alertsLoading" class="text-xs text-garden-dim text-center py-8">Loading…</p>
-        <p v-else-if="alertsError" class="text-xs text-garden-danger text-center py-8">{{ alertsError }}</p>
-        <p v-else-if="alerts.length === 0" class="text-xs text-garden-dim text-center py-8">No alerts yet.</p>
+        <div class="flex-1 bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4">
+          <p v-if="alertsLoading" class="text-xs text-garden-dim text-center py-8">Loading…</p>
+          <p v-else-if="alertsError" class="text-xs text-garden-danger text-center py-8">{{ alertsError }}</p>
+          <p v-else-if="alerts.length === 0" class="text-xs text-garden-dim text-center py-8">No alerts yet.</p>
 
-        <div v-else class="space-y-2 overflow-y-auto max-h-72 pr-1">
-          <div
-            v-for="a in alerts"
-            :key="a.id"
-            class="flex items-start gap-2.5 p-3 rounded-xl border transition-all duration-200"
-            :class="[
-              a.tone === 'danger' ? 'bg-garden-danger/10 border-garden-danger/30' : 'bg-garden-good/10 border-garden-good/30',
-              a.unread ? '' : 'opacity-50',
-            ]"
-          >
-            <span class="text-base flex-shrink-0 mt-0.5">{{ a.emoji }}</span>
-            <div class="min-w-0 flex-1">
-              <div class="text-xs font-semibold leading-snug" :class="a.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'">
-                {{ a.message }}
+          <div v-else class="space-y-2 overflow-y-auto max-h-80 pr-1">
+            <div
+              v-for="a in alerts"
+              :key="a.id"
+              class="flex items-start gap-2.5 p-3 rounded-xl border transition-all duration-200"
+              :class="[
+                a.tone === 'danger' ? 'bg-garden-danger/10 border-garden-danger/30' : 'bg-garden-good/10 border-garden-good/30',
+                a.unread ? '' : 'opacity-50',
+              ]"
+            >
+              <span class="text-base flex-shrink-0 mt-0.5">{{ a.emoji }}</span>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs font-semibold leading-snug" :class="a.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'">
+                  {{ a.message }}
+                </div>
+                <div class="text-[10px] text-garden-dim mt-0.5">{{ formatLogTime(a.createdAt) }}</div>
               </div>
-              <div class="text-[10px] text-garden-dim mt-0.5">{{ formatLogTime(a.createdAt) }}</div>
+              <div v-if="a.unread" class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" :class="a.tone === 'danger' ? 'bg-garden-danger' : 'bg-garden-good'" />
             </div>
-            <div v-if="a.unread" class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" :class="a.tone === 'danger' ? 'bg-garden-danger' : 'bg-garden-good'" />
           </div>
         </div>
       </div>
@@ -205,7 +180,7 @@
 <script setup>
 import { computed, ref, onUnmounted } from 'vue'
 import { db } from '@/firebase'
-import { useActivityFeed } from '@/composables/useActivityLog'
+import ActivityLogView from '@/views/ActivityLogView.vue'
 import { useTempUnit } from '@/composables/useTempUnit'
 import { useReservoirs } from '@/composables/useReservoirs'
 import ReservoirCard from '@/components/ReservoirCard.vue'
@@ -222,6 +197,7 @@ const { reservoirs, lowReservoirs } = useReservoirs()
 const { zones } = useSensorData()
 const { detections, totalRipe } = useDetections()
 const misting = useMisting()
+// The Dashboard shows every notification. Dismissing (X) is done in the navbar bell only.
 const {
   notifications: alerts,
   unreadCount: unreadAlertCount,
@@ -281,13 +257,10 @@ const mistingStatus = computed(() => {
   return misting.autoConditionsMet.value ? 'RUNNING' : 'AUTO'
 })
 
-// ── Activity log — shared, persistent feed (see useActivityLog.js) ─────────
-const { entries: activityLog, loaded: activityLogLoaded } = useActivityFeed(25)
-
 function formatLogTime(timestamp) {
   const d = new Date(timestamp)
   const isToday = d.toDateString() === new Date().toDateString()
   const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
 }
-</script> 
+</script>

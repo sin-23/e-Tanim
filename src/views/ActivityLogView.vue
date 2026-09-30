@@ -1,8 +1,8 @@
 <template>
-  <div class="p-4 lg:p-6 space-y-5 pb-12">
-    <!-- Header + filter -->
-    <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4">
-      <div class="flex items-center justify-between mb-3">
+  <div :class="embedded ? 'space-y-3' : 'p-4 lg:p-6 space-y-5 pb-12'">
+    <!-- Header + filter (when embedded in the Dashboard, the card and title come from the Dashboard) -->
+    <div :class="embedded ? '' : 'bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4'">
+      <div v-if="!embedded" class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -79,8 +79,8 @@
           >
             <div class="flex items-start gap-3">
               <div
-                class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-lg"
-                :style="{ backgroundColor: EVENT_STYLE[entry.eventType].bg, border: `1px solid ${EVENT_STYLE[entry.eventType].border}` }"
+                class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-lg border"
+                :class="EVENT_STYLE[entry.eventType].cls"
               >{{ EVENT_STYLE[entry.eventType].icon }}</div>
 
               <div class="min-w-0 flex-1">
@@ -90,9 +90,7 @@
                   <div class="flex items-center gap-2 flex-shrink-0">
                     <span
                       class="text-[9px] font-extrabold px-2 py-0.5 rounded-full"
-                      :class="entry.isManual
-                        ? 'bg-[#fef9c3] text-[#854d0e] border border-[#fde047]'
-                        : 'bg-garden-base text-garden-dim border border-garden-border'"
+                      :class="entry.isManual ? MANUAL_TAG_CLS : AUTO_TAG_CLS"
                     >{{ entry.isManual ? '🖐️ Manual' : '⚙️ Auto' }}</span>
 
                     <span class="text-[10px] font-mono font-semibold text-garden-dim">
@@ -106,7 +104,7 @@
                 <div class="flex items-center gap-1.5 mt-2">
                   <span
                     class="text-[9px] font-bold px-2 py-0.5 rounded-full border"
-                    :style="{ backgroundColor: EVENT_STYLE[entry.eventType].bg, color: EVENT_STYLE[entry.eventType].text, borderColor: EVENT_STYLE[entry.eventType].border }"
+                    :class="EVENT_STYLE[entry.eventType].cls"
                   >{{ typeLabel(entry.eventType) }}</span>
                 </div>
               </div>
@@ -126,7 +124,7 @@
       </div>
 
       <!-- Load more -->
-      <div v-if="hasMore" class="flex justify-center">
+      <div v-if="hasMore && !embedded" class="flex justify-center">
         <button
           @click="page++"
           class="px-6 py-3 rounded-2xl bg-garden-surface border border-garden-border text-sm font-bold text-garden-primary hover:bg-garden-base transition-colors shadow-sm"
@@ -142,15 +140,16 @@
 import { ref, computed } from 'vue'
 import { useActivityFeed } from '@/composables/useActivityLog'
 
+// `embedded` = the compact version shown inside the Dashboard's Activity Log card.
+const props = defineProps({
+  embedded: { type: Boolean, default: false },
+})
+
 // Same shared Firestore feed the Dashboard widget uses, just with a much
 // higher limit since this is the dedicated full-history page.
-const { entries: activityLog, loaded: activityLogLoaded } = useActivityFeed(500)
+const { entries: activityLog, loaded: activityLogLoaded } = useActivityFeed(props.embedded ? 25 : 500)
 
-const PAGE_SIZE = 8
-const page = ref(1)
-const filter = ref('all')
 
-// Fixed filter set — copied from the Figma design's ActivityLogPage.tsx.
 const FILTER_TYPES = [
   { id: 'all', label: 'All' },
   { id: 'irrigation', label: 'Irrigation' },
@@ -160,43 +159,53 @@ const FILTER_TYPES = [
   { id: 'reservoir', label: 'Reservoir' },
 ]
 
-// Colors/icons per event type — copied from the design's EVENT_STYLE map.
+// Tailwind classes (bg + text + border) with dark: variants, so the tags follow dark mode.
 const EVENT_STYLE = {
-  irrigation:    { bg: '#eff8ff', text: '#1d4ed8', border: '#93c5fd', icon: '💧' },
-  fertilization: { bg: '#f5ede6', text: '#92400e', border: '#fcd9bd', icon: '⚗️' },
-  misting:       { bg: '#e6f4fb', text: '#0369a1', border: '#7dd3fc', icon: '🌫️' },
-  detection:     { bg: '#dcfce7', text: '#15803d', border: '#86efac', icon: '🌾' },
-  reservoir:     { bg: '#e0f2fe', text: '#0369a1', border: '#7dd3fc', icon: '🛢️' },
+  irrigation:    { icon: '💧', cls: 'bg-[#eff8ff] text-[#1d4ed8] border-[#93c5fd] dark:bg-[#12263f] dark:text-[#93c5fd] dark:border-[#1e4a7a]' },
+  fertilization: { icon: '⚗️', cls: 'bg-[#f5ede6] text-[#92400e] border-[#fcd9bd] dark:bg-[#33241a] dark:text-[#fcd9bd] dark:border-[#6b4a30]' },
+  misting:       { icon: '🌫️', cls: 'bg-[#e6f4fb] text-[#0369a1] border-[#7dd3fc] dark:bg-[#0f2a38] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
+  detection:     { icon: '🌾', cls: 'bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]' },
+  reservoir:     { icon: '🛢️', cls: 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc] dark:bg-[#10283a] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
+  other:         { icon: '📋', cls: 'bg-garden-base text-garden-dim border-garden-border' },
 }
 
-// RelayControl.vue, useRelayAutoOff.js, and FertScheduleCard.vue now write
-// an explicit `category` ('irrigation' | 'fertilization' | 'misting') and
-// `manual` flag straight into the log entry, read straight off controlPath
-// — the real source of truth for which control an entry belongs to. That's
-// used here whenever it's present. The text-based guess below only exists
-// as a fallback for entries written before this change (which won't carry
-// `category`), so old history doesn't just disappear from the page.
-function classify(message) {
-  const msg = (message || '').toLowerCase()
-  if (msg.includes('misting')) return 'misting'
-  if (msg.includes('fertiliz')) return 'fertilization'
-  if (msg.includes('irrigation')) return 'irrigation'
-  if (msg.includes('reservoir')) return 'reservoir'
-  if (msg.includes('detect')) return 'detection'
+const MANUAL_TAG_CLS = 'bg-[#fef9c3] text-[#854d0e] border border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]'
+const AUTO_TAG_CLS = 'bg-garden-base text-garden-dim border border-garden-border'
+
+// Uses the explicit `category` / `manual` fields when present; falls back to
+// guessing from the message for older entries.
+function classifyEntry(e) {
+  const msg = (e.message || '').toLowerCase()
+  let eventType = EVENT_STYLE[e.category] ? e.category : 'other'
+  if (eventType === 'other') {
+    if (msg.includes('misting')) eventType = 'misting'
+    else if (msg.includes('fertiliz')) eventType = 'fertilization'
+    else if (msg.includes('irrigation')) eventType = 'irrigation'
+    else if (msg.includes('reservoir')) eventType = 'reservoir'
+    else if (msg.includes('detect')) eventType = 'detection'
+  }
+  const isManual = e.manual !== undefined
+    ? e.manual
+    : msg.includes('manually') || msg.includes('schedule updated') || msg.includes('thresholds updated')
+  return { ...e, eventType, isManual }
 }
 
-function isManualAction(message) {
-  const msg = (message || '').toLowerCase()
-  return msg.includes('manually') || msg.includes('schedule updated') || msg.includes('thresholds updated')
+function typeLabel(type) {
+  return type.charAt(0).toUpperCase() + type.slice(1)
 }
 
-const classified = computed(() =>
-  activityLog.value.map((e) => ({
-    ...e,
-    eventType: e.category || classify(e.message),
-    isManual: e.manual !== undefined ? e.manual : isManualAction(e.message),
-  }))
-)
+function formatLogTime(timestamp) {
+  const d = new Date(timestamp)
+  const isToday = d.toDateString() === new Date().toDateString()
+  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
+}
+
+const PAGE_SIZE = props.embedded ? 25 : 8
+const page = ref(1)
+const filter = ref('all')
+
+const classified = computed(() => activityLog.value.map(classifyEntry))
 
 const filtered = computed(() => {
   if (filter.value === 'all') return classified.value
@@ -216,15 +225,4 @@ const grouped = computed(() => {
   }
   return map
 })
-
-function typeLabel(type) {
-  return type.charAt(0).toUpperCase() + type.slice(1)
-}
-
-function formatLogTime(timestamp) {
-  const d = new Date(timestamp)
-  const isToday = d.toDateString() === new Date().toDateString()
-  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
-}
 </script>

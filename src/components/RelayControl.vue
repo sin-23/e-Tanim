@@ -20,9 +20,11 @@
   </div>
 
   <!-- ── Admin full control ───────────────────────────────────────────────── -->
-  <div v-else class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
+  <div v-else class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden flex flex-col">
 
-    <div :class="variant.pad">
+    <!-- flex-1 + flex-col so the body fills the card when it is stretched to match a taller neighbour;
+         the action button is pinned to the bottom with mt-auto -->
+    <div :class="[variant.pad, 'flex-1 flex flex-col']">
       <!-- Header (labels follow the Figma design per control type) -->
       <div class="flex items-center justify-between mb-4 gap-2">
         <!-- Irrigation zones -->
@@ -51,16 +53,13 @@
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
           </button>
-          <svg v-if="variant.kind === 'fert'" width="16" height="16" viewBox="0 0 24 24" fill="none" :stroke="accent" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-          </svg>
         </div>
       </div>
 
       <!-- ── FORCED ON body ─────────────────────────────────────────────── -->
-      <div v-if="relayOn" class="space-y-3">
+      <div v-if="relayOn" class="flex-1 flex flex-col gap-4">
         <!-- Countdown -->
-        <div v-if="countdown > 0" class="flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
+        <div v-if="countdown > 0" class="my-auto flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
           <div class="text-[10px] font-extrabold tracking-widest uppercase mb-1" :class="variant.countdownLabel">
             Auto-Off In
           </div>
@@ -72,7 +71,7 @@
         <!-- Turn OFF button -->
         <button
           class="w-full py-3 rounded-xl text-white font-extrabold text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          :class="variant.offBtn"
+          :class="[variant.offBtn, countdown > 0 ? '' : 'mt-auto']"
           :disabled="loading"
           @click="handleClick"
         >
@@ -91,9 +90,9 @@
       </div>
 
       <!-- ── Idle body ───────────────────────────────────────────────────── -->
-      <div v-else class="space-y-3">
-        <!-- Duration inputs -->
-        <div>
+      <div v-else class="flex-1 flex flex-col gap-4">
+        <!-- Duration inputs (my-auto: extra card height is split evenly above/below) -->
+        <div class="my-auto">
           <div class="text-[10px] font-extrabold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-1.5 flex-1">
@@ -299,7 +298,7 @@ const VARIANTS = {
   1: { ...IRRIGATION_LOOK, accent: '#dc2626', emoji: '🍅🍆', heading: 'Lowland Zone' },
   2: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🌿',   heading: 'Highland Zone' },
   3: {
-    kind: 'fert', pad: 'p-5', accent: '#8b5e3c',
+    kind: 'fert', pad: 'p-4', accent: '#8b5e3c',
     heading: 'Fertilizer Pump Control', subtitle: 'Manual relay control',
     onLabel: '▶ Turn Relay ON', offLabel: 'Turn Relay OFF',
     countdownBox: 'bg-garden-warn/10 border-garden-warn/40',

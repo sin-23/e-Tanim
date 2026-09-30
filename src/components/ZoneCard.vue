@@ -10,6 +10,16 @@
             {{ zone.id === 'lowland' ? '🍅🍆' : '🌿' }} {{ zone.label }}
           </div>
         </div>
+
+        <!-- Pump state; only shown when the parent passes it (Irrigation page) -->
+        <span
+          v-if="pumpOn !== null"
+          class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+          :class="pumpOn ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
+        >
+          <span class="w-1.5 h-1.5 rounded-full" :class="pumpOn ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
+          {{ pumpOn ? 'Running' : 'Off' }}
+        </span>
       </div>
 
       <div v-if="zone.loading" class="py-8 text-center text-xs font-mono text-garden-dim">Awaiting sensor data…</div>
@@ -55,6 +65,7 @@ import { useTempUnit } from '@/composables/useTempUnit'
 
 defineProps({
   zone: { type: Object, required: true },
+  pumpOn: { type: Boolean, default: null },
 })
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()

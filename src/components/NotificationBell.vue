@@ -48,7 +48,20 @@
                   class="text-[11px] font-semibold"
                   :class="n.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'"
                 >{{ n.label }}</span>
-                <span class="text-[10px] text-garden-dim flex-shrink-0">{{ timeAgo(n.createdAt) }}</span>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <span class="text-[10px] text-garden-dim">{{ timeAgo(n.createdAt) }}</span>
+                  <!-- Removes it from the bell only; it stays in the Dashboard Alerts list -->
+                  <button
+                    class="p-0.5 rounded text-garden-dim hover:text-garden-text hover:bg-garden-base transition-colors"
+                    aria-label="Dismiss notification"
+                    title="Dismiss"
+                    @click.stop="dismiss(n.id)"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               <p class="text-xs text-garden-text break-words">{{ n.message }}</p>
               <p v-if="n.source" class="text-[10px] text-garden-dim mt-0.5">{{ n.source }}</p>
@@ -64,7 +77,11 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications'
 
-const { notifications, unreadCount, loading, error, markAllRead } = useNotifications()
+const {
+  bellNotifications: notifications,
+  bellUnreadCount: unreadCount,
+  loading, error, markAllRead, dismiss,
+} = useNotifications()
 
 const open = ref(false)
 const root = ref(null)

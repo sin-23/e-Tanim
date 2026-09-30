@@ -43,6 +43,7 @@
             v-for="zone in zones"
             :key="zone.id"
             :zone="zone"
+            :pump-on="zone.id === 'lowland' ? lowlandPumpOn : highlandPumpOn"
           />
         </div>
       </div>
@@ -126,38 +127,31 @@
 
     <!-- ───────────────── FERTILIZATION ───────────────── -->
     <div v-else-if="tab === 'fertilization'" class="space-y-4">
-      <!-- Status pills -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm px-4 py-3 flex items-center gap-3">
-          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :class="fertScheduleActive ? 'bg-garden-good' : 'bg-garden-dim'" />
-          <div>
-            <div class="text-[10px] font-semibold uppercase tracking-widest text-garden-dim">Schedule Status</div>
-            <div class="text-sm font-bold" :class="fertScheduleActive ? 'text-garden-good' : 'text-garden-dim'">
-              {{ fertScheduleActive ? 'Active Now' : 'Inactive' }}
-            </div>
-          </div>
+      <!-- Same two-column layout as Misting; section titles sit outside the cards like the Irrigation tab -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        <div class="flex flex-col">
+          <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Fertilizer Schedule
+          </h2>
+          <FertScheduleCard class="flex-1" :readonly="false" :schedule-active="fertScheduleActive || fertPumpOn" />
         </div>
 
-        <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm px-4 py-3 flex items-center gap-3">
-          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :class="fertPumpOn ? 'bg-garden-good' : 'bg-garden-dim'" />
-          <div>
-            <div class="text-[10px] font-semibold uppercase tracking-widest text-garden-dim">Fertilizer Pump</div>
-            <div class="text-sm font-bold" :class="fertPumpOn ? 'text-garden-good' : 'text-garden-dim'">
-              {{ fertPumpOn ? 'Running' : 'Off' }}
-            </div>
-          </div>
+        <div class="flex flex-col">
+          <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            Pump Override Controls
+          </h2>
+          <RelayControl
+            class="flex-1"
+            :readonly="false"
+            controlPath="control/relay_fert"
+            title="Fertilizer (All Crops)"
+            :show-threshold-settings="false"
+            :pump-number="3"
+          />
         </div>
       </div>
-
-      <FertScheduleCard :readonly="false" />
-
-      <RelayControl
-        :readonly="false"
-        controlPath="control/relay_fert"
-        title="Fertilizer (All Crops)"
-        :show-threshold-settings="false"
-        :pump-number="3"
-      />
     </div>
 
     <!-- ───────────────── MISTING ───────────────── -->
@@ -166,10 +160,19 @@
         <!-- Highland sensor detail, read from the same useMisting() composable
              MistingStatusCard already uses -->
         <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4">
-          <h3 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-            Highland Sensor
-          </h3>
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <h3 class="text-sm font-bold text-garden-text flex items-center gap-2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+              Highland Sensor
+            </h3>
+            <span
+            class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+            :class="mistingRunning ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
+          >
+            <span class="w-1.5 h-1.5 rounded-full" :class="mistingRunning ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
+            {{ mistingRunning ? 'Running' : 'Off' }}
+          </span>
+          </div>
 
           <div v-if="misting.loading.value" class="grid grid-cols-2 gap-3">
             <div class="h-24 rounded-2xl bg-garden-border animate-pulse" />
@@ -292,8 +295,11 @@ const perCropRows = computed(() => {
 // a client-side read of already-loaded data (config/fert_schedule, plus the
 // live control/relay_fert flag), not a new Firebase path.
 const fertPumpOn = ref(false)
+const lowlandPumpOn = ref(false)
+const highlandPumpOn = ref(false)
 const fertSchedule = ref(null)
 let unsubFertRelay = null
+let unsubIrrigRelays = null
 let unsubFertSchedule = null
 let scheduleTick = null
 
@@ -303,6 +309,12 @@ onMounted(() => {
     const relayCb  = onValue(relayRef, (s) => { fertPumpOn.value = s.val() === true })
     unsubFertRelay = () => off(relayRef, 'value', relayCb)
 
+    const lowRef = dbRef(db, 'control/relay_lowland')
+    const lowCb  = onValue(lowRef, (s) => { lowlandPumpOn.value = s.val() === true })
+    const highRef = dbRef(db, 'control/relay_highland')
+    const highCb  = onValue(highRef, (s) => { highlandPumpOn.value = s.val() === true })
+    unsubIrrigRelays = () => { off(lowRef, 'value', lowCb); off(highRef, 'value', highCb) }
+
     const schedRef = dbRef(db, 'config/fert_schedule')
     const schedCb  = onValue(schedRef, (s) => { fertSchedule.value = s.val() })
     unsubFertSchedule = () => off(schedRef, 'value', schedCb)
@@ -311,6 +323,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (unsubFertRelay) unsubFertRelay()
+  if (unsubIrrigRelays) unsubIrrigRelays()
   if (unsubFertSchedule) unsubFertSchedule()
   if (scheduleTick) clearInterval(scheduleTick)
 })
@@ -332,6 +345,9 @@ const fertScheduleActive = computed(() => {
 
 // ── Misting tab ──────────────────────────────────────────────────────────
 const misting = useMisting()
+const mistingRunning = computed(() =>
+  !waterLow.value && (misting.manualOn.value || misting.autoConditionsMet.value)
+)
 const tempDisplay = computed(() =>
   misting.sensors.value && !misting.sensorStale.value
     ? celsiusToDisplay(misting.sensors.value.temperature)
