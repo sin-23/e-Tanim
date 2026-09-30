@@ -5,7 +5,7 @@
   >
     <div class="flex items-center justify-between gap-2 mb-3">
       <div class="flex items-center gap-2.5 min-w-0">
-        <span class="text-lg">🌫️</span>
+        <span class="text-lg">☁️</span>
         <div class="min-w-0">
           <div class="text-xs font-semibold text-garden-text truncate">Highland Misting</div>
           <div class="text-[10px] text-garden-dim">Bell pepper cooling</div>

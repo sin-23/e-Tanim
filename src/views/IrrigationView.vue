@@ -26,7 +26,7 @@
         <div>
           <div class="text-xs font-bold text-garden-danger">Water Reservoir Locked</div>
           <p class="text-[11px] text-garden-danger/80 font-medium">
-            Water level at or below 30%. Automatic irrigation and misting are suspended
+            Water level at or below its low-level threshold. Automatic irrigation and misting are suspended
             until the reservoir is refilled.
           </p>
         </div>
@@ -84,7 +84,7 @@
       <div>
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-          Per-Circuit Sensor Detail
+          Individual Crop Sensor Readings
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div
@@ -114,7 +114,7 @@
                   <div class="text-[9px] font-bold uppercase tracking-widest text-garden-dim mb-0.5">
                     {{ row.label }}
                   </div>
-                  <div class="text-sm font-bold font-mono" :style="{ color: row.color }">
+                  <div class="text-sm font-mono" :style="{ color: row.color }">
                     {{ row.value }}
                   </div>
                 </div>
@@ -146,7 +146,7 @@
             class="flex-1"
             :readonly="false"
             controlPath="control/relay_fert"
-            title="Fertilizer (All Crops)"
+            title="Fertilization"
             :show-threshold-settings="false"
             :pump-number="3"
           />
@@ -186,7 +186,6 @@
                 {{ tempDisplay !== null ? `${tempDisplay}${unitLabel}` : '—' }}
               </div>
               <div class="flex items-center gap-1.5 mt-2">
-                <span class="w-1.5 h-1.5 rounded-full" :class="misting.tempMet.value ? 'bg-garden-danger' : 'bg-garden-good'" />
                 <span class="text-[10px] font-medium text-garden-dim">
                   Threshold: {{ celsiusToDisplay(misting.config.value.tempOn) }}{{ unitLabel }}
                 </span>
@@ -196,21 +195,17 @@
             <div class="p-4 rounded-2xl bg-garden-sky/10 border border-garden-sky/30">
               <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
               <div class="text-3xl font-bold font-mono text-garden-sky">
-                {{ misting.sensors.value && !misting.sensorStale.value ? `${misting.sensors.value.humidity}%` : '—' }}
+                {{ humidityDisplay ?? '—' }}
               </div>
               <div class="flex items-center gap-1.5 mt-2">
-                <span class="w-1.5 h-1.5 rounded-full" :class="misting.humidityMet.value ? 'bg-garden-danger' : 'bg-garden-good'" />
                 <span class="text-[10px] font-medium text-garden-dim">
-                  Threshold: {{ misting.config.value.humidityOn }}%
+                  Threshold: {{ misting.config.value.humidityOn }} %
                 </span>
               </div>
             </div>
           </div>
 
           <p v-if="misting.sensorErr.value" class="text-[11px] text-garden-dim mt-3">{{ misting.sensorErr.value }}</p>
-          <p v-else-if="misting.sensorStale.value" class="text-[11px] text-garden-warn font-semibold mt-3">
-            No recent highland reading.
-          </p>
         </div>
 
         <!-- Thresholds + manual override: RelayControl (pump 4) already handles
@@ -281,10 +276,10 @@ const perCropRows = computed(() => {
       borderColor: colors.border,
       loading: false,
       rows: [
-        { label: 'Soil Moisture', value: c.sensors.moisture !== null ? `${c.sensors.moisture}%` : '—', color: colors.color },
+        { label: 'Soil Moisture', value: c.sensors.moisture !== null ? `${c.sensors.moisture} %` : '—', color: colors.color },
         { label: 'VPD', value: vpd !== null ? `${vpd} kPa` : '—', color: '#2d7a4f' },
-        { label: 'Temperature', value: c.sensors.temperature !== null ? `${celsiusToDisplay(c.sensors.temperature)}${unitLabel.value}` : '—', color: '#d97706' },
-        { label: 'Humidity', value: c.sensors.humidity !== null ? `${c.sensors.humidity}%` : '—', color: '#2563eb' },
+        { label: 'Temperature', value: c.sensors.temperature !== null ? `${celsiusToDisplay(c.sensors.temperature)} ${unitLabel.value}` : '—', color: '#d97706' },
+        { label: 'Humidity', value: c.sensors.humidity !== null ? `${c.sensors.humidity} %` : '—', color: '#2563eb' },
       ],
     }
   })
@@ -348,9 +343,23 @@ const misting = useMisting()
 const mistingRunning = computed(() =>
   !waterLow.value && (misting.manualOn.value || misting.autoConditionsMet.value)
 )
-const tempDisplay = computed(() =>
-  misting.sensors.value && !misting.sensorStale.value
-    ? celsiusToDisplay(misting.sensors.value.temperature)
-    : null
-)
+// Show the last known reading even when stale (same as the zone cards);
+// staleness only pauses the auto-trigger estimate and shows a warning below.
+const tempDisplay = computed(() => {
+  const t = misting.sensors.value?.temperature
+  return typeof t === 'number' ? celsiusToDisplay(t) : null
+})
+const humidityDisplay = computed(() => {
+  const h = misting.sensors.value?.humidity
+  return typeof h === 'number' ? `${h} %` : null
+})
+const sensorAgeText = computed(() => {
+  const u = misting.sensors.value?.updatedAt
+  if (!u) return null
+  const sec = Math.round((Date.now() - u) / 1000)
+  if (sec < 0) return 'timestamp is in the future (check ESP32 clock)'
+  if (sec < 90) return `${sec}s ago`
+  if (sec < 5400) return `${Math.round(sec / 60)} min ago`
+  return `${(sec / 3600).toFixed(1)} h ago`
+})
 </script>

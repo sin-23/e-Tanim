@@ -2,32 +2,7 @@
   <div :class="embedded ? 'space-y-3' : 'p-4 lg:p-6 space-y-5 pb-12'">
     <!-- Header + filter (when embedded in the Dashboard, the card and title come from the Dashboard) -->
     <div :class="embedded ? '' : 'bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4'">
-      <div v-if="!embedded" class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-          Activity Log
-        </h2>
-
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-garden-dim font-semibold">
-            {{ filtered.length }} event{{ filtered.length !== 1 ? 's' : '' }}
-          </span>
-          <button
-            @click="page = 1"
-            class="p-1.5 rounded-lg hover:bg-garden-base text-garden-dim hover:text-garden-primary transition-colors"
-            title="Reset"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Filter chips: fixed set, matching the Figma design's ActivityLogPage exactly -->
+      <!-- Filter chips + event count on the same row -->
       <div class="flex items-center gap-2 flex-wrap">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-garden-dim flex-shrink-0">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -44,6 +19,23 @@
         >
           {{ f.label }}
         </button>
+
+        <!-- Count + reset, pushed to the right end of the filter row -->
+        <div v-if="!embedded" class="flex items-center gap-2 ml-auto">
+          <span class="text-[10px] text-garden-dim font-semibold whitespace-nowrap">
+            {{ filtered.length }} event{{ filtered.length !== 1 ? 's' : '' }}
+          </span>
+          <button
+            @click="page = 1"
+            class="p-1.5 rounded-lg hover:bg-garden-base text-garden-dim hover:text-garden-primary transition-colors"
+            title="Reset"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -163,10 +155,10 @@ const FILTER_TYPES = [
 const EVENT_STYLE = {
   irrigation:    { icon: '💧', cls: 'bg-[#eff8ff] text-[#1d4ed8] border-[#93c5fd] dark:bg-[#12263f] dark:text-[#93c5fd] dark:border-[#1e4a7a]' },
   fertilization: { icon: '⚗️', cls: 'bg-[#f5ede6] text-[#92400e] border-[#fcd9bd] dark:bg-[#33241a] dark:text-[#fcd9bd] dark:border-[#6b4a30]' },
-  misting:       { icon: '🌫️', cls: 'bg-[#e6f4fb] text-[#0369a1] border-[#7dd3fc] dark:bg-[#0f2a38] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
-  detection:     { icon: '🌾', cls: 'bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]' },
+  misting:       { icon: '☁️', cls: 'bg-[#e6f4fb] text-[#0369a1] border-[#7dd3fc] dark:bg-[#0f2a38] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
+  detection:     { icon: '📷', cls: 'bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]' },
   reservoir:     { icon: '🛢️', cls: 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc] dark:bg-[#10283a] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
-  other:         { icon: '📋', cls: 'bg-garden-base text-garden-dim border-garden-border' },
+  other:         { icon: '⚙️', cls: 'bg-garden-base text-garden-dim border-garden-border' },
 }
 
 const MANUAL_TAG_CLS = 'bg-[#fef9c3] text-[#854d0e] border border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]'

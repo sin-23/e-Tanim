@@ -5,9 +5,8 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-4">
         <div>
-          <div class="text-[10px] uppercase tracking-widest text-garden-dim">Zone Summary</div>
           <div class="text-base font-semibold text-garden-text">
-            {{ zone.id === 'lowland' ? '🍅🍆' : '🌿' }} {{ zone.label }}
+            {{ zone.id === 'lowland' ? '🍅🍆' : '🫑' }} {{ zone.label }}
           </div>
         </div>
 
@@ -30,29 +29,28 @@
         <div class="p-2.5 rounded-xl" :style="{ backgroundColor: `${zoneColor(zone.colorKey)}1a` }">
           <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
           <div class="text-base font-mono" :style="{ color: zoneColor(zone.colorKey) }">
-            {{ zone.sensors.moisture !== null ? `${zone.sensors.moisture}%` : '—' }}
+            {{ zone.sensors.moisture !== null ? `${zone.sensors.moisture} %` : '—' }}
           </div>
         </div>
 
         <div class="p-2.5 rounded-xl bg-garden-warn/10">
           <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
           <div class="text-base font-mono text-garden-warn">
-            {{ zone.sensors.temperature !== null ? `${celsiusToDisplay(zone.sensors.temperature)}${unitLabel}` : '—' }}
+            {{ zone.sensors.temperature !== null ? `${celsiusToDisplay(zone.sensors.temperature)} ${unitLabel}` : '—' }}
           </div>
         </div>
 
         <div class="p-2.5 rounded-xl bg-garden-sky/10">
           <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
           <div class="text-base font-mono text-garden-sky">
-            {{ zone.sensors.humidity !== null ? `${zone.sensors.humidity}%` : '—' }}
+            {{ zone.sensors.humidity !== null ? `${zone.sensors.humidity} %` : '—' }}
           </div>
         </div>
 
         <div class="p-2.5 rounded-xl bg-garden-base">
           <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">VPD</div>
           <div class="text-base font-mono text-garden-primary">
-            {{ zone.vpd !== null ? zone.vpd : '—' }}
-            <span v-if="zone.vpd !== null" class="text-[8px] text-garden-dim ml-1">kPa</span>
+            {{ zone.vpd !== null ? zone.vpd : '—' }} kPa
           </div>
         </div>
       </div>

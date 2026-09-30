@@ -9,9 +9,6 @@
           <span class="text-2xl">{{ crop.emoji }}</span>
           <div>
             <div class="font-extrabold text-base text-garden-text">{{ crop.label }}</div>
-            <div class="text-[10px] text-garden-dim capitalize">
-              Detection summary for today · {{ crop.climate }} zone
-            </div>
           </div>
         </div>
 
@@ -57,11 +54,14 @@
         </div>
       </div>
 
-      <p class="px-5 text-[10px]" :class="[showFruitLog ? 'pb-1' : 'pb-4', crop.stale ? 'text-garden-warn font-semibold' : 'text-garden-dim']">
-        <template v-if="crop.stale">No update for over 45 minutes. Last: {{ lastUpdated(crop) }}</template>
-        <template v-else-if="crop.updatedAt">
-          Updated {{ lastUpdated(crop) }}<span v-if="crop.confidence !== null"> · confidence {{ Math.round(crop.confidence * 100) }}%</span>
-        </template>
+      <!-- Last update / confidence -->
+      <p
+        class="px-5 text-[10px]"
+        :class="[
+          showFruitLog ? 'pb-1' : 'pb-4',
+          crop.stale ? 'text-garden-warn font-semibold' : 'text-garden-dim'
+        ]"
+      >
       </p>
 
       <!-- Per-fruit detection rows: not available with the current data model yet
@@ -74,8 +74,7 @@
             <CameraIconSvg />
           </span>
           <div class="text-[11px] text-garden-dim">
-            Per-fruit detection log (fruit ID, timestamp, snapshot) isn't available yet —
-            the detection pipeline only reports totals per crop right now.
+            Per-fruit detection log isn't available yet.
           </div>
         </div>
       </div>

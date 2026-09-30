@@ -4,8 +4,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between gap-2">
         <div class="min-w-0">
-          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim">Liquid Fertilizer</div>
-          <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing (all crops)</div>
+          <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing</div>
         </div>
         <span v-if="scheduleActive !== null"
           class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"

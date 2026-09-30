@@ -181,6 +181,19 @@
       "irrigation_override_zone_updated": {
         ".write": true
       },
+      "reservoir_low": {
+        ".write": true,
+        "water": {
+          ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
+        },
+        "fertilizer": {
+          ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
+        },
+        "$other": { ".validate": false }
+      },
+      "reservoir_low_updated": {
+        ".write": true
+      },
       "misting": {
         ".write": true
       },

@@ -31,14 +31,12 @@
         <div v-if="variant.kind === 'irrigation'" class="flex items-center gap-2 min-w-0">
           <span class="text-lg">{{ variant.emoji }}</span>
           <div class="min-w-0">
-            <div class="text-[10px] font-extrabold tracking-widest uppercase text-garden-dim">{{ variant.eyebrow }}</div>
-            <div class="text-sm font-extrabold text-garden-text truncate">{{ variant.heading }}</div>
+            <div class="text-sm text-garden-text truncate">{{ variant.heading }}</div>
           </div>
         </div>
         <!-- Fertilizer / misting -->
         <div v-else class="min-w-0">
           <h3 class="text-sm font-extrabold text-garden-text">{{ variant.heading }}</h3>
-          <p v-if="variant.subtitle" class="text-[10px] text-garden-dim mt-0.5">{{ variant.subtitle }}</p>
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
@@ -60,7 +58,7 @@
       <div v-if="relayOn" class="flex-1 flex flex-col gap-4">
         <!-- Countdown -->
         <div v-if="countdown > 0" class="my-auto flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
-          <div class="text-[10px] font-extrabold tracking-widest uppercase mb-1" :class="variant.countdownLabel">
+          <div class="text-[10px] tracking-widest uppercase mb-1" :class="variant.countdownLabel">
             Auto-Off In
           </div>
           <div class="text-4xl font-extrabold font-mono tracking-tight" :class="variant.countdownText">
@@ -77,16 +75,6 @@
         >
           {{ loading ? 'Sending…' : variant.offLabel }}
         </button>
-
-        <!-- Warning strip (irrigation only, as in the design) -->
-        <div v-if="variant.kind === 'irrigation'" class="flex items-start gap-2 p-2.5 rounded-xl bg-garden-warn/10 border border-garden-warn/30">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <p class="text-[11px] text-garden-warn font-semibold leading-snug">
-            Relay active — automatic irrigation is temporarily overridden.
-          </p>
-        </div>
       </div>
 
       <!-- ── Idle body ───────────────────────────────────────────────────── -->
@@ -99,18 +87,18 @@
               <input
                 v-model.number="inputMinutes"
                 type="number" min="0" max="99" placeholder="0"
-                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-extrabold font-mono
+                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-mono
                        text-garden-text bg-garden-void focus:outline-none focus:ring-2 transition"
                 :class="variant.focus"
               />
               <span class="text-xs font-bold text-garden-dim flex-shrink-0">MIN</span>
             </div>
-            <span class="text-xl font-extrabold text-garden-dim flex-shrink-0">:</span>
+            <span class="text-xl text-garden-dim flex-shrink-0">:</span>
             <div class="flex items-center gap-1.5 flex-1">
               <input
                 v-model.number="inputSeconds"
                 type="number" min="0" max="59" placeholder="0"
-                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-extrabold font-mono
+                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-mono
                        text-garden-text bg-garden-void focus:outline-none focus:ring-2 transition"
                 :class="variant.focus"
               />
@@ -144,7 +132,7 @@
               class="w-8 h-8 rounded-full bg-garden-base flex items-center justify-center text-garden-dim hover:bg-garden-border transition-colors"
               @click="closeWarning"
             >✕</button>
-          </div>
+          </div>bold
           <div class="p-5 space-y-3">
             <p class="text-sm text-garden-text">Current conditions may harm the plants:</p>
             <ul class="space-y-2">
@@ -296,7 +284,7 @@ const IRRIGATION_LOOK = {
 }
 const VARIANTS = {
   1: { ...IRRIGATION_LOOK, accent: '#dc2626', emoji: '🍅🍆', heading: 'Lowland Zone' },
-  2: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🌿',   heading: 'Highland Zone' },
+  2: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🫑',   heading: 'Highland Zone' },
   3: {
     kind: 'fert', pad: 'p-4', accent: '#8b5e3c',
     heading: 'Fertilizer Pump Control', subtitle: 'Manual relay control',
@@ -308,7 +296,7 @@ const VARIANTS = {
   },
   4: {
     kind: 'mist', pad: 'p-4', accent: '#3b9dd2',
-    heading: 'Manual Override', subtitle: null, gearTitle: 'Adjust misting thresholds',
+    heading: 'Manual Override', gearTitle: 'Adjust misting thresholds',
     onLabel: '▶ Start Misting', offLabel: 'Stop Misting',
     countdownBox: 'bg-garden-sky/10 border-garden-sky/40',
     countdownLabel: 'text-garden-sky/70', countdownText: 'text-garden-sky',

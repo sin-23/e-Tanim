@@ -14,8 +14,8 @@ const LAST_SEEN_KEY = 'etanim:notifications:lastSeen'
 const DISMISSED_KEY = 'etanim:notifications:dismissed'
 
 export const NOTIFICATION_META = {
-  reservoir_low: { label: 'Low reservoir', emoji: '🪫', tone: 'danger' },
-  harvest_ready: { label: 'Ready to harvest', emoji: '🌾', tone: 'good' },
+  reservoir_low: { label: 'Low reservoir', emoji: '🛢️', tone: 'danger' },
+  harvest_ready: { label: 'Ready to harvest', emoji: '📷', tone: 'good' },
 }
 
 function readLastSeen() {

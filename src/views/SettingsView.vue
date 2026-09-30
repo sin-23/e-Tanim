@@ -36,10 +36,6 @@
               <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200" :style="{ transform: isDarkMode ? 'translateX(20px)' : 'translateX(0)' }" />
             </button>
           </div>
-          <div v-if="isDarkMode" class="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-garden-base border border-garden-primary/40">
-            <span class="text-sm">🌙</span>
-            <span class="text-[11px] font-semibold text-garden-primary">Dark mode is active</span>
-          </div>
         </div>
 
         <div class="h-px bg-garden-border" />

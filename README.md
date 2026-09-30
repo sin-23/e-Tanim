@@ -22,9 +22,9 @@ Related repository: `eTanim-inference` (Mini PC harvest-maturity pipeline).
 |------|-------------------------|
 | Environmental sensors | Average temperature, humidity and soil moisture; per-zone readings with VPD (Tetens equation) and an estimated irrigation trigger score |
 | Climate zones | **Lowland** = tomato (`zone-1`) + eggplant (`zone-2`), readings averaged. **Highland** = bell pepper (`zone-3`) |
-| Manual override | Timed ON/OFF for lowland irrigation, highland irrigation, fertilizer and misting, with auto-off |
+| Manual override | Timed ON/OFF for lowland irrigation, highland irrigation, fertilization and misting, with auto-off |
 | Auto-mode settings | Irrigation thresholds per zone, misting thresholds (temperature and humidity) |
-| Fertilizer schedule | Start and end time and days of the week, applied to the single shared fertilizer line |
+| Fertilization schedule | Start and end time and days of the week, applied to the single shared fertilization line |
 | Reservoir levels | Water and fertilizer level bars, low-level banner at 30% or below, stale-data detection |
 | Misting status | Manual state, highland reading against thresholds, water-reservoir lockout |
 | Harvest maturity | Underripe, ripe and damaged counts per crop from the Mini PC, READY TO HARVEST badge |
@@ -32,7 +32,7 @@ Related repository: `eTanim-inference` (Mini PC harvest-maturity pipeline).
 | Activity log | Shared, append-only feed of manual actions, timer shutoffs, threshold and schedule changes |
 | Display | Dark mode, °C/°F toggle (all stored values stay in °C) |
 
-Pages: **Dashboard**, **Irrigation & Fertilization**, **Settings**.
+Pages: **Dashboard**, **Irrigation, Fertilization, & Misting**, **Settings**.
 
 ---
 

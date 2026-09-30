@@ -24,7 +24,7 @@ const routes = [
     path: '/irrigation',
     name: 'irrigation',
     component: () => import('@/views/IrrigationView.vue'),
-    meta: { title: 'Irrigation & Fertilization' },
+    meta: { title: 'Irrigation, Fertilization, & Misting' },
   },
 
   {
