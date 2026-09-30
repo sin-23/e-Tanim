@@ -77,15 +77,15 @@
 
               <div class="min-w-0 flex-1">
                 <div class="flex items-start justify-between gap-2 flex-wrap">
-                  <div class="font-bold text-sm text-garden-text leading-snug">{{ entry.message }}</div>
+                  <div class="text-sm text-garden-text leading-snug">{{ entry.message }}</div>
 
                   <div class="flex items-center gap-2 flex-shrink-0">
                     <span
-                      class="text-[9px] font-extrabold px-2 py-0.5 rounded-full"
+                      class="text-[9px] px-2 py-0.5 rounded-full"
                       :class="entry.isManual ? MANUAL_TAG_CLS : AUTO_TAG_CLS"
                     >{{ entry.isManual ? '🖐️ Manual' : '⚙️ Auto' }}</span>
 
-                    <span class="text-[10px] font-mono font-semibold text-garden-dim">
+                    <span class="text-[10px] font-mono text-garden-dim">
                       {{ formatLogTime(entry.timestamp) }}
                     </span>
                   </div>
@@ -178,7 +178,7 @@ function classifyEntry(e) {
   }
   const isManual = e.manual !== undefined
     ? e.manual
-    : msg.includes('manually') || msg.includes('schedule updated') || msg.includes('thresholds updated')
+    : msg.includes('manually') || msg.includes('schedule updated') || msg.includes('thresholds updated') || msg.includes('threshold set to')
   return { ...e, eventType, isManual }
 }
 

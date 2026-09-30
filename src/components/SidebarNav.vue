@@ -40,8 +40,6 @@
 
     <!-- Nav -->
     <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-      <div class="px-2 pb-2 text-[10px] font-bold tracking-widest uppercase text-white/30">Navigation</div>
-
       <router-link
         v-for="item in navItems"
         :key="item.id"

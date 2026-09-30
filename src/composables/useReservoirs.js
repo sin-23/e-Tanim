@@ -97,7 +97,7 @@ export function useReservoirs() {
       'config/reservoir_low_updated': Math.floor(Date.now() / 1000),
     })
     const label = RESERVOIRS.find(r => r.id === id).label
-    logActivity(`${label} low-level alert threshold set to ${n}%`, '#3b9dd2', 'threshold', { category: 'reservoir' })
+    logActivity(`${label} low-level alert threshold set to ${n}%`, '#3b9dd2', 'threshold', { category: 'reservoir', manual: true })
   }
 
   return { reservoirs, lowReservoirs, saveLowThreshold }
