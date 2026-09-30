@@ -450,8 +450,8 @@ async function saveThresholds() {
     const c = (v) => +Number(v).toFixed(1)
     const summary = isIrrigation
       ? `moisture normal ≤${c(t.smNormal)}%, emergency ≤${c(t.smEmergency)}%, stop ≥${c(t.smStop)}%, VPD gate ≥${c(t.vpdGate)} kPa`
-      : `temp ≥ ${c(t.tempOn)}°C, humidity ≥ ${c(t.humidityOn)}%`
-    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold', { category: logCategory.value })
+      : `temp ≥ ${c(t.tempOn)}°C, humidity ≤ ${c(t.humidityOn)}%`
+    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold', { category: logCategory.value, manual: true })
   } catch (err) {
     loading.value = false
     console.error(`Failed to save thresholds for pump ${props.pumpNumber}:`, err)

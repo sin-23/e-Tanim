@@ -76,28 +76,25 @@
               >{{ EVENT_STYLE[entry.eventType].icon }}</div>
 
               <div class="min-w-0 flex-1">
-                <div class="flex items-start justify-between gap-2 flex-wrap">
-                  <div class="text-sm text-garden-text leading-snug">{{ entry.message }}</div>
-
-                  <div class="flex items-center gap-2 flex-shrink-0">
-                    <span
-                      class="text-[9px] px-2 py-0.5 rounded-full"
-                      :class="entry.isManual ? MANUAL_TAG_CLS : AUTO_TAG_CLS"
-                    >{{ entry.isManual ? '🖐️ Manual' : '⚙️ Auto' }}</span>
-
-                    <span class="text-[10px] font-mono text-garden-dim">
-                      {{ formatLogTime(entry.timestamp) }}
-                    </span>
-                  </div>
-                </div>
+                <div class="text-sm text-garden-text leading-snug">{{ entry.message }}</div>
 
                 <div v-if="entry.by" class="text-[11px] text-garden-dim mt-1 font-medium">by {{ entry.by }}</div>
 
-                <div class="flex items-center gap-1.5 mt-2">
+                <!-- One tag row: category, Manual/Auto, then the time pushed to the right -->
+                <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                   <span
                     class="text-[9px] font-bold px-2 py-0.5 rounded-full border"
                     :class="EVENT_STYLE[entry.eventType].cls"
                   >{{ typeLabel(entry.eventType) }}</span>
+
+                  <span
+                    class="text-[9px] px-2 py-0.5 rounded-full"
+                    :class="entry.isManual ? MANUAL_TAG_CLS : AUTO_TAG_CLS"
+                  >{{ entry.isManual ? '🖐️ Manual' : '⚙️ Auto' }}</span>
+
+                  <span class="text-[10px] font-mono text-garden-dim ml-auto whitespace-nowrap">
+                    {{ formatLogTime(entry.timestamp) }}
+                  </span>
                 </div>
               </div>
             </div>
