@@ -79,8 +79,8 @@
         </h2>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <ReservoirCard v-for="r in reservoirs" :key="r.id" :reservoir="r" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <ReservoirCard v-for="r in reservoirs" :key="r.id" :reservoir="r" compact />
       </div>
     </section>
 

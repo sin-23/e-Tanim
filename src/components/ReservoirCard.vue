@@ -1,8 +1,45 @@
 <template>
   <article
-    class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden transition-colors duration-200"
+    class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden transition-colors duration-200"
+    :class="compact && r.low ? 'border-garden-danger/40 bg-garden-danger/10' : 'border-garden-border'"
   >
-    <div class="p-5">
+    <!-- Compact (Dashboard): label + percentage + thin bar, as in the Figma dashboard -->
+    <div v-if="compact" class="p-4">
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-lg">{{ r.emoji }}</span>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold text-garden-text truncate">{{ r.label }}</div>
+            <div class="text-[9px] text-garden-dim">{{ r.subtitle }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border" :style="badgeStyle(r)">{{ badgeText(r) }}</span>
+          <span
+            class="text-xl font-extrabold font-mono"
+            :style="{ color: r.levelPct !== null ? gaugeColor(r) : undefined }"
+            :class="r.levelPct === null ? 'text-garden-dim' : ''"
+          >{{ r.levelPct !== null ? `${r.levelPct}%` : '—' }}</span>
+        </div>
+      </div>
+
+      <div v-if="r.loading" class="h-2 rounded-full bg-garden-base animate-pulse" />
+      <div v-else class="relative h-2 bg-garden-base rounded-full overflow-hidden" role="progressbar"
+           :aria-valuenow="r.levelPct ?? 0" aria-valuemin="0" aria-valuemax="100" :aria-label="`${r.label} level`">
+        <div
+          class="h-full rounded-full transition-all duration-700"
+          :style="{ width: `${r.levelPct ?? 0}%`, backgroundColor: r.levelPct === null ? 'rgb(var(--garden-muted))' : gaugeColor(r) }"
+        />
+        <div class="absolute top-0 bottom-0 w-px bg-garden-text/30" :style="{ left: `${RESERVOIR_LOW_PCT}%` }" />
+      </div>
+
+      <p v-if="r.error" class="mt-2 text-[11px] text-garden-dim">{{ r.error }}</p>
+      <p v-else-if="r.low" class="mt-2 text-[11px] font-semibold" :style="{ color: COLORS.danger }">
+        Low level. Refill soon — pumps on this tank may be interlocked.
+      </p>
+    </div>
+
+    <div v-else class="p-5">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3 min-w-0">
           <span class="text-2xl">{{ r.emoji }}</span>
@@ -80,6 +117,8 @@ import { RESERVOIR_LOW_PCT } from '@/composables/useReservoirs'
 
 const props = defineProps({
   reservoir: { type: Object, required: true },
+  // Smaller card used on the Dashboard; the Reservoir page uses the full gauge.
+  compact: { type: Boolean, default: false },
 })
 const r = computed(() => props.reservoir)
 
