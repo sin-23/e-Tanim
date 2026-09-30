@@ -96,7 +96,7 @@ const ICON = {
 const navItems = [
   { id: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: ICON.home },
   { id: 'crop-monitor', to: '/crop-monitor', label: 'Crop Monitor', icon: ICON.leaf },
-  { id: 'irrigation', to: '/irrigation', label: 'Irrigation & Fertilization', icon: ICON.droplet },
+  { id: 'irrigation', to: '/irrigation', label: 'Irrigation, Fertilization & Misting', icon: ICON.droplet },
   { id: 'reservoir', to: '/reservoir', label: 'Reservoir Levels', icon: ICON.database },
   { id: 'activity-log', to: '/activity-log', label: 'Activity Log', icon: ICON.activity },
   { id: 'settings', to: '/settings', label: 'Settings', icon: ICON.settings },

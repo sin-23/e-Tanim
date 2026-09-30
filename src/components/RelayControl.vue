@@ -1,7 +1,6 @@
 <template>
   <!-- ── Viewer read-only state ───────────────────────────────────────────── -->
-  <div v-if="readonly" class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden" :style="{ borderColor: accentBorder }">
-    <div class="h-1" :style="{ backgroundColor: accent }" />
+  <div v-if="readonly" class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
     <div class="p-4 space-y-3">
       <div class="flex items-center justify-between">
         <span class="text-[10px] font-medium uppercase tracking-widest text-garden-dim">Relay Status</span>
@@ -21,69 +20,72 @@
   </div>
 
   <!-- ── Admin full control ───────────────────────────────────────────────── -->
-  <div v-else class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden" :style="{ borderColor: accentBorder }">
-    <!-- Top accent strip -->
-    <div class="h-1" :style="{ backgroundColor: accent }" />
+  <div v-else class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
 
-    <div class="p-4">
-      <!-- Header -->
+    <div :class="variant.pad">
+      <!-- Header (labels follow the Figma design per control type) -->
       <div class="flex items-center justify-between mb-4 gap-2">
-        <div class="min-w-0">
-          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim">
-            Pump {{ props.pumpNumber }} Override
+        <!-- Irrigation zones -->
+        <div v-if="variant.kind === 'irrigation'" class="flex items-center gap-2 min-w-0">
+          <span class="text-lg">{{ variant.emoji }}</span>
+          <div class="min-w-0">
+            <div class="text-[10px] font-extrabold tracking-widest uppercase text-garden-dim">{{ variant.eyebrow }}</div>
+            <div class="text-sm font-extrabold text-garden-text truncate">{{ variant.heading }}</div>
           </div>
-          <div class="text-sm font-semibold text-garden-text truncate">{{ props.title }}</div>
         </div>
+        <!-- Fertilizer / misting -->
+        <div v-else class="min-w-0">
+          <h3 class="text-sm font-extrabold text-garden-text">{{ variant.heading }}</h3>
+          <p v-if="variant.subtitle" class="text-[10px] text-garden-dim mt-0.5">{{ variant.subtitle }}</p>
+        </div>
+
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span
-            class="px-2.5 py-1 rounded-full text-[10px] font-semibold border"
-            :class="modePillClass"
-          >{{ relayOn ? 'FORCED ON' : (props.showThresholdSettings ? 'AUTO' : 'OFF') }}</span>
           <button
             v-if="props.showThresholdSettings"
-            class="w-7 h-7 rounded-lg flex items-center justify-center text-garden-dim hover:bg-garden-base hover:text-garden-primary transition-colors"
-            title="Configure thresholds"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-garden-dim hover:bg-garden-base hover:text-garden-primary transition-colors flex-shrink-0"
+            :title="variant.gearTitle"
             @click="showSettings = true"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
           </button>
+          <svg v-if="variant.kind === 'fert'" width="16" height="16" viewBox="0 0 24 24" fill="none" :stroke="accent" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
         </div>
       </div>
 
       <!-- ── FORCED ON body ─────────────────────────────────────────────── -->
       <div v-if="relayOn" class="space-y-3">
         <!-- Countdown -->
-        <div v-if="countdown > 0" class="flex flex-col items-center py-3 rounded-xl bg-garden-danger/10 border border-garden-danger/40">
-          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-danger/70 mb-1">
+        <div v-if="countdown > 0" class="flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
+          <div class="text-[10px] font-extrabold tracking-widest uppercase mb-1" :class="variant.countdownLabel">
             Auto-Off In
           </div>
-          <div class="text-4xl font-bold font-mono text-garden-danger tracking-tight">
+          <div class="text-4xl font-extrabold font-mono tracking-tight" :class="variant.countdownText">
             {{ formattedCountdown }}
           </div>
         </div>
 
         <!-- Turn OFF button -->
         <button
-          class="w-full py-3 rounded-xl bg-[#dc2626] text-white font-semibold text-sm
-                 hover:bg-[#b91c1c] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-3 rounded-xl text-white font-extrabold text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="variant.offBtn"
           :disabled="loading"
           @click="handleClick"
         >
-          {{ loading ? 'Sending…' : 'Turn Relay OFF' }}
+          {{ loading ? 'Sending…' : variant.offLabel }}
         </button>
 
-        <!-- Warning strip -->
-        <div class="flex items-start gap-2 p-2.5 rounded-xl bg-garden-warn/10 border-garden-warn/30">
+        <!-- Warning strip (irrigation only, as in the design) -->
+        <div v-if="variant.kind === 'irrigation'" class="flex items-start gap-2 p-2.5 rounded-xl bg-garden-warn/10 border border-garden-warn/30">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           <p class="text-[11px] text-garden-warn font-semibold leading-snug">
-            {{ props.showThresholdSettings
-              ? 'Relay is active. ESP32 is ignoring temperature thresholds.'
-              : 'Relay is active and will turn off automatically after the countdown.' }}
+            Relay active — automatic irrigation is temporarily overridden.
           </p>
         </div>
       </div>
@@ -92,28 +94,28 @@
       <div v-else class="space-y-3">
         <!-- Duration inputs -->
         <div>
-          <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">Duration</div>
+          <div class="text-[10px] font-extrabold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-1.5 flex-1">
               <input
                 v-model.number="inputMinutes"
                 type="number" min="0" max="99" placeholder="0"
-                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-medium font-mono
-                       text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary
-                       focus:ring-2 focus:ring-garden-primary/20 transition"
+                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-extrabold font-mono
+                       text-garden-text bg-garden-void focus:outline-none focus:ring-2 transition"
+                :class="variant.focus"
               />
-              <span class="text-xs font-medium text-garden-dim flex-shrink-0">MIN</span>
+              <span class="text-xs font-bold text-garden-dim flex-shrink-0">MIN</span>
             </div>
-            <span class="text-xl font-medium text-garden-dim flex-shrink-0">:</span>
+            <span class="text-xl font-extrabold text-garden-dim flex-shrink-0">:</span>
             <div class="flex items-center gap-1.5 flex-1">
               <input
                 v-model.number="inputSeconds"
                 type="number" min="0" max="59" placeholder="0"
-                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-medium font-mono
-                       text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary
-                       focus:ring-2 focus:ring-garden-primary/20 transition"
+                class="w-full px-3 py-2.5 rounded-xl border border-garden-border text-center text-lg font-extrabold font-mono
+                       text-garden-text bg-garden-void focus:outline-none focus:ring-2 transition"
+                :class="variant.focus"
               />
-              <span class="text-xs font-medium text-garden-dim flex-shrink-0">SEC</span>
+              <span class="text-xs font-bold text-garden-dim flex-shrink-0">SEC</span>
             </div>
           </div>
           <span v-if="durationError" class="block text-[11px] text-garden-danger mt-1.5">{{ durationError }}</span>
@@ -121,19 +123,14 @@
 
         <!-- Turn ON button -->
         <button
-          class="w-full py-3 rounded-xl font-semibold text-sm text-white transition-colors shadow-sm
+          class="w-full py-3 rounded-xl font-extrabold text-sm text-white transition-colors shadow-sm
                  disabled:opacity-40 disabled:cursor-not-allowed"
           :style="{ backgroundColor: accent }"
           :disabled="loading"
           @click="handleClick"
         >
-          {{ loading ? 'Sending…' : '▶ Turn Relay ON' }}
+          {{ loading ? 'Sending…' : variant.onLabel }}
         </button>
-
-        <!-- Hint -->
-        <p class="text-[11px] text-garden-dim text-center leading-snug">
-          Set a duration then click ON. Relay will auto-off when timer expires.
-        </p>
       </div>
     </div>
 
@@ -259,7 +256,6 @@ import { db }                                     from '@/firebase'
 import { ref as dbRef, set, update, onValue, get, off } from 'firebase/database'
 import { logActivity } from '@/composables/useActivityLog'
 import { expireRelay } from '@/composables/useRelayAutoOff'
-import { isDarkMode }  from '@/composables/useDarkMode'
 import { useTempUnit } from '@/composables/useTempUnit'
 
 const { unitLabel, celsiusToDisplay, displayToCelsius } = useTempUnit()
@@ -285,21 +281,46 @@ const logCategory = computed(() => {
   return 'irrigation' // control/relay_lowland, control/relay_highland
 })
 
-// Accent color per pump (matches Figma's per-zone accent pattern).
-// accentBorder used to be a fixed bright pastel (#86efac / #93c5fd) that
-// was way too intense on the dark surface — alpha-blend the same accent
-// instead, dialed back further in dark mode.
-const accent       = computed(() => props.pumpNumber === 1 ? '#2d7a4f' : '#3b9dd2')
-const accentBorder = computed(() =>
-  props.pumpNumber === 1
-    ? `rgba(45, 122, 79, ${isDarkMode.value ? 0.35 : 0.55})`
-    : `rgba(59, 157, 210, ${isDarkMode.value ? 0.35 : 0.55})`
-)
-const modePillClass = computed(() => {
-  if (relayOn.value) return 'bg-garden-danger/15 text-garden-danger border-garden-danger/40'
-  if (props.showThresholdSettings) return 'bg-garden-good/15 text-garden-good border-garden-good/40'
-  return 'bg-garden-base text-garden-dim border-garden-border'
-})
+// Per-control look and labels, following the Figma design:
+//   pump 1 = Lowland irrigation (red), pump 2 = Highland irrigation (green),
+//   pump 3 = Fertilizer (brown/amber), pump 4 = Misting (blue).
+// `title` (prop) is still what gets written to the Activity Log — these are
+// display-only labels.
+const IRRIGATION_LOOK = {
+  kind: 'irrigation', pad: 'p-4', eyebrow: 'Irrigation Zone',
+  gearTitle: 'Adjust zone thresholds',
+  onLabel: '▶ Turn Relay ON', offLabel: 'Turn Relay OFF',
+  countdownBox: 'bg-garden-danger/10 border-garden-danger/40',
+  countdownLabel: 'text-garden-danger/70', countdownText: 'text-garden-danger',
+  offBtn: 'bg-[#dc2626] hover:bg-[#b91c1c]',
+  focus: 'focus:border-garden-primary focus:ring-garden-primary/20',
+}
+const VARIANTS = {
+  1: { ...IRRIGATION_LOOK, accent: '#dc2626', emoji: '🍅🍆', heading: 'Lowland Zone' },
+  2: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🌿',   heading: 'Highland Zone' },
+  3: {
+    kind: 'fert', pad: 'p-5', accent: '#8b5e3c',
+    heading: 'Fertilizer Pump Control', subtitle: 'Manual relay control',
+    onLabel: '▶ Turn Relay ON', offLabel: 'Turn Relay OFF',
+    countdownBox: 'bg-garden-warn/10 border-garden-warn/40',
+    countdownLabel: 'text-garden-warn/70', countdownText: 'text-garden-warn',
+    offBtn: 'bg-[#d97706] hover:bg-[#b45309]',
+    focus: 'focus:border-[#8b5e3c] focus:ring-[#8b5e3c]/20',
+  },
+  4: {
+    kind: 'mist', pad: 'p-4', accent: '#3b9dd2',
+    heading: 'Manual Override', subtitle: null, gearTitle: 'Adjust misting thresholds',
+    onLabel: '▶ Start Misting', offLabel: 'Stop Misting',
+    countdownBox: 'bg-garden-sky/10 border-garden-sky/40',
+    countdownLabel: 'text-garden-sky/70', countdownText: 'text-garden-sky',
+    offBtn: 'bg-[#3b9dd2] hover:bg-[#2980b9]',
+    focus: 'focus:border-[#3b9dd2] focus:ring-[#3b9dd2]/20',
+  },
+}
+const variant = computed(() => VARIANTS[props.pumpNumber] ?? VARIANTS[1])
+
+const accent = computed(() => variant.value.accent)
+
 
 // State
 const relayOn          = ref(false)

@@ -13,66 +13,11 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div
+        <ZoneCard
           v-for="zone in zones"
           :key="zone.id"
-          class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden"
-        >
-          <div class="h-1" :style="{ backgroundColor: zoneColor(zone.colorKey) }" />
-
-          <div class="p-4">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <div class="text-[10px] uppercase tracking-widest text-garden-dim">Zone Summary</div>
-                <div class="text-base font-semibold text-garden-text">
-                  {{ zone.id === 'lowland' ? '🍅🍆' : '🌿' }} {{ zone.label }}
-                </div>
-              </div>
-              <template v-if="!zone.loading && !zone.error">
-                <span
-                  class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest"
-                  :style="{ backgroundColor: `${moistureStatus(zone.sensors.moisture).color}26`, color: moistureStatus(zone.sensors.moisture).color }"
-                >{{ moistureStatus(zone.sensors.moisture).label }}</span>
-              </template>
-            </div>
-
-            <div v-if="zone.loading" class="py-8 text-center text-xs font-mono text-garden-dim">Awaiting sensor data…</div>
-            <div v-else-if="zone.error" class="py-6 text-center text-xs text-garden-danger">{{ zone.error }}</div>
-
-            <!-- Zone Sensor Summary -->
-            <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <div class="p-2.5 rounded-xl" :style="{ backgroundColor: `${zoneColor(zone.colorKey)}1a` }">
-                <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
-                <div class="text-base font-mono" :style="{ color: zoneColor(zone.colorKey) }">
-                  {{ zone.sensors.moisture !== null ? `${zone.sensors.moisture}%` : '—' }}
-                </div>
-              </div>
-
-              <div class="p-2.5 rounded-xl bg-garden-warn/10">
-                <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
-                <div class="text-base font-mono text-garden-warn">
-                  {{ zone.sensors.temperature !== null ? `${celsiusToDisplay(zone.sensors.temperature)}${unitLabel}` : '—' }}
-                </div>
-              </div>
-
-              <div class="p-2.5 rounded-xl bg-garden-sky/10">
-                <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
-                <div class="text-base font-mono text-garden-sky">
-                  {{ zone.sensors.humidity !== null ? `${zone.sensors.humidity}%` : '—' }}
-                </div>
-              </div>
-
-              <div class="p-2.5 rounded-xl bg-garden-base">
-                <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">VPD</div>
-                <div class="text-base font-mono text-garden-primary">
-                  {{ zone.vpd !== null ? zone.vpd : '—' }}
-                  <span v-if="zone.vpd !== null" class="text-[8px] text-garden-dim ml-1">kPa</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          :zone="zone"
+        />
       </div>
     </section>
 
@@ -270,6 +215,7 @@ import { useSensorData } from '@/composables/useSensorData'
 import { useMisting } from '@/composables/useMisting'
 import { useNotifications } from '@/composables/useNotifications'
 import ControlStatusCard from '@/components/ControlStatusCard.vue'
+import ZoneCard from '@/components/ZoneCard.vue'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 const { reservoirs, lowReservoirs } = useReservoirs()
@@ -284,12 +230,6 @@ const {
   markAllRead: markAllAlertsRead,
 } = useNotifications()
 
-// ── Zone accent colors — reused from the Irrigation page's ZoneCard.vue so
-// both pages agree (the design mock used red/green; the app's real
-// convention, already shipped on Irrigation, is green/sky). ──────────────────
-const ZONE_COLORS = { lowland: '#2d7a4f', highland: '#3b9dd2' }
-function zoneColor(colorKey) { return ZONE_COLORS[colorKey] ?? '#2d7a4f' }
-
 // ── VPD / moisture status bands — ported from the design file's
 // getVPDStatus()/getMoistureStatus() so the labels and thresholds match. ────
 function vpdStatus(vpd) {
@@ -297,13 +237,6 @@ function vpdStatus(vpd) {
   if (vpd <= 1.2) return { label: 'Optimal', color: '#15803d' }
   if (vpd <= 2.0) return { label: 'High',    color: '#92400e' }
   return { label: 'Stress', color: '#991b1b' }
-}
-function moistureStatus(moisture) {
-  if (moisture === null) return { label: '—', color: '#6b8070' }
-  if (moisture <= 30) return { label: 'Emergency',   color: '#dc2626' }
-  if (moisture < 50)  return { label: 'Needs Water', color: '#92400e' }
-  if (moisture <= 70) return { label: 'Normal',      color: '#15803d' }
-  return { label: 'High', color: '#1d4ed8' }
 }
 
 // ── Live relay state (read-only summary — feeds the System Controls cards;
@@ -357,4 +290,4 @@ function formatLogTime(timestamp) {
   const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
 }
-</script>
+</script> 

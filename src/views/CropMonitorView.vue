@@ -5,8 +5,6 @@
       :key="crop.id"
       class="bg-garden-card rounded-2xl border border-garden-border shadow-sm overflow-hidden"
     >
-      <div class="h-1" :class="cropAccent[crop.id].bar" />
-
       <!-- Card header with total count on the right -->
       <div class="px-5 py-4 border-b border-garden-border">
         <div class="flex items-center justify-between gap-3">

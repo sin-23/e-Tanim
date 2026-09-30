@@ -1,259 +1,66 @@
 <template>
-  <article
-    class="bg-garden-surface rounded-2xl border shadow-sm overflow-hidden
-           transition-all duration-500 animate-slide-up"
-    :style="{ borderColor: zoneColorBorder, animationDelay: `${delay}ms` }"
-  >
-    <!-- Top accent strip -->
-    <div class="h-1" :style="{ backgroundColor: zoneColor }" />
-
+  <!-- Zone Summary card, shared by the Dashboard and the Irrigation page. -->
+  <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
     <div class="p-4">
       <!-- Header -->
-      <div class="flex items-start justify-between mb-3 gap-2">
-        <div class="min-w-0">
-          <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim">
-            Zone Summary
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <div class="text-[10px] uppercase tracking-widest text-garden-dim">Zone Summary</div>
+          <div class="text-base font-semibold text-garden-text">
+            {{ zone.id === 'lowland' ? '🍅🍆' : '🌿' }} {{ zone.label }}
           </div>
-          <div class="flex items-center gap-2 min-w-0 mt-0.5">
-            <div class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: zoneColor }" />
-            <span class="text-base font-extrabold text-garden-text truncate">{{ zone.label }}</span>
-          </div>
-        </div>
-        <div class="flex flex-col items-end gap-1 flex-shrink-0">
-          <span
-            class="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap"
-            :class="zoneStatusBadge.class"
-          >{{ zoneStatusBadge.text }}</span>
-          <span class="text-[9px] font-mono text-garden-dim">
-            <template v-if="zone.loading">syncing…</template>
-            <template v-else-if="zone.error">error</template>
-            <template v-else>{{ lastUpdated }}</template>
-          </span>
         </div>
       </div>
 
-      <!-- Crops in this zone -->
-      <div v-if="!compact" class="flex flex-wrap gap-1.5 mb-3">
-        <span
-          v-for="c in zone.crops"
-          :key="c.nodeId"
-          class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
-          :class="c.error
-            ? 'bg-garden-danger/10 text-garden-danger border-garden-danger/30'
-            : 'bg-garden-base text-garden-dim border-garden-border'"
-          :title="c.error || `sensors/${c.nodeId}`"
-        >
-          {{ c.emoji }} {{ c.label }}<template v-if="c.error"> ⚠</template>
-        </span>
-        <span v-if="zone.crops.length > 1" class="text-[10px] text-garden-dim self-center">
-          · readings averaged
-        </span>
+      <div v-if="zone.loading" class="py-8 text-center text-xs font-mono text-garden-dim">Awaiting sensor data…</div>
+      <div v-else-if="zone.error" class="py-6 text-center text-xs text-garden-danger">{{ zone.error }}</div>
+
+      <!-- Zone Sensor Summary -->
+      <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div class="p-2.5 rounded-xl" :style="{ backgroundColor: `${zoneColor(zone.colorKey)}1a` }">
+          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
+          <div class="text-base font-mono" :style="{ color: zoneColor(zone.colorKey) }">
+            {{ zone.sensors.moisture !== null ? `${zone.sensors.moisture}%` : '—' }}
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-garden-warn/10">
+          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
+          <div class="text-base font-mono text-garden-warn">
+            {{ zone.sensors.temperature !== null ? `${celsiusToDisplay(zone.sensors.temperature)}${unitLabel}` : '—' }}
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-garden-sky/10">
+          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
+          <div class="text-base font-mono text-garden-sky">
+            {{ zone.sensors.humidity !== null ? `${zone.sensors.humidity}%` : '—' }}
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-garden-base">
+          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">VPD</div>
+          <div class="text-base font-mono text-garden-primary">
+            {{ zone.vpd !== null ? zone.vpd : '—' }}
+            <span v-if="zone.vpd !== null" class="text-[8px] text-garden-dim ml-1">kPa</span>
+          </div>
+        </div>
       </div>
-
-      <!-- Loading skeleton -->
-      <div v-if="zone.loading" class="py-10 flex justify-center">
-        <div class="flex gap-3 items-center text-garden-dim text-sm font-mono">
-          <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
-            <path class="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-          </svg>
-          Awaiting sensor data…
-        </div>
-      </div>
-
-      <!-- Error state -->
-      <div v-else-if="zone.error" class="py-6 text-center">
-        <p class="text-garden-danger font-mono text-sm">{{ zone.error }}</p>
-        <p class="text-garden-dim text-xs mt-1">
-          Check Firebase paths: {{ zone.crops.map(c => `sensors/${c.nodeId}`).join(', ') }}
-        </p>
-      </div>
-
-      <!-- Sensor readings -->
-      <template v-else>
-        <!-- Moisture + Temperature + Humidity + VPD -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <SensorStat
-            :value="zone.sensors.moisture"
-            unit="%"
-            label="Moisture"
-            variant="good"
-            :status="moistureStatus"
-          />
-          <SensorStat
-            :value="celsiusToDisplay(zone.sensors.temperature)"
-            :unit="unitLabel"
-            label="Temperature"
-            variant="warn"
-            :status="tempStatus"
-          />
-          <SensorStat
-            :value="zone.sensors.humidity"
-            unit="%"
-            label="Humidity"
-            variant="sky"
-            :status="humidityStatus"
-          />
-          <SensorStat
-            :value="zone.vpd"
-            unit="kPa"
-            label="VPD"
-            variant="primary"
-            :status="vpdStatus"
-          />
-        </div>
-
-        <!-- Irrigation state (dashboard estimate of evaluateZone(), decision log items 1-2) -->
-        <div v-if="!compact" class="mt-3 p-2.5 rounded-xl bg-garden-void border border-garden-border">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-[9px] font-medium uppercase tracking-widest text-garden-dim">
-              Irrigation State
-            </span>
-            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border whitespace-nowrap"
-                  :class="stateBadge.class">
-              {{ stateBadge.text }}
-            </span>
-          </div>
-          <div class="relative h-2 rounded-full bg-garden-border overflow-hidden">
-            <!-- Moisture position on the smNormal..smStop band (inverted: lower = drier) -->
-            <div class="h-full rounded-full transition-all duration-700"
-                 :style="{ width: `${moisturePositionPct}%`, backgroundColor: zoneColor }" />
-            <div class="absolute top-0 bottom-0 w-px bg-garden-text/60"
-                 :style="{ left: `${normalMarkPct}%` }" title="Normal start" />
-            <div class="absolute top-0 bottom-0 w-px bg-garden-danger/70"
-                 :style="{ left: `${emergencyMarkPct}%` }" title="Emergency start" />
-          </div>
-          <div class="flex justify-between mt-1 text-[10px] font-mono text-garden-dim">
-            <span>{{ zone.sensors.moisture !== null ? `${zone.sensors.moisture}% FC` : '—' }}</span>
-            <span>normal ≤{{ zone.irrigationCfg.smNormal }}% · emerg ≤{{ zone.irrigationCfg.smEmergency }}% · stop ≥{{ zone.irrigationCfg.smStop }}%</span>
-          </div>
-          <div class="mt-1 text-[10px] font-mono text-garden-dim">
-            VPD gate ≥{{ zone.irrigationCfg.vpdGate }} kPa{{ zone.vpd !== null ? ` (currently ${zone.vpd} kPa)` : '' }}
-          </div>
-        </div>
-
-        <!-- Warning strip -->
-        <div
-          v-if="!compact && overallHealth !== 'ok'"
-          class="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl"
-          :class="overallStripClasses"
-        >
-          <span class="text-sm flex-shrink-0">{{ overallIcon }}</span>
-          <span class="text-[11px] font-medium" :class="overallTextClass">
-            {{ overallMessage }}
-          </span>
-        </div>
-      </template>
     </div>
-  </article>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import SensorStat  from './SensorStat.vue'
-import { getSensorStatus } from '@/composables/useSensorData'
-import { isDarkMode } from '@/composables/useDarkMode'
 import { useTempUnit } from '@/composables/useTempUnit'
+
+defineProps({
+  zone: { type: Object, required: true },
+})
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 
-const props = defineProps({
-  zone:    { type: Object, required: true },
-  delay:   { type: Number, default: 0 },
-  // Dashboard shows only the header + reading grid; Irrigation shows the
-  // full card (crop badges, irrigation-state bar, warning strip) below.
-  compact: { type: Boolean, default: false },
-})
+// Original Dashboard zone colors (green / blue).
+const ZONE_COLORS = { lowland: '#2d7a4f', highland: '#3b9dd2' }
+function zoneColor(colorKey) { return ZONE_COLORS[colorKey] ?? '#2d7a4f' }
 
-// ── Zone colours (match pump colours on the override cards) ────────────────
-const COLOR_MAP = {
-  lowland:  { main: '#2d7a4f' },
-  highland: { main: '#3b9dd2' },
-}
-
-function hexToRgb(hex) {
-  const n = parseInt(hex.slice(1), 16)
-  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`
-}
-
-const zoneColor = computed(() => COLOR_MAP[props.zone.colorKey]?.main ?? '#2d7a4f')
-const zoneColorBorder = computed(() =>
-  `rgba(${hexToRgb(zoneColor.value)}, ${isDarkMode.value ? 0.35 : 0.55})`
-)
-
-// ── Sensor status ──────────────────────────────────────────────────────────
-const th = computed(() => props.zone.thresholds)
-const moistureStatus = computed(() => getSensorStatus(props.zone.sensors?.moisture,    th.value.moisture))
-const tempStatus     = computed(() => getSensorStatus(props.zone.sensors?.temperature, th.value.temperature))
-const humidityStatus = computed(() => getSensorStatus(props.zone.sensors?.humidity,    th.value.humidity))
-const vpdStatus      = computed(() => getSensorStatus(props.zone.vpd,                  th.value.vpd))
-
-// ── Irrigation state badge and moisture-band position ──────────────────────
-// The bar spans 0-100% soil moisture; the fill shows the current reading and
-// the two tick marks show the Normal and Emergency start breakpoints for
-// this zone. Filed under "dashboard estimate" — see computeIrrigationState()
-// for what this can't see (the firmware's in-progress-session latch).
-const STATE_BADGE_MAP = {
-  emergency: { text: 'EMERGENCY',    class: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' },
-  normal:    { text: 'NORMAL START', class: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' },
-  idle:      { text: 'IDLE',         class: 'bg-garden-good/15 text-garden-good border-garden-good/40' },
-  stop:      { text: 'STOP',         class: 'bg-garden-base text-garden-dim border-garden-border' },
-}
-const stateBadge = computed(() =>
-  STATE_BADGE_MAP[props.zone.irrigationState?.state] ??
-  { text: 'NO DATA', class: 'bg-garden-base text-garden-dim border-garden-border' }
-)
-
-// Header status pill (design's "NEEDS WATER" / "NORMAL" badge) — reuses the
-// same irrigationState the "Irrigation State" section below is built from,
-// just relabelled for an at-a-glance zone summary instead of the technical
-// state-machine name.
-const ZONE_BADGE_MAP = {
-  emergency: { text: 'EMERGENCY',   class: 'bg-garden-danger/15 text-garden-danger' },
-  normal:    { text: 'NEEDS WATER', class: 'bg-garden-warn/15 text-garden-warn' },
-  idle:      { text: 'NORMAL',      class: 'bg-garden-good/15 text-garden-good' },
-  stop:      { text: 'SATURATED',   class: 'bg-garden-sky/15 text-garden-sky' },
-}
-const zoneStatusBadge = computed(() =>
-  ZONE_BADGE_MAP[props.zone.irrigationState?.state] ??
-  { text: 'NO DATA', class: 'bg-garden-base text-garden-dim' }
-)
-
-const moisturePositionPct = computed(() => {
-  const m = props.zone.sensors?.moisture
-  return typeof m === 'number' ? Math.max(0, Math.min(100, m)) : 0
-})
-const normalMarkPct    = computed(() => props.zone.irrigationCfg.smNormal)
-const emergencyMarkPct = computed(() => props.zone.irrigationCfg.smEmergency)
-
-// ── Overall health ─────────────────────────────────────────────────────────
-const allStatuses = computed(() => [
-  moistureStatus.value, tempStatus.value, humidityStatus.value, vpdStatus.value,
-])
-
-const overallHealth = computed(() => {
-  if (allStatuses.value.includes('high'))       return 'danger'
-  if (allStatuses.value.includes('low'))        return 'warn'
-  if (allStatuses.value.every(s => s === 'ok')) return 'ok'
-  return 'unknown'
-})
-
-const OVERALL_MAP = {
-  warn:    { icon: '⚠️', msg: 'One or more readings below optimal', strip: 'bg-garden-warn/10 border-garden-warn/30', text: 'text-garden-warn' },
-  danger:  { icon: '🔴', msg: 'Reading exceeds safe threshold',      strip: 'bg-garden-danger/5 border border-garden-danger/20', text: 'text-garden-danger' },
-  unknown: { icon: '·',  msg: 'Waiting for sensor data',             strip: 'bg-garden-muted/5 border border-garden-border', text: 'text-garden-dim' },
-}
-
-const overallIcon         = computed(() => OVERALL_MAP[overallHealth.value]?.icon  ?? '')
-const overallMessage      = computed(() => OVERALL_MAP[overallHealth.value]?.msg   ?? '')
-const overallStripClasses = computed(() => OVERALL_MAP[overallHealth.value]?.strip ?? '')
-const overallTextClass    = computed(() => OVERALL_MAP[overallHealth.value]?.text  ?? '')
-
-// ── Timestamp ─────────────────────────────────────────────────────────────
-const lastUpdated = computed(() => {
-  const ts = props.zone.sensors?.updatedAt
-  if (!ts) return '—'
-  return new Date(ts).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-})
 </script>

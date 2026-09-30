@@ -1,107 +1,217 @@
 <template>
-  <div class="p-4 lg:p-6 space-y-6 pb-12">
-    <div>
-    <!-- Avg sensor readings — mirrors the Dashboard's Environmental Sensors
-         card (same icon boxes, colored rows, and Temp → Humidity → Soil
-         Moisture order) instead of the old flat 3-card row. -->
-      <h2 class="text-sm font-semibold text-garden-text tracking-tight mb-3 flex items-center gap-2">
-        <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
-        Environmental Sensors
-      </h2>
+  <div class="p-4 lg:p-6 space-y-5 pb-12">
+    <!-- Tab bar, matching the Figma design -->
+    <div class="flex gap-1 bg-garden-base rounded-2xl p-1">
+      <button
+        v-for="t in TABS"
+        :key="t.id"
+        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-150"
+        :class="tab === t.id
+          ? 'bg-garden-surface text-garden-text shadow-sm'
+          : 'text-garden-dim hover:text-garden-text'"
+        @click="tab = t.id"
+      >
+        <span :class="tab === t.id ? 'text-garden-primary' : ''" v-html="t.icon" />
+        {{ t.label }}
+      </button>
+    </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <!-- Temperature -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-garden-warn/10 border border-garden-warn/30">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-garden-warn/20 flex items-center justify-center flex-shrink-0">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-medium text-garden-text">Temperature</div>
-              <div class="text-[10px] text-garden-dim">Ambient air</div>
-            </div>
-          </div>
-          <span class="text-lg font-medium text-garden-warn">
-            {{ averages.temperature !== null ? `${celsiusToDisplay(averages.temperature)}${unitLabel}` : '—' }}
-          </span>
+    <!-- ───────────────── IRRIGATION ───────────────── -->
+    <div v-if="tab === 'irrigation'" class="space-y-5">
+      <!-- Water reservoir warning -->
+      <div v-if="waterLow" class="flex items-center gap-3 p-4 rounded-2xl bg-garden-danger/10 border border-garden-danger/40">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+          <div class="text-xs font-bold text-garden-danger">Water Reservoir Locked</div>
+          <p class="text-[11px] text-garden-danger/80 font-medium">
+            Water level at or below 30%. Automatic irrigation and misting are suspended
+            until the reservoir is refilled.
+          </p>
         </div>
+      </div>
 
-        <!-- Humidity -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-garden-sky/10 border border-garden-sky/30">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-garden-sky/15 flex items-center justify-center flex-shrink-0">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-medium text-garden-text">Humidity</div>
-              <div class="text-[10px] text-garden-dim">Relative humidity</div>
-            </div>
-          </div>
-          <span class="text-lg font-medium text-garden-sky">
-            {{ averages.humidity !== null ? `${averages.humidity}%` : '—' }}
-          </span>
+      <!-- Zone Status -->
+      <div>
+        <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Zone Status
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ZoneCard
+            v-for="zone in zones"
+            :key="zone.id"
+            :zone="zone"
+          />
         </div>
+      </div>
 
-        <!-- Soil moisture -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-garden-earth/10 border border-garden-earth/30">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-garden-warn/20 flex items-center justify-center flex-shrink-0">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-medium text-garden-text">Soil Moisture</div>
-              <div class="text-[10px] text-garden-dim">Capacitive probe (avg.)</div>
+      <!-- Pump Override Controls -->
+      <div>
+        <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          Pump Override Controls
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <RelayControl
+            :current-moisture="lowland?.sensors.moisture ?? null"
+            :current-temperature="lowland?.sensors.temperature ?? null"
+            :current-humidity="lowland?.sensors.humidity ?? null"
+            :current-vpd="lowland?.vpd ?? null"
+            :readonly="false"
+            controlPath="control/relay_lowland"
+            title="Lowland Irrigation (Tomato, Eggplant)"
+            :show-threshold-settings="true"
+            :pump-number="1"
+          />
+          <RelayControl
+            :current-moisture="highland?.sensors.moisture ?? null"
+            :current-temperature="highland?.sensors.temperature ?? null"
+            :current-humidity="highland?.sensors.humidity ?? null"
+            :current-vpd="highland?.vpd ?? null"
+            :readonly="false"
+            controlPath="control/relay_highland"
+            title="Highland Irrigation (Bell Pepper)"
+            :show-threshold-settings="true"
+            :pump-number="2"
+          />
+        </div>
+      </div>
+
+      <!-- Per-Circuit Sensor Detail -->
+      <div>
+        <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+          Per-Circuit Sensor Detail
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            v-for="crop in perCropRows"
+            :key="crop.nodeId"
+            class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden"
+          >
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg">{{ crop.emoji }}</span>
+                <div>
+                  <div class="font-bold text-sm text-garden-text">{{ crop.label }}</div>
+                  <div class="text-[10px] text-garden-dim capitalize">{{ crop.climate }} Zone</div>
+                </div>
+              </div>
+
+              <div v-if="crop.loading" class="grid grid-cols-2 gap-2">
+                <div v-for="i in 4" :key="i" class="h-12 rounded-xl bg-garden-border animate-pulse" />
+              </div>
+              <p v-else-if="crop.error" class="text-xs text-garden-dim">{{ crop.error }}</p>
+              <div v-else class="grid grid-cols-2 gap-2">
+                <div
+                  v-for="row in crop.rows"
+                  :key="row.label"
+                  class="p-2 rounded-xl bg-garden-void"
+                >
+                  <div class="text-[9px] font-bold uppercase tracking-widest text-garden-dim mb-0.5">
+                    {{ row.label }}
+                  </div>
+                  <div class="text-sm font-bold font-mono" :style="{ color: row.color }">
+                    {{ row.value }}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <span class="text-lg font-medium text-garden-earth">
-            {{ averages.moisture !== null ? `${averages.moisture}%` : '—' }}
-          </span>
         </div>
       </div>
     </div>
-    
-    <!-- Pump control cards -->
-    <div>
-      <h2 class="text-sm font-semibold text-garden-text tracking-tight mb-3 flex items-center gap-2">
-        <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
-        Pump Override Controls
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <RelayControl
-          :current-moisture="lowland?.sensors.moisture ?? null"
-          :current-temperature="lowland?.sensors.temperature ?? null"
-          :current-humidity="lowland?.sensors.humidity ?? null"
-          :current-vpd="lowland?.vpd ?? null"
-          :readonly="false"
-          controlPath="control/relay_lowland"
-          title="Lowland Irrigation (Tomato, Eggplant)"
-          :show-threshold-settings="true"
-          :pump-number="1"
-        />
-        <RelayControl
-          :current-moisture="highland?.sensors.moisture ?? null"
-          :current-temperature="highland?.sensors.temperature ?? null"
-          :current-humidity="highland?.sensors.humidity ?? null"
-          :current-vpd="highland?.vpd ?? null"
-          :readonly="false"
-          controlPath="control/relay_highland"
-          title="Highland Irrigation (Bell Pepper)"
-          :show-threshold-settings="true"
-          :pump-number="2"
-        />
-        <RelayControl
-          :readonly="false"
-          controlPath="control/relay_fert"
-          title="Fertilizer (All Crops)"
-          :show-threshold-settings="false"
-          :pump-number="3"
-        />
+
+    <!-- ───────────────── FERTILIZATION ───────────────── -->
+    <div v-else-if="tab === 'fertilization'" class="space-y-4">
+      <!-- Status pills -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm px-4 py-3 flex items-center gap-3">
+          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :class="fertScheduleActive ? 'bg-garden-good' : 'bg-garden-dim'" />
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-garden-dim">Schedule Status</div>
+            <div class="text-sm font-bold" :class="fertScheduleActive ? 'text-garden-good' : 'text-garden-dim'">
+              {{ fertScheduleActive ? 'Active Now' : 'Inactive' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm px-4 py-3 flex items-center gap-3">
+          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :class="fertPumpOn ? 'bg-garden-good' : 'bg-garden-dim'" />
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-garden-dim">Fertilizer Pump</div>
+            <div class="text-sm font-bold" :class="fertPumpOn ? 'text-garden-good' : 'text-garden-dim'">
+              {{ fertPumpOn ? 'Running' : 'Off' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <FertScheduleCard :readonly="false" />
+
+      <RelayControl
+        :readonly="false"
+        controlPath="control/relay_fert"
+        title="Fertilizer (All Crops)"
+        :show-threshold-settings="false"
+        :pump-number="3"
+      />
+    </div>
+
+    <!-- ───────────────── MISTING ───────────────── -->
+    <div v-else class="space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Highland sensor detail, read from the same useMisting() composable
+             MistingStatusCard already uses -->
+        <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4">
+          <h3 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+            Highland Sensor
+          </h3>
+
+          <div v-if="misting.loading.value" class="grid grid-cols-2 gap-3">
+            <div class="h-24 rounded-2xl bg-garden-border animate-pulse" />
+            <div class="h-24 rounded-2xl bg-garden-border animate-pulse" />
+          </div>
+
+          <div v-else class="grid grid-cols-2 gap-3">
+            <div class="p-4 rounded-2xl bg-garden-warn/10 border border-garden-warn/30">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
+              <div class="text-3xl font-bold font-mono text-garden-warn">
+                {{ tempDisplay !== null ? `${tempDisplay}${unitLabel}` : '—' }}
+              </div>
+              <div class="flex items-center gap-1.5 mt-2">
+                <span class="w-1.5 h-1.5 rounded-full" :class="misting.tempMet.value ? 'bg-garden-danger' : 'bg-garden-good'" />
+                <span class="text-[10px] font-medium text-garden-dim">
+                  Threshold: {{ celsiusToDisplay(misting.config.value.tempOn) }}{{ unitLabel }}
+                </span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-garden-sky/10 border border-garden-sky/30">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
+              <div class="text-3xl font-bold font-mono text-garden-sky">
+                {{ misting.sensors.value && !misting.sensorStale.value ? `${misting.sensors.value.humidity}%` : '—' }}
+              </div>
+              <div class="flex items-center gap-1.5 mt-2">
+                <span class="w-1.5 h-1.5 rounded-full" :class="misting.humidityMet.value ? 'bg-garden-danger' : 'bg-garden-good'" />
+                <span class="text-[10px] font-medium text-garden-dim">
+                  Threshold: {{ misting.config.value.humidityOn }}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p v-if="misting.sensorErr.value" class="text-[11px] text-garden-dim mt-3">{{ misting.sensorErr.value }}</p>
+          <p v-else-if="misting.sensorStale.value" class="text-[11px] text-garden-warn font-semibold mt-3">
+            No recent highland reading.
+          </p>
+        </div>
+
+        <!-- Thresholds + manual override: RelayControl (pump 4) already handles
+             both the config/misting threshold modal and the manual relay/countdown UI -->
         <RelayControl
           :readonly="false"
           controlPath="control/relay_mist"
@@ -111,69 +221,120 @@
         />
       </div>
     </div>
-
-    <!-- Fertilizer schedule -->
-    <div>
-      <h2 class="text-sm font-semibold text-garden-text tracking-tight mb-3 flex items-center gap-2">
-        <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
-        Fertilizer Schedule
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FertScheduleCard :readonly="false" />
-      </div>
-    </div>
-
-    <!-- Zone sensor readings -->
-    <div>
-      <h2 class="text-sm font-semibold text-garden-text tracking-tight mb-3 flex items-center gap-2">
-        <span class="w-1.5 h-4 rounded-full bg-garden-primary inline-block" />
-        Climate Zone Readings
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ZoneCard
-          v-for="(zone, i) in zones"
-          :key="zone.id"
-          :zone="zone"
-          :delay="i * 120"
-        />
-      </div>
-    </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import ZoneCard from '@/components/ZoneCard.vue'
 import RelayControl from '@/components/RelayControl.vue'
 import FertScheduleCard from '@/components/FertScheduleCard.vue'
-import { useSensorData } from '@/composables/useSensorData'
+import { useSensorData, CROPS, computeVpd } from '@/composables/useSensorData'
+import { useMisting } from '@/composables/useMisting'
+import { useReservoirs } from '@/composables/useReservoirs'
 import { db } from '@/firebase'
 import { useTempUnit } from '@/composables/useTempUnit'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 
+const TABS = [
+  { id: 'irrigation', label: 'Irrigation', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' },
+  { id: 'fertilization', label: 'Fertilization', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+  { id: 'misting', label: 'Misting', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>' },
+]
+const tab = ref('irrigation')
+
+// ── Irrigation tab ───────────────────────────────────────────────────────
 const { zones } = useSensorData()
 const lowland  = computed(() => zones.value.find(z => z.id === 'lowland'))
 const highland = computed(() => zones.value.find(z => z.id === 'highland'))
 
-const averages = ref({ moisture: null, temperature: null, humidity: null })
-let unsubAvg   = null
+const { lowReservoirs } = useReservoirs()
+const waterLow = computed(() => lowReservoirs.value.some(r => r.id === 'water'))
 
-import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
-  const avgRef = dbRef(db, 'averages')
-  const unsub  = onValue(avgRef, (snapshot) => {
-    const data = snapshot.val()
-    if (data) {
-      averages.value = {
-        moisture:    data.moisture    ?? null,
-        temperature: data.temperature ?? null,
-        humidity:    data.humidity    ?? null,
-      }
+// Per-crop rows (design's "Per-Circuit Sensor Detail"): built from the same
+// per-crop sensor data useSensorData() already gathers into zone.crops, plus
+// the existing computeVpd() helper applied per crop instead of per zone.
+const CROP_COLOR = {
+  tomato:      { color: '#dc2626', border: '#fca5a5' },
+  eggplant:    { color: '#7c3aed', border: '#c4b5fd' },
+  bell_pepper: { color: '#2d7a4f', border: '#86efac' },
+}
+const perCropRows = computed(() => {
+  const allCrops = [...(lowland.value?.crops ?? []), ...(highland.value?.crops ?? [])]
+  return CROPS.map(meta => {
+    const c = allCrops.find(x => x.nodeId === meta.nodeId)
+    const colors = CROP_COLOR[meta.crop]
+    if (!c || c.loading) {
+      return { ...meta, color: colors.color, borderColor: colors.border, loading: true }
+    }
+    if (c.error) {
+      return { ...meta, color: colors.color, borderColor: colors.border, loading: false, error: c.error }
+    }
+    const vpd = computeVpd(c.sensors.temperature, c.sensors.humidity)
+    return {
+      ...meta,
+      color: colors.color,
+      borderColor: colors.border,
+      loading: false,
+      rows: [
+        { label: 'Soil Moisture', value: c.sensors.moisture !== null ? `${c.sensors.moisture}%` : '—', color: colors.color },
+        { label: 'VPD', value: vpd !== null ? `${vpd} kPa` : '—', color: '#2d7a4f' },
+        { label: 'Temperature', value: c.sensors.temperature !== null ? `${celsiusToDisplay(c.sensors.temperature)}${unitLabel.value}` : '—', color: '#d97706' },
+        { label: 'Humidity', value: c.sensors.humidity !== null ? `${c.sensors.humidity}%` : '—', color: '#2563eb' },
+      ],
     }
   })
-  unsubAvg = () => off(avgRef, 'value', unsub)
 })
 
-onUnmounted(() => { if (unsubAvg) unsubAvg() })
+// ── Fertilization tab ────────────────────────────────────────────────────
+// Same derived-state pattern already used by ZoneCard's irrigationState:
+// a client-side read of already-loaded data (config/fert_schedule, plus the
+// live control/relay_fert flag), not a new Firebase path.
+const fertPumpOn = ref(false)
+const fertSchedule = ref(null)
+let unsubFertRelay = null
+let unsubFertSchedule = null
+let scheduleTick = null
+
+onMounted(() => {
+  import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
+    const relayRef = dbRef(db, 'control/relay_fert')
+    const relayCb  = onValue(relayRef, (s) => { fertPumpOn.value = s.val() === true })
+    unsubFertRelay = () => off(relayRef, 'value', relayCb)
+
+    const schedRef = dbRef(db, 'config/fert_schedule')
+    const schedCb  = onValue(schedRef, (s) => { fertSchedule.value = s.val() })
+    unsubFertSchedule = () => off(schedRef, 'value', schedCb)
+  })
+  scheduleTick = setInterval(() => { nowTick.value = Date.now() }, 30000)
+})
+onBeforeUnmount(() => {
+  if (unsubFertRelay) unsubFertRelay()
+  if (unsubFertSchedule) unsubFertSchedule()
+  if (scheduleTick) clearInterval(scheduleTick)
+})
+
+const nowTick = ref(Date.now())
+const fertScheduleActive = computed(() => {
+  const sch = fertSchedule.value
+  if (!sch) return false
+  void nowTick.value
+  const now = new Date()
+  const dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+  const today = dayKeys[now.getDay()]
+  if (!sch.days?.[today]) return false
+  const mins = now.getHours() * 60 + now.getMinutes()
+  const start = (sch.startHour ?? 0) * 60 + (sch.startMinute ?? 0)
+  const end = (sch.endHour ?? 0) * 60 + (sch.endMinute ?? 0)
+  return start <= end ? (mins >= start && mins < end) : (mins >= start || mins < end)
+})
+
+// ── Misting tab ──────────────────────────────────────────────────────────
+const misting = useMisting()
+const tempDisplay = computed(() =>
+  misting.sensors.value && !misting.sensorStale.value
+    ? celsiusToDisplay(misting.sensors.value.temperature)
+    : null
+)
 </script>
