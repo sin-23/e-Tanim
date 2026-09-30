@@ -23,7 +23,7 @@
             </div>
           </template>
           <div class="text-[9px] font-extrabold uppercase tracking-widest text-garden-dim">
-            Detections Today
+            Detections
           </div>
         </div>
       </div>
