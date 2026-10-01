@@ -64,18 +64,27 @@
       >
       </p>
 
-      <!-- Per-fruit detection rows: not available with the current data model yet
-           (Firebase currently stores aggregate counts per crop, not individual
-           fruit IDs/frames — see decision log item 44). Placeholder shown instead
-           of inventing fruit data. -->
+      <!-- Per-fruit rows, keyed by the tracker ID the Mini PC assigns. -->
       <div v-if="showFruitLog" class="px-4 pb-4 pt-2">
-        <div class="flex items-center gap-3 p-3 rounded-xl bg-garden-base border border-dashed border-garden-border">
-          <span class="text-garden-dim">
-            <CameraIconSvg />
-          </span>
-          <div class="text-[11px] text-garden-dim">
-            Per-fruit detection log isn't available yet.
+        <div v-if="crop.fruits && crop.fruits.length" class="space-y-2">
+          <div
+            v-for="f in crop.fruits"
+            :key="f.id"
+            class="flex items-center gap-3 px-3 py-2 rounded-xl bg-garden-base border border-garden-border"
+          >
+            <span class="font-mono text-xs font-extrabold text-garden-text w-10">#{{ f.id }}</span>
+            <span
+              class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border"
+              :class="stageCls[f.stage || 'unknown']"
+            >{{ f.stage || 'Not evaluated' }}</span>
+            <span v-if="f.confidence !== null" class="ml-auto text-[11px] font-mono text-garden-dim">
+              {{ Math.round(f.confidence * 100) }}%
+            </span>
           </div>
+        </div>
+        <div v-else class="flex items-center gap-3 p-3 rounded-xl bg-garden-base border border-dashed border-garden-border">
+          <span class="text-garden-dim"><CameraIconSvg /></span>
+          <div class="text-[11px] text-garden-dim">No fruit currently tracked.</div>
         </div>
       </div>
     </template>
@@ -97,6 +106,13 @@ const cropAccent = {
   tomato:      { text: 'text-[#dc2626]' },
   eggplant:    { text: 'text-[#7c3aed]' },
   bell_pepper: { text: 'text-garden-primary' },
+}
+
+const stageCls = {
+  underripe: 'bg-[#fef9c3] text-[#854d0e] border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]',
+  ripe:      'bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]',
+  damaged:   'bg-[#fee2e2] text-[#991b1b] border-[#fca5a5] dark:bg-[#3a1414] dark:text-[#fca5a5] dark:border-[#7a2828]',
+  unknown:   'bg-garden-surface text-garden-dim border-garden-border',
 }
 
 function counts(crop) {

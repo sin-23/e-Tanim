@@ -76,23 +76,26 @@
       ".read": true,
       ".write": false,
 
-      "tomato":      { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
-      "eggplant":    { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
-      "bell_pepper": { "$entry": { ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp'])" } },
-
       "$crop": {
-        "$entry": {
-          "stage": {
-            ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
-          },
-          "confidence": {
-            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
-          },
-          "timestamp": {
-            ".validate": "newData.isNumber() && newData.val() > 0"
-          },
-          "$other": { ".validate": false }
-        }
+        ".validate": "($crop == 'tomato' || $crop == 'eggplant' || $crop == 'bell_pepper') && newData.hasChildren(['underripe', 'ripe', 'damaged', 'updatedAt'])",
+
+        "underripe":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "ripe":       { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "damaged":    { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "confidence": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1" },
+        "updatedAt":  { ".validate": "newData.isNumber() && newData.val() > 0" },
+
+        "fruits": {
+          "$i": {
+            ".validate": "newData.hasChildren(['id'])",
+            "id":         { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "stage":      { ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')" },
+            "confidence": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1" },
+            "$other":     { ".validate": false }
+          }
+        },
+
+        "$other": { ".validate": false }
       }
     },
 

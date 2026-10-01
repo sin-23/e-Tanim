@@ -19,7 +19,7 @@ export const DETECTION_CROPS = CROPS.map(({ crop, label, emoji, climate }) => ({
 export const STALE_AFTER_MS = 45 * 60 * 1000
 
 const blank = () => ({
-  underripe: 0, ripe: 0, damaged: 0, confidence: null, updatedAt: null,
+  underripe: 0, ripe: 0, damaged: 0, confidence: null, updatedAt: null, fruits: [],
   loading: true, error: null,
 })
 

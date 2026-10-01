@@ -134,9 +134,10 @@ const props = defineProps({
   embedded: { type: Boolean, default: false },
 })
 
-// Same shared Firestore feed the Dashboard widget uses, just with a much
-// higher limit since this is the dedicated full-history page.
-const { entries: activityLog, loaded: activityLogLoaded } = useActivityFeed(props.embedded ? 25 : 500)
+// The filter chips run on the loaded entries, so the Dashboard card loads more
+// than it shows (200 fetched, 25 displayed) or a filter like Reservoir would
+// only search the 25 newest entries and come up empty.
+const { entries: activityLog, loaded: activityLogLoaded } = useActivityFeed(props.embedded ? 200 : 500)
 
 
 const FILTER_TYPES = [
@@ -161,18 +162,29 @@ const EVENT_STYLE = {
 const MANUAL_TAG_CLS = 'bg-[#fef9c3] text-[#854d0e] border border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]'
 const AUTO_TAG_CLS = 'bg-garden-base text-garden-dim border border-garden-border'
 
-// Uses the explicit `category` / `manual` fields when present; falls back to
-// guessing from the message for older entries.
-function classifyEntry(e) {
+// Order matters: reservoir wording is checked first because reservoir entries
+// often also name the liquid ("Fertilizer reservoir low", "Water tank refilled"),
+// which would otherwise be filed under Fertilization / Irrigation.
+const RESERVOIR_WORDS = ['reservoir', 'tank', 'refill', 'water level', 'fertilizer level', 'liquid level', 'level sensor']
+
+function guessCategory(e) {
   const msg = (e.message || '').toLowerCase()
-  let eventType = EVENT_STYLE[e.category] ? e.category : 'other'
-  if (eventType === 'other') {
-    if (msg.includes('misting')) eventType = 'misting'
-    else if (msg.includes('fertiliz')) eventType = 'fertilization'
-    else if (msg.includes('irrigation')) eventType = 'irrigation'
-    else if (msg.includes('reservoir')) eventType = 'reservoir'
-    else if (msg.includes('detect')) eventType = 'detection'
-  }
+  const type = String(e.type || '').toLowerCase()
+  if (type.includes('reservoir') || RESERVOIR_WORDS.some(w => msg.includes(w))) return 'reservoir'
+  if (msg.includes('misting')) return 'misting'
+  if (msg.includes('fertiliz')) return 'fertilization'
+  if (msg.includes('irrigation')) return 'irrigation'
+  if (msg.includes('detect') || msg.includes('harvest') || msg.includes('ripe')) return 'detection'
+  return 'other'
+}
+
+// Uses the explicit `category` / `manual` fields when present (case and
+// whitespace tolerant); otherwise guesses from the type and message, which is
+// what older or imported entries need.
+function classifyEntry(e) {
+  const cat = String(e.category || '').trim().toLowerCase()
+  const eventType = EVENT_STYLE[cat] && cat !== 'other' ? cat : guessCategory(e)
+  const msg = (e.message || '').toLowerCase()
   const isManual = e.manual !== undefined
     ? e.manual
     : msg.includes('manually') || msg.includes('schedule updated') || msg.includes('thresholds updated') || msg.includes('threshold set to')

@@ -171,7 +171,11 @@ export function validateReservoirPayload(raw) {
 // other key is rejected.
 export const DETECTION_CROPS = ['tomato', 'eggplant', 'bell_pepper']
 
-const DETECTION_FIELDS = new Set(['underripe', 'ripe', 'damaged', 'confidence', 'updatedAt'])
+const DETECTION_FIELDS = new Set(['underripe', 'ripe', 'damaged', 'confidence', 'updatedAt', 'fruits'])
+const DETECTION_STAGES = new Set(['underripe', 'ripe', 'damaged'])
+const MAX_FRUITS = 30
+// The fruit list makes a detections payload larger than a sensor snapshot.
+const MAX_DETECTION_BYTES = 4096
 
 /**
  * @param {unknown} raw - raw snapshot.val() of detections/{crop}
@@ -182,7 +186,7 @@ export function validateDetectionPayload(raw) {
   if (typeof raw !== 'object' || Array.isArray(raw)) {
     return { ok: false, error: 'Malformed payload: expected object.' }
   }
-  if (JSON.stringify(raw).length > MAX_PAYLOAD_BYTES) {
+  if (JSON.stringify(raw).length > MAX_DETECTION_BYTES) {
     return { ok: false, error: 'Oversized payload.' }
   }
   const unknown = Object.keys(raw).filter(k => !DETECTION_FIELDS.has(k))
@@ -209,10 +213,29 @@ export function validateDetectionPayload(raw) {
     }
   }
 
+  // Per-fruit rows: [{ id, stage?, confidence? }]. RTDB returns a list as an
+  // array, but accept an object too in case sparse indexes turned it into one.
+  const fruits = []
+  if (raw.fruits !== undefined && raw.fruits !== null) {
+    const rows = Array.isArray(raw.fruits) ? raw.fruits : Object.values(raw.fruits)
+    for (const f of rows.slice(0, MAX_FRUITS)) {
+      if (!f || typeof f !== 'object') continue
+      if (typeof f.id !== 'number' || !isFinite(f.id) || f.id < 0) continue
+      fruits.push({
+        id: Math.floor(f.id),
+        stage: DETECTION_STAGES.has(f.stage) ? f.stage : null,
+        confidence: typeof f.confidence === 'number' && f.confidence >= 0 && f.confidence <= 1
+          ? +f.confidence.toFixed(2) : null,
+      })
+    }
+    fruits.sort((a, b) => a.id - b.id)
+  }
+
   const count = (v) => (typeof v === 'number' ? Math.floor(v) : 0)
   return {
     ok: true,
     data: {
+      fruits,
       underripe:  count(raw.underripe),
       ripe:       count(raw.ripe),
       damaged:    count(raw.damaged),
