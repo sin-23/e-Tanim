@@ -1,18 +1,14 @@
 {
   "rules": {
-    ".read":  false,
+    ".read": false,
     ".write": false,
-
     "sensors": {
       ".read": true,
       ".write": false,
-
       "$zone": {
         ".read": true,
         ".write": false,
-
         ".validate": "newData.hasChildren(['moisture', 'temperature', 'humidity', 'updatedAt'])",
-
         "moisture": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
         },
@@ -33,16 +29,13 @@
         }
       }
     },
-
     "averages": {
       ".read": true,
       ".write": false
     },
-
     "reservoirs": {
       ".read": true,
       ".write": false,
-
       "water": {
         ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
         "level": {
@@ -54,7 +47,9 @@
         "updatedAt": {
           ".validate": "newData.isNumber() && newData.val() > 0"
         },
-        "$other": { ".validate": false }
+        "$other": {
+          ".validate": false
+        }
       },
       "fertilizer": {
         ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
@@ -67,42 +62,59 @@
         "updatedAt": {
           ".validate": "newData.isNumber() && newData.val() > 0"
         },
-        "$other": { ".validate": false }
+        "$other": {
+          ".validate": false
+        }
       },
-      "$other": { ".validate": false }
+      "$other": {
+        ".validate": false
+      }
     },
-
     "detections": {
       ".read": true,
       ".write": false,
-
       "$crop": {
         ".validate": "($crop == 'tomato' || $crop == 'eggplant' || $crop == 'bell_pepper') && newData.hasChildren(['underripe', 'ripe', 'damaged', 'updatedAt'])",
-
-        "underripe":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "ripe":       { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "damaged":    { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "confidence": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1" },
-        "updatedAt":  { ".validate": "newData.isNumber() && newData.val() > 0" },
-
+        "underripe": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "ripe": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "damaged": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "confidence": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
         "fruits": {
           "$i": {
             ".validate": "newData.hasChildren(['id'])",
-            "id":         { ".validate": "newData.isNumber() && newData.val() >= 0" },
-            "stage":      { ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')" },
-            "confidence": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1" },
-            "$other":     { ".validate": false }
+            "id": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "stage": {
+              ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
+            },
+            "confidence": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+            },
+            "$other": {
+              ".validate": false
+            }
           }
         },
-
-        "$other": { ".validate": false }
+        "$other": {
+          ".validate": false
+        }
       }
     },
-
     "notifications": {
       ".read": true,
       ".write": false,
-
       "$id": {
         ".validate": "newData.hasChildren(['type', 'message', 'createdAt'])",
         "type": {
@@ -122,98 +134,104 @@
         }
       }
     },
-
     "control": {
       ".read": true,
-
       "relay_lowland": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_lowland_off_at": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_highland": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_highland_off_at": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_fert": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_fert_off_at": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_mist": {
-        ".write": true
+        ".write": "auth != null"
       },
       "relay_mist_off_at": {
-        ".write": true
+        ".write": "auth != null"
       }
     },
-
     "config": {
       ".read": true,
       "thresholds": {
-        ".write": true
+        ".write": "auth != null"
       },
       "thresholds_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "thresholds_pump2": {
-        ".write": true
+        ".write": "auth != null"
       },
       "thresholds_pump2_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "thresholds_highland": {
-        ".write": true
+        ".write": "auth != null"
       },
       "thresholds_highland_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "irrigation": {
-        ".write": true
+        ".write": "auth != null"
       },
       "irrigation_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "irrigation_override_zone": {
-        ".write": true
+        ".write": "auth != null"
       },
       "irrigation_override_zone_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "reservoir_low": {
-        ".write": true,
+        ".write": "auth != null",
         "water": {
           ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
         },
         "fertilizer": {
           ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
         },
-        "$other": { ".validate": false }
+        "$other": {
+          ".validate": false
+        }
       },
       "reservoir_low_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "misting": {
-        ".write": true
+        ".write": "auth != null"
       },
       "misting_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "fert_schedule": {
-        ".write": true
+        ".write": "auth != null"
       },
       "fert_schedule_updated": {
-        ".write": true
+        ".write": "auth != null"
       },
       "fert_active_source": {
-        ".write": true
+        ".write": "auth != null"
       },
       "fert_active_source_updated": {
-        ".write": true
+        ".write": "auth != null"
+      }
+    },
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "$uid === auth.uid"
       }
     }
   }

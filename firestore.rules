@@ -1,17 +1,16 @@
-rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /activity_log/system/entries/{entryId} {
-      // System-wide log is shared across all browser sessions and does not
-      // belong to any individual user account.
-      allow read: if true;
+      // System-wide log shared by all signed-in users; entries carry a `by`
+      // tag with the acting user's name. Sign-in is required to read/write.
+      allow read: if request.auth != null;
 
       // Entries are append-only: create allowed (with validation below),
       // no update or delete from the client.
       allow update, delete: if false;
 
-      allow create: if isValidEntry(request.resource.data);
+      allow create: if request.auth != null && isValidEntry(request.resource.data);
     }
 
     // Deny everything else by default.

@@ -4,6 +4,7 @@
 // fixed Firestore path so the activity feed is visible from any browser/tab
 // without any user-account mapping. This matches the no-account architecture.
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { currentUser } from '@/auth/useAuth'
 import { firestore } from '@/firebase'
 import {
   collection,
@@ -52,10 +53,14 @@ async function writeEntry(message, color, type, extra = {}) {
 
 /**
  * Log an action triggered by the system or by a manual control action.
- * The log is shared by the entire system, not scoped to an individual user.
+ * The log is shared by the entire system; entries are tagged with the signed-in
+ * user's name (`by`) so it's clear who did what.
  */
 export async function logActivity(message, color = '#94a3b8', type = 'system', extra = {}) {
-  await writeEntry(message, color, type, extra)
+  // Tag the entry with whoever is signed in so the shared log shows "by <name>".
+  const user = currentUser.value
+  const by = user ? (user.displayName || user.email || 'Unknown user').slice(0, 100) : undefined
+  await writeEntry(message, color, type, by ? { by, ...extra } : extra)
 }
 
 /**
