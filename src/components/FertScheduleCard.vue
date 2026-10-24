@@ -1,70 +1,71 @@
 <template>
   <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
-    <div class="p-4 space-y-4">
+    <div class="p-4 space-y-3">
       <!-- Header -->
       <div class="flex items-center justify-between gap-2">
         <div class="min-w-0">
-          <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing</div>
+          <div class="text-sm font-semibold text-garden-text truncate">Fertilizer Schedule</div>
         </div>
-        <span v-if="scheduleActive !== null"
+        <span
+          v-if="scheduleActive !== null"
           class="flex items-center gap-1.5 text-[0.625rem] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
           :class="scheduleActive ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
         >
           <span class="w-1.5 h-1.5 rounded-full" :class="scheduleActive ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
-          {{ scheduleActive ? 'Running' : 'Off' }}
+          {{ scheduleActive ? 'Active Now' : 'Inactive' }}
         </span>
       </div>
 
       <!-- Time window -->
       <div>
-        <div class="text-[0.625rem] font-medium tracking-widest uppercase text-garden-dim mb-2">Time Window</div>
+        <div class="text-[0.625rem] font-bold tracking-widest uppercase text-garden-dim mb-1.5">Time Window</div>
         <div v-if="scheduleLoaded" class="flex items-center gap-2">
           <input
             v-model="startTime" type="time" :disabled="readonly"
-            class="flex-1 px-3 py-2.5 rounded-xl border border-garden-border font-mono text-sm text-garden-text
+            class="flex-1 min-w-0 px-2.5 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text
                    bg-garden-void focus:outline-none focus:border-garden-primary focus:ring-2 focus:ring-garden-primary/20 transition
                    disabled:opacity-60"
           />
           <span class="text-garden-dim text-sm flex-shrink-0">to</span>
           <input
             v-model="endTime" type="time" :disabled="readonly"
-            class="flex-1 px-3 py-2.5 rounded-xl border border-garden-border font-mono text-sm text-garden-text
+            class="flex-1 min-w-0 px-2.5 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text
                    bg-garden-void focus:outline-none focus:border-garden-primary focus:ring-2 focus:ring-garden-primary/20 transition
                    disabled:opacity-60"
           />
         </div>
         <div v-else class="flex items-center gap-2">
-          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
+          <div class="flex-1 h-[2.25rem] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
           <span class="text-garden-dim text-sm flex-shrink-0">to</span>
-          <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
+          <div class="flex-1 h-[2.25rem] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
         </div>
         <p v-if="scheduleLoaded && crossesMidnight" class="text-[0.6875rem] text-garden-dim mt-1.5">ⓘ Window crosses midnight.</p>
       </div>
 
       <!-- Days (alarm-style toggle) -->
       <div>
-        <div class="text-[0.625rem] font-medium tracking-widest uppercase text-garden-dim mb-2">Repeat On</div>
-        <div v-if="scheduleLoaded" class="flex gap-1.5">
+        <div class="text-[0.625rem] font-bold tracking-widest uppercase text-garden-dim mb-1.5">Repeat On</div>
+        <div v-if="scheduleLoaded" class="flex flex-wrap gap-1.5">
           <button
             v-for="d in dayList" :key="d.key"
             type="button"
             :disabled="readonly"
-            class="w-9 h-9 rounded-full text-xs font-semibold border transition flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-8 h-8 rounded-full text-xs font-semibold border transition flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             :class="days[d.key]
               ? 'bg-garden-primary text-white border-garden-primary'
               : 'bg-garden-surface text-garden-dim border-garden-border hover:bg-garden-base'"
             @click="days[d.key] = !days[d.key]"
           >{{ d.label }}</button>
         </div>
-        <div v-else class="flex gap-1.5">
-          <div v-for="i in 7" :key="i" class="w-9 h-9 rounded-full border border-garden-border bg-garden-void animate-pulse" />
+        <div v-else class="flex flex-wrap gap-1.5">
+          <div v-for="i in 7" :key="i" class="w-8 h-8 rounded-full border border-garden-border bg-garden-void animate-pulse" />
         </div>
         <span v-if="daysError" class="block text-[0.6875rem] text-garden-danger mt-1.5">{{ daysError }}</span>
       </div>
 
       <button
         v-if="!readonly"
-        class="w-full py-3 rounded-xl bg-garden-primary text-white font-semibold text-sm
+        class="w-full py-2.5 rounded-xl bg-garden-primary text-white font-semibold text-sm
                hover:opacity-90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         :disabled="scheduleSaving || !scheduleLoaded"
         @click="saveSchedule"

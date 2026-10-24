@@ -109,12 +109,12 @@
                 <div
                   v-for="row in crop.rows"
                   :key="row.label"
-                  class="p-2 rounded-xl bg-garden-void"
+                  class="p-2.5 rounded-xl bg-garden-base text-center"
                 >
-                  <div class="text-[0.5625rem] font-bold uppercase tracking-widest text-garden-dim mb-0.5">
+                  <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">
                     {{ row.label }}
                   </div>
-                  <div class="text-sm font-mono" :style="{ color: row.color }">
+                  <div class="text-base font-mono" :style="{ color: row.color }">
                     {{ row.value }}
                   </div>
                 </div>
@@ -127,30 +127,17 @@
 
     <!-- ───────────────── FERTILIZATION ───────────────── -->
     <div v-else-if="tab === 'fertilization'" class="space-y-4">
-      <!-- Same two-column layout as Misting; section titles sit outside the cards like the Irrigation tab -->
+      <!-- Titles sit inside the cards (no outside labels, no icons) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-        <div class="flex flex-col">
-          <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Fertilizer Schedule
-          </h2>
-          <FertScheduleCard class="flex-1" :readonly="false" :schedule-active="fertScheduleActive || fertPumpOn" />
-        </div>
+        <FertScheduleCard :readonly="false" :schedule-active="fertScheduleActive || fertPumpOn" />
 
-        <div class="flex flex-col">
-          <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-            Pump Override Controls
-          </h2>
-          <RelayControl
-            class="flex-1"
-            :readonly="false"
-            controlPath="control/relay_fert"
-            title="Fertilization"
-            :show-threshold-settings="false"
-            :pump-number="3"
-          />
-        </div>
+        <RelayControl
+          :readonly="false"
+          controlPath="control/relay_fert"
+          title="Fertilization"
+          :show-threshold-settings="false"
+          :pump-number="3"
+        />
       </div>
     </div>
 
@@ -158,20 +145,17 @@
     <div v-else class="space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Highland sensor detail, read from the same useMisting() composable
-             MistingStatusCard already uses -->
+             MistingStatusCard already uses. Title sits inside the card, no icon. -->
         <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4">
           <div class="flex items-center justify-between gap-2 mb-3">
-            <h3 class="text-sm font-bold text-garden-text flex items-center gap-2">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-              Highland Sensor
-            </h3>
+            <h3 class="text-sm font-semibold text-garden-text">Highland Sensor</h3>
             <span
-            class="flex items-center gap-1.5 text-[0.625rem] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
-            :class="mistingRunning ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
-          >
-            <span class="w-1.5 h-1.5 rounded-full" :class="mistingRunning ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
-            {{ mistingRunning ? 'Running' : 'Off' }}
-          </span>
+              class="flex items-center gap-1.5 text-[0.625rem] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+              :class="mistingRunning ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
+            >
+              <span class="w-1.5 h-1.5 rounded-full" :class="mistingRunning ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
+              {{ mistingRunning ? 'Running' : 'Off' }}
+            </span>
           </div>
 
           <div v-if="misting.loading.value" class="grid grid-cols-2 gap-3">
@@ -180,24 +164,24 @@
           </div>
 
           <div v-else class="grid grid-cols-2 gap-3">
-            <div class="p-4 rounded-2xl bg-garden-base border border-garden-border">
+            <div class="p-4 rounded-2xl bg-garden-base border border-garden-border text-center">
               <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
-              <div class="text-3xl font-bold font-mono" :style="{ color: statusColor(misting.sensors.value?.temperature ?? null, 'highland', 'temperature') }">
+              <div class="text-2xl font-mono" :style="{ color: statusColor(misting.sensors.value?.temperature ?? null, 'highland', 'temperature') }">
                 {{ tempDisplay !== null ? `${tempDisplay}${unitLabel}` : '—' }}
               </div>
-              <div class="flex items-center gap-1.5 mt-2">
+              <div class="flex items-center justify-center gap-1.5 mt-2">
                 <span class="text-[0.625rem] font-medium text-garden-dim">
                   Threshold: {{ celsiusToDisplay(misting.config.value.tempOn) }}{{ unitLabel }}
                 </span>
               </div>
             </div>
 
-            <div class="p-4 rounded-2xl bg-garden-base border border-garden-border">
+            <div class="p-4 rounded-2xl bg-garden-base border border-garden-border text-center">
               <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
-              <div class="text-3xl font-bold font-mono" :style="{ color: statusColor(misting.sensors.value?.humidity ?? null, 'highland', 'humidity') }">
+              <div class="text-2xl font-mono" :style="{ color: statusColor(misting.sensors.value?.humidity ?? null, 'highland', 'humidity') }">
                 {{ humidityDisplay ?? '—' }}
               </div>
-              <div class="flex items-center gap-1.5 mt-2">
+              <div class="flex items-center justify-center gap-1.5 mt-2">
                 <span class="text-[0.625rem] font-medium text-garden-dim">
                   Threshold: {{ misting.config.value.humidityOn }} %
                 </span>
@@ -207,7 +191,6 @@
 
           <p v-if="misting.sensorErr.value" class="text-[0.6875rem] text-garden-dim mt-3">{{ misting.sensorErr.value }}</p>
         </div>
-
         <!-- Thresholds + manual override: RelayControl (pump 4) already handles
              both the config/misting threshold modal and the manual relay/countdown UI -->
         <RelayControl

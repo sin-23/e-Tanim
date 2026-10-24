@@ -5,7 +5,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-4">
         <div>
-          <div class="text-base font-semibold text-garden-text">
+          <div class="text-sm font-semibold text-garden-text">
             {{ zone.id === 'lowland' ? '🍅🍆' : '🫑' }} {{ zone.label }}
           </div>
         </div>
@@ -26,29 +26,29 @@
 
       <!-- Zone Sensor Summary -->
       <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div class="p-2.5 rounded-xl bg-garden-base">
-          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
+        <div class="p-2.5 rounded-xl bg-garden-base text-center">
+          <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
           <div class="text-base font-mono" :style="{ color: statusColor(zone.sensors.moisture, 'moisture') }">
             {{ zone.sensors.moisture !== null ? `${zone.sensors.moisture} %` : '—' }}
           </div>
         </div>
 
-        <div class="p-2.5 rounded-xl bg-garden-base">
-          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
+        <div class="p-2.5 rounded-xl bg-garden-base text-center">
+          <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
           <div class="text-base font-mono" :style="{ color: statusColor(zone.sensors.temperature, 'temperature') }">
             {{ zone.sensors.temperature !== null ? `${celsiusToDisplay(zone.sensors.temperature)} ${unitLabel}` : '—' }}
           </div>
         </div>
 
-        <div class="p-2.5 rounded-xl bg-garden-base">
-          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
+        <div class="p-2.5 rounded-xl bg-garden-base text-center">
+          <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
           <div class="text-base font-mono" :style="{ color: statusColor(zone.sensors.humidity, 'humidity') }">
             {{ zone.sensors.humidity !== null ? `${zone.sensors.humidity} %` : '—' }}
           </div>
         </div>
 
-        <div class="p-2.5 rounded-xl bg-garden-base">
-          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">VPD</div>
+        <div class="p-2.5 rounded-xl bg-garden-base text-center">
+          <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">VPD</div>
           <div class="text-base font-mono" :style="{ color: statusColor(zone.vpd, 'vpd') }">
             {{ zone.vpd !== null ? zone.vpd : '—' }} kPa
           </div>

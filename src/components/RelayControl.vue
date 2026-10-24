@@ -27,19 +27,19 @@
     <div :class="[variant.pad, 'flex-1 flex flex-col']">
       <!-- Header (labels follow the Figma design per control type) -->
       <div class="flex items-center justify-between mb-4 gap-2">
-        <!-- Irrigation zones -->
+        <!-- Irrigation zones (the zone name is needed here: both zones share one outside label) -->
         <div v-if="variant.kind === 'irrigation'" class="flex items-center gap-2 min-w-0">
           <span class="text-lg">{{ variant.emoji }}</span>
           <div class="min-w-0">
-            <div class="text-sm text-garden-text truncate">{{ variant.heading }}</div>
+            <div class="text-sm font-semibold text-garden-text truncate">{{ variant.heading }}</div>
           </div>
         </div>
-        <!-- Fertilizer / misting -->
+        <!-- Fertilizer / misting: title inside the card, no icon -->
         <div v-else class="min-w-0">
-          <h3 class="text-sm font-extrabold text-garden-text">{{ variant.heading }}</h3>
+          <h3 class="text-sm font-semibold text-garden-text">{{ variant.heading }}</h3>
         </div>
 
-        <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
           <button
             v-if="props.showThresholdSettings"
             class="w-8 h-8 rounded-lg flex items-center justify-center text-garden-dim hover:bg-garden-base hover:text-garden-primary transition-colors flex-shrink-0"
@@ -58,7 +58,7 @@
       <div v-if="relayOn" class="flex-1 flex flex-col gap-4">
         <!-- Countdown -->
         <div v-if="countdown > 0" class="my-auto flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
-          <div class="text-[0.625rem] tracking-widest uppercase mb-1" :class="variant.countdownLabel">
+          <div class="text-[0.625rem] font-bold tracking-widest uppercase mb-1" :class="variant.countdownLabel">
             Auto-Off In
           </div>
           <div class="text-4xl font-extrabold font-mono tracking-tight" :class="variant.countdownText">
@@ -81,7 +81,7 @@
       <div v-else class="flex-1 flex flex-col gap-4">
         <!-- Duration inputs (my-auto: extra card height is split evenly above/below) -->
         <div class="my-auto">
-          <div class="text-[0.625rem] font-extrabold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
+          <div class="text-[0.625rem] font-bold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-1.5 flex-1">
               <input
@@ -287,7 +287,7 @@ const VARIANTS = {
   2: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🫑',   heading: 'Highland Zone' },
   3: {
     kind: 'fert', pad: 'p-4', accent: '#2d7a4f',
-    heading: 'Fertilizer Pump Control', subtitle: 'Manual relay control',
+    heading: 'Pump Override Controls', subtitle: 'Manual relay control',
     onLabel: '▶ Turn Relay ON', offLabel: 'Turn Relay OFF',
     countdownBox: 'bg-garden-good/10 border-garden-good/40',
     countdownLabel: 'text-garden-good/70', countdownText: 'text-garden-good',
@@ -296,7 +296,7 @@ const VARIANTS = {
   },
   4: {
     kind: 'mist', pad: 'p-4', accent: '#2d7a4f',
-    heading: 'Manual Override', gearTitle: 'Adjust misting thresholds',
+    heading: 'Pump Override Controls', gearTitle: 'Adjust misting thresholds',
     onLabel: '▶ Start Misting', offLabel: 'Stop Misting',
     countdownBox: 'bg-garden-good/10 border-garden-good/40',
     countdownLabel: 'text-garden-good/70', countdownText: 'text-garden-good',
