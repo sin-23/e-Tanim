@@ -98,8 +98,7 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #6B8070; }
 
 
-/* ── Icon sizes follow the root font size (zero specificity, so any
-   Tailwind w-*/h-* class on the icon still wins) ─────────────────── */
+/* ── Icon sizes follow the root font size (zero specificity, so any  Tailwind w-*/h-* class on the icon still wins) ─────────────────── */
 :where(svg[width="11"]) { width: 0.6875rem; }
 :where(svg[height="11"]) { height: 0.6875rem; }
 :where(svg[width="12"]) { width: 0.75rem; }
