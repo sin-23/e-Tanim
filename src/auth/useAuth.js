@@ -11,6 +11,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
+  verifyBeforeUpdateEmail,
 } from 'firebase/auth'
 import { ref as dbRef, set, get } from 'firebase/database'
 
@@ -104,6 +105,28 @@ export function useAuth() {
     await updatePassword(user, newPassword)
   }
 
+  // Starts an email change. Re-authenticates with the current password, then
+  // sends a verification link to the NEW address. The account's email only
+  // changes once that link is opened, so a typo can't lock the user out.
+  // (updateEmail() is deliberately not used: it changes the address at once
+  // without verification, and Firebase blocks it when email-enumeration
+  // protection is on.) Throws Firebase error codes like changePassword does.
+  async function changeEmail(currentPassword, newEmail) {
+    const user = auth.currentUser
+    if (!user || !user.email) {
+      const err = new Error('auth/no-current-user')
+      err.code = 'auth/no-current-user'
+      throw err
+    }
+
+    const credential = EmailAuthProvider.credential(user.email, currentPassword)
+    await reauthenticateWithCredential(user, credential)
+    await verifyBeforeUpdateEmail(user, newEmail, {
+      url: `${window.location.origin}/login`,
+      handleCodeInApp: false,
+    })
+  }
+
   // Verifies the oobCode from the reset-password email link and returns the
   // account's email if valid. Throws (e.g. 'auth/expired-action-code',
   // 'auth/invalid-action-code') if the link is expired, already used, or
@@ -127,6 +150,7 @@ export function useAuth() {
     logout,
     resetPassword,
     changePassword,
+    changeEmail,
     verifyResetCode,
     confirmReset,
   }
