@@ -25,7 +25,7 @@
         </div>
 
         <div v-else class="absolute bottom-3 left-0 right-0 flex justify-center">
-          <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-garden-void/70 text-white flex items-center gap-1.5">
+          <span class="text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-garden-void/70 text-white flex items-center gap-1.5">
             <svg class="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
@@ -59,7 +59,7 @@
                focus:ring-2 focus:ring-[#2d7a4f]/15 transition-all uppercase tracking-wider"
         @keydown.enter="submitManual"
       />
-      <p class="mt-1.5 text-[11px] text-garden-dim">
+      <p class="mt-1.5 text-[0.6875rem] text-garden-dim">
         Printed on the label next to the QR code on your e-Tanim enclosure.
       </p>
 
@@ -84,7 +84,7 @@
       {{ gateError }}
     </p>
 
-    <p class="text-center text-[11px] text-garden-dim mt-6">
+    <p class="text-center text-[0.6875rem] text-garden-dim mt-6">
       Already have an account?
       <router-link to="/login" class="font-semibold text-garden-primary hover:underline">Sign in</router-link>
     </p>

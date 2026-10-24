@@ -20,12 +20,12 @@
     <div v-if="tab === 'irrigation'" class="space-y-5">
       <!-- Water reservoir warning -->
       <div v-if="waterLow" class="flex items-center gap-3 p-4 rounded-2xl bg-garden-danger/10 border border-garden-danger/40">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-danger))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <div>
           <div class="text-xs font-bold text-garden-danger">Water Reservoir Locked</div>
-          <p class="text-[11px] text-garden-danger/80 font-medium">
+          <p class="text-[0.6875rem] text-garden-danger/80 font-medium">
             Water level at or below its low-level threshold. Automatic irrigation and misting are suspended
             until the reservoir is refilled.
           </p>
@@ -35,7 +35,7 @@
       <!-- Zone Status -->
       <div>
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Zone Status
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,7 +51,7 @@
       <!-- Pump Override Controls -->
       <div>
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           Pump Override Controls
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,7 +83,7 @@
       <!-- Per-Circuit Sensor Detail -->
       <div>
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
           Individual Crop Sensor Readings
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -97,7 +97,7 @@
                 <span class="text-lg">{{ crop.emoji }}</span>
                 <div>
                   <div class="font-bold text-sm text-garden-text">{{ crop.label }}</div>
-                  <div class="text-[10px] text-garden-dim capitalize">{{ crop.climate }} Zone</div>
+                  <div class="text-[0.625rem] text-garden-dim capitalize">{{ crop.climate }} Zone</div>
                 </div>
               </div>
 
@@ -111,7 +111,7 @@
                   :key="row.label"
                   class="p-2 rounded-xl bg-garden-void"
                 >
-                  <div class="text-[9px] font-bold uppercase tracking-widest text-garden-dim mb-0.5">
+                  <div class="text-[0.5625rem] font-bold uppercase tracking-widest text-garden-dim mb-0.5">
                     {{ row.label }}
                   </div>
                   <div class="text-sm font-mono" :style="{ color: row.color }">
@@ -131,7 +131,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
         <div class="flex flex-col">
           <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Fertilizer Schedule
           </h2>
           <FertScheduleCard class="flex-1" :readonly="false" :schedule-active="fertScheduleActive || fertPumpOn" />
@@ -139,7 +139,7 @@
 
         <div class="flex flex-col">
           <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5e3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
             Pump Override Controls
           </h2>
           <RelayControl
@@ -162,11 +162,11 @@
         <div class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm p-4">
           <div class="flex items-center justify-between gap-2 mb-3">
             <h3 class="text-sm font-bold text-garden-text flex items-center gap-2">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
               Highland Sensor
             </h3>
             <span
-            class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+            class="flex items-center gap-1.5 text-[0.625rem] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
             :class="mistingRunning ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
           >
             <span class="w-1.5 h-1.5 rounded-full" :class="mistingRunning ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
@@ -180,32 +180,32 @@
           </div>
 
           <div v-else class="grid grid-cols-2 gap-3">
-            <div class="p-4 rounded-2xl bg-garden-warn/10 border border-garden-warn/30">
-              <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
-              <div class="text-3xl font-bold font-mono text-garden-warn">
+            <div class="p-4 rounded-2xl bg-garden-base border border-garden-border">
+              <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
+              <div class="text-3xl font-bold font-mono" :style="{ color: statusColor(misting.sensors.value?.temperature ?? null, 'highland', 'temperature') }">
                 {{ tempDisplay !== null ? `${tempDisplay}${unitLabel}` : '—' }}
               </div>
               <div class="flex items-center gap-1.5 mt-2">
-                <span class="text-[10px] font-medium text-garden-dim">
+                <span class="text-[0.625rem] font-medium text-garden-dim">
                   Threshold: {{ celsiusToDisplay(misting.config.value.tempOn) }}{{ unitLabel }}
                 </span>
               </div>
             </div>
 
-            <div class="p-4 rounded-2xl bg-garden-sky/10 border border-garden-sky/30">
-              <div class="text-[10px] font-bold uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
-              <div class="text-3xl font-bold font-mono text-garden-sky">
+            <div class="p-4 rounded-2xl bg-garden-base border border-garden-border">
+              <div class="text-[0.625rem] font-bold uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
+              <div class="text-3xl font-bold font-mono" :style="{ color: statusColor(misting.sensors.value?.humidity ?? null, 'highland', 'humidity') }">
                 {{ humidityDisplay ?? '—' }}
               </div>
               <div class="flex items-center gap-1.5 mt-2">
-                <span class="text-[10px] font-medium text-garden-dim">
+                <span class="text-[0.625rem] font-medium text-garden-dim">
                   Threshold: {{ misting.config.value.humidityOn }} %
                 </span>
               </div>
             </div>
           </div>
 
-          <p v-if="misting.sensorErr.value" class="text-[11px] text-garden-dim mt-3">{{ misting.sensorErr.value }}</p>
+          <p v-if="misting.sensorErr.value" class="text-[0.6875rem] text-garden-dim mt-3">{{ misting.sensorErr.value }}</p>
         </div>
 
         <!-- Thresholds + manual override: RelayControl (pump 4) already handles
@@ -227,7 +227,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import ZoneCard from '@/components/ZoneCard.vue'
 import RelayControl from '@/components/RelayControl.vue'
 import FertScheduleCard from '@/components/FertScheduleCard.vue'
-import { useSensorData, CROPS, computeVpd } from '@/composables/useSensorData'
+import { useSensorData, CROPS, ZONE_META, getSensorStatus, computeVpd } from '@/composables/useSensorData'
 import { useMisting } from '@/composables/useMisting'
 import { useReservoirs } from '@/composables/useReservoirs'
 import { db } from '@/firebase'
@@ -253,33 +253,38 @@ const waterLow = computed(() => lowReservoirs.value.some(r => r.id === 'water'))
 // Per-crop rows (design's "Per-Circuit Sensor Detail"): built from the same
 // per-crop sensor data useSensorData() already gathers into zone.crops, plus
 // the existing computeVpd() helper applied per crop instead of per zone.
-const CROP_COLOR = {
-  tomato:      { color: '#dc2626', border: '#fca5a5' },
-  eggplant:    { color: '#7c3aed', border: '#c4b5fd' },
-  bell_pepper: { color: '#2d7a4f', border: '#86efac' },
+// Reading colors carry meaning: inside the healthy band = green (good),
+// outside it = orange (warning), no data = neutral.
+const STATUS_COLOR = {
+  ok:      'rgb(var(--garden-good))',
+  low:     'rgb(var(--garden-warn))',
+  high:    'rgb(var(--garden-warn))',
+  unknown: 'rgb(var(--garden-dim))',
+}
+function statusColor(value, climate, key) {
+  const band = ZONE_META.find(z => z.id === climate)?.thresholds[key]
+  return band ? STATUS_COLOR[getSensorStatus(value, band)] : 'rgb(var(--garden-text))'
 }
 const perCropRows = computed(() => {
   const allCrops = [...(lowland.value?.crops ?? []), ...(highland.value?.crops ?? [])]
   return CROPS.map(meta => {
     const c = allCrops.find(x => x.nodeId === meta.nodeId)
-    const colors = CROP_COLOR[meta.crop]
     if (!c || c.loading) {
-      return { ...meta, color: colors.color, borderColor: colors.border, loading: true }
+      return { ...meta, loading: true }
     }
     if (c.error) {
-      return { ...meta, color: colors.color, borderColor: colors.border, loading: false, error: c.error }
+      return { ...meta, loading: false, error: c.error }
     }
     const vpd = computeVpd(c.sensors.temperature, c.sensors.humidity)
+    const z = meta.climate
     return {
       ...meta,
-      color: colors.color,
-      borderColor: colors.border,
       loading: false,
       rows: [
-        { label: 'Soil Moisture', value: c.sensors.moisture !== null ? `${c.sensors.moisture} %` : '—', color: colors.color },
-        { label: 'VPD', value: vpd !== null ? `${vpd} kPa` : '—', color: '#2d7a4f' },
-        { label: 'Temperature', value: c.sensors.temperature !== null ? `${celsiusToDisplay(c.sensors.temperature)} ${unitLabel.value}` : '—', color: '#d97706' },
-        { label: 'Humidity', value: c.sensors.humidity !== null ? `${c.sensors.humidity} %` : '—', color: '#2563eb' },
+        { label: 'Soil Moisture', value: c.sensors.moisture !== null ? `${c.sensors.moisture} %` : '—', color: statusColor(c.sensors.moisture, z, 'moisture') },
+        { label: 'VPD', value: vpd !== null ? `${vpd} kPa` : '—', color: statusColor(vpd, z, 'vpd') },
+        { label: 'Temperature', value: c.sensors.temperature !== null ? `${celsiusToDisplay(c.sensors.temperature)} ${unitLabel.value}` : '—', color: statusColor(c.sensors.temperature, z, 'temperature') },
+        { label: 'Humidity', value: c.sensors.humidity !== null ? `${c.sensors.humidity} %` : '—', color: statusColor(c.sensors.humidity, z, 'humidity') },
       ],
     }
   })

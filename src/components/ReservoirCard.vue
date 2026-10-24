@@ -10,11 +10,11 @@
           <span class="text-lg">{{ r.emoji }}</span>
           <div class="min-w-0">
             <div class="text-xs font-semibold text-garden-text truncate">{{ r.label }}</div>
-            <div class="text-[9px] text-garden-dim">{{ r.subtitle }}</div>
+            <div class="text-[0.5625rem] text-garden-dim">{{ r.subtitle }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border" :style="badgeStyle(r)">{{ badgeText(r) }}</span>
+          <span class="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border" :style="badgeStyle(r)">{{ badgeText(r) }}</span>
           <span
             class="text-xl font-extrabold font-mono"
             :style="{ color: r.levelPct !== null ? gaugeColor(r) : undefined }"
@@ -33,8 +33,8 @@
         <div class="absolute top-0 bottom-0 w-px bg-garden-text/30" :style="{ left: `${r.lowPct}%` }" />
       </div>
 
-      <p v-if="r.error" class="mt-2 text-[11px] text-garden-dim">{{ r.error }}</p>
-      <p v-else-if="r.low" class="mt-2 text-[11px] font-semibold" :style="{ color: COLORS.danger }">
+      <p v-if="r.error" class="mt-2 text-[0.6875rem] text-garden-dim">{{ r.error }}</p>
+      <p v-else-if="r.low" class="mt-2 text-[0.6875rem] font-semibold" :style="{ color: COLORS.danger }">
         Low level. Refill soon — pumps on this tank may be interlocked.
       </p>
     </div>
@@ -51,10 +51,10 @@
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
-          <span class="text-[11px] font-semibold truncate">Alert at ≤ {{ r.lowPct }}%</span>
+          <span class="text-[0.6875rem] font-semibold truncate">Alert at ≤ {{ r.lowPct }}%</span>
         </button>
         <span
-          class="text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0"
+          class="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0"
           :style="badgeStyle(r)"
         >{{ badgeText(r) }}</span>
       </div>
@@ -94,8 +94,8 @@
             <div class="absolute top-0 bottom-0 w-px bg-garden-text/30" :style="{ left: `${r.lowPct}%` }" />
           </div>
         </div>
-        <div class="mt-3 flex items-center justify-between text-[10px] pt-3 border-t border-garden-border">
-          <p class="text-[11px]" :style="r.low ? { color: COLORS.danger, fontWeight: 600 } : {}" :class="!r.low ? 'text-garden-dim' : ''">
+        <div class="mt-3 flex items-center justify-between text-[0.625rem] pt-3 border-t border-garden-border">
+          <p class="text-[0.6875rem]" :style="r.low ? { color: COLORS.danger, fontWeight: 600 } : {}" :class="!r.low ? 'text-garden-dim' : ''">
             <template v-if="r.error">{{ r.error }}</template>
             <template v-else-if="r.low">Low level. Refill soon — pumps on this tank may be interlocked.</template>
             <template v-else>Reservoir levels sufficient for continued use.</template>
@@ -111,7 +111,7 @@
         <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-border z-10" @click.stop>
           <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border">
             <div>
-              <div class="text-[10px] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
+              <div class="text-[0.625rem] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
               <h3 class="text-base font-semibold text-garden-text">{{ r.label }} Alert</h3>
             </div>
             <button
@@ -131,10 +131,10 @@
               class="w-full px-3 py-2 rounded-xl border border-garden-border font-mono text-sm text-garden-text bg-garden-void focus:outline-none focus:border-garden-primary"
               @keyup.enter="save"
             />
-            <p class="text-[11px] text-garden-dim leading-snug">
+            <p class="text-[0.6875rem] text-garden-dim leading-snug">
               Allowed range {{ RESERVOIR_LOW_MIN }}–{{ RESERVOIR_LOW_MAX }}%. Default is {{ RESERVOIR_LOW_PCT }}%.
             </p>
-            <p v-if="saveError" class="text-[11px] font-semibold" :style="{ color: COLORS.danger }">{{ saveError }}</p>
+            <p v-if="saveError" class="text-[0.6875rem] font-semibold" :style="{ color: COLORS.danger }">{{ saveError }}</p>
           </div>
 
           <div class="flex gap-2 px-5 pb-5">
@@ -195,24 +195,16 @@ function save() {
 
 const circ = 2 * Math.PI * 70
 
-// Fixed hex, taken directly from the design file's `:root` tokens.
-// The design never re-tints these accent/status colors for dark mode —
-// only neutrals (background/border/text) change — so these stay constant
-// in both themes instead of running through the app's dark-shifted
-// garden-sky/garden-earth/garden-danger CSS variables.
+// Same status tokens as the sensor readings (--garden-good / --garden-danger),
+// so the reservoir green is exactly the reading green in light and dark mode.
 const COLORS = {
-  water: '#3b9dd2',
-  fertilizer: '#8b5e3c',
-  danger: '#ef4444',
+  good: 'rgb(var(--garden-good))',
+  danger: 'rgb(var(--garden-danger))',
 }
 
-function baseColor(r) {
-  return r.id === 'water' ? COLORS.water : COLORS.fertilizer
-}
-
+// Level colors carry meaning: sufficient = green (good), low = red (danger).
 function gaugeColor(r) {
-  if (r.low) return COLORS.danger
-  return baseColor(r)
+  return r.low ? COLORS.danger : COLORS.good
 }
 
 function badgeText(r) {
@@ -226,8 +218,12 @@ function badgeStyle(r) {
   if (r.loading || r.error || r.levelPct === null) {
     return { backgroundColor: 'rgb(var(--garden-base))', color: 'rgb(var(--garden-dim))', borderColor: 'rgb(var(--garden-border))' }
   }
-  const color = r.low ? COLORS.danger : '#22c55e'
-  return { backgroundColor: `${color}26`, color, borderColor: `${color}66` }
+  const color = r.low ? COLORS.danger : COLORS.good
+  return {
+    backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+    color,
+    borderColor: `color-mix(in srgb, ${color} 40%, transparent)`,
+  }
 }
 
 function lastUpdated(r) {

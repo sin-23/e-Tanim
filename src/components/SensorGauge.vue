@@ -59,7 +59,7 @@
         class="w-1.5 h-1.5 rounded-full transition-colors duration-300"
         :style="{ background: statusColor }"
       ></span>
-      <span class="text-[10px] font-medium text-garden-dim uppercase tracking-widest">{{ label }}</span>
+      <span class="text-[0.625rem] font-medium text-garden-dim uppercase tracking-widest">{{ label }}</span>
     </div>
   </div>
 </template>

@@ -8,10 +8,10 @@
         <span class="text-lg">☁️</span>
         <div class="min-w-0">
           <div class="text-xs font-semibold text-garden-text truncate">Highland Misting</div>
-          <div class="text-[10px] text-garden-dim">Bell pepper cooling</div>
+          <div class="text-[0.625rem] text-garden-dim">Bell pepper cooling</div>
         </div>
       </div>
-      <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0" :class="status.badge">
+      <span class="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0" :class="status.badge">
         {{ status.text }}
       </span>
     </div>
@@ -26,22 +26,22 @@
           class="rounded-lg border p-2"
           :class="r.met ? 'border-garden-warn/40 bg-garden-warn/10' : 'border-garden-border bg-garden-surface'"
         >
-          <div class="text-[10px] text-garden-dim">{{ r.label }}</div>
+          <div class="text-[0.625rem] text-garden-dim">{{ r.label }}</div>
           <div class="text-lg font-medium leading-none mt-1" :class="r.value === '—' ? 'text-garden-dim' : 'text-garden-text'">
             {{ r.value }}
           </div>
-          <div class="text-[10px] text-garden-dim mt-1">
+          <div class="text-[0.625rem] text-garden-dim mt-1">
             Mists at {{ r.comparator }} {{ r.threshold }}<span v-if="r.met" class="text-garden-warn font-semibold"> · reached</span>
           </div>
         </div>
       </div>
 
-      <p class="text-[11px] text-garden-text mt-3">{{ status.detail }}</p>
+      <p class="text-[0.6875rem] text-garden-text mt-3">{{ status.detail }}</p>
 
-      <p v-if="m.configFrom.value === 'default'" class="text-[10px] text-garden-dim mt-1">
+      <p v-if="m.configFrom.value === 'default'" class="text-[0.625rem] text-garden-dim mt-1">
         No thresholds saved yet — showing defaults.
       </p>
-      <p class="text-[10px] text-garden-dim mt-1">
+      <p class="text-[0.625rem] text-garden-dim mt-1">
         Auto mode is estimated from the highland DHT22 reading. Manual override and thresholds are on the
         <router-link to="/irrigation" class="text-garden-primary font-semibold hover:underline">Irrigation page</router-link>.
       </p>

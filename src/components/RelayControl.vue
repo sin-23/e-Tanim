@@ -3,15 +3,15 @@
   <div v-if="readonly" class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden">
     <div class="p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <span class="text-[10px] font-medium uppercase tracking-widest text-garden-dim">Relay Status</span>
+        <span class="text-[0.625rem] font-medium uppercase tracking-widest text-garden-dim">Relay Status</span>
         <span
-          class="px-2.5 py-1 rounded-full text-[10px] font-semibold border"
+          class="px-2.5 py-1 rounded-full text-[0.625rem] font-semibold border"
           :class="relayOn
-            ? 'bg-garden-danger/15 text-garden-danger border-garden-danger/40'
+            ? 'bg-garden-good/15 text-garden-good border-garden-good/40'
             : 'bg-garden-base text-garden-dim border-garden-border'"
         >{{ relayOn ? 'ACTIVE' : 'INACTIVE' }}</span>
       </div>
-      <p class="text-[11px] text-garden-dim leading-snug">
+      <p class="text-[0.6875rem] text-garden-dim leading-snug">
         {{ relayOn
           ? 'The relay is currently active. Watering in progress.'
           : 'Relay is off. Awaiting next watering cycle.' }}
@@ -58,7 +58,7 @@
       <div v-if="relayOn" class="flex-1 flex flex-col gap-4">
         <!-- Countdown -->
         <div v-if="countdown > 0" class="my-auto flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
-          <div class="text-[10px] tracking-widest uppercase mb-1" :class="variant.countdownLabel">
+          <div class="text-[0.625rem] tracking-widest uppercase mb-1" :class="variant.countdownLabel">
             Auto-Off In
           </div>
           <div class="text-4xl font-extrabold font-mono tracking-tight" :class="variant.countdownText">
@@ -81,7 +81,7 @@
       <div v-else class="flex-1 flex flex-col gap-4">
         <!-- Duration inputs (my-auto: extra card height is split evenly above/below) -->
         <div class="my-auto">
-          <div class="text-[10px] font-extrabold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
+          <div class="text-[0.625rem] font-extrabold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-1.5 flex-1">
               <input
@@ -105,7 +105,7 @@
               <span class="text-xs font-bold text-garden-dim flex-shrink-0">SEC</span>
             </div>
           </div>
-          <span v-if="durationError" class="block text-[11px] text-garden-danger mt-1.5">{{ durationError }}</span>
+          <span v-if="durationError" class="block text-[0.6875rem] text-garden-danger mt-1.5">{{ durationError }}</span>
         </div>
 
         <!-- Turn ON button -->
@@ -160,7 +160,7 @@
         <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-border z-10 max-h-[85vh] overflow-y-auto" @click.stop>
           <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border sticky top-0 bg-garden-surface">
             <div>
-              <div class="text-[10px] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
+              <div class="text-[0.625rem] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
               <h3 class="text-base font-semibold text-garden-text">Threshold Settings — Pump {{ props.pumpNumber }}</h3>
             </div>
             <button
@@ -176,7 +176,7 @@
                  but never stops a running session. -->
             <template v-if="thresholdCfg?.kind === 'irrigation'">
               <div class="space-y-3">
-                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Soil Moisture Breakpoints (% FC)</h4>
+                <h4 class="text-[0.6875rem] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Soil Moisture Breakpoints (% FC)</h4>
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">Normal start — waters when moisture is at or below this AND VPD gate is met</label>
                   <input v-model.number="editThresholds.smNormal" type="number" min="0" max="100"
@@ -195,7 +195,7 @@
               </div>
 
               <div class="space-y-3">
-                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — VPD Gate</h4>
+                <h4 class="text-[0.6875rem] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — VPD Gate</h4>
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">VPD gate (kPa) — a Normal start also needs VPD at or above this</label>
                   <input v-model.number="editThresholds.vpdGate" type="number" min="0" max="5" step="0.1"
@@ -203,15 +203,15 @@
                 </div>
               </div>
 
-              <div class="rounded-xl bg-garden-good/10 border-garden-good/30 p-3">
-                <p class="text-xs text-garden-good leading-snug">ⓘ Emergency moisture starts a session regardless of VPD, and VPD never stops a running session — it only gates a Normal start. Warnings during manual override show when the current reading doesn't call for irrigation.</p>
+              <div class="rounded-xl bg-garden-base border border-garden-border p-3">
+                <p class="text-xs text-garden-dim leading-snug">ⓘ Emergency moisture starts a session regardless of VPD, and VPD never stops a running session — it only gates a Normal start. Warnings during manual override show when the current reading doesn't call for irrigation.</p>
               </div>
             </template>
 
             <!-- Misting: temperature & humidity thresholds -->
             <template v-else-if="thresholdCfg?.kind === 'misting'">
               <div class="space-y-3">
-                <h4 class="text-[11px] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Misting</h4>
+                <h4 class="text-[0.6875rem] font-medium uppercase tracking-widest text-garden-dim">Auto Mode — Misting</h4>
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-garden-text block">Temp ON ({{ unitLabel }}) — misting starts above this</label>
                   <input v-model.number="tempOnDisplay" type="number" step="0.5"
@@ -227,7 +227,7 @@
           </div>
 
           <div class="flex gap-2 px-5 pb-5 sticky bottom-0 bg-garden-surface pt-2">
-            <button class="px-3 py-2.5 rounded-xl bg-garden-warn text-white font-medium text-xs hover:opacity-85 transition" @click="resetThresholds">↺ Reset</button>
+            <button class="px-3 py-2.5 rounded-xl bg-garden-dim text-white font-medium text-xs hover:opacity-85 transition" @click="resetThresholds">↺ Reset</button>
             <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-garden-surface text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeSettings">Cancel</button>
             <button class="flex-1 py-2.5 rounded-xl text-white font-medium text-sm hover:opacity-90 transition" :style="{ backgroundColor: accent }" @click="saveThresholds">Save</button>
           </div>
@@ -269,39 +269,39 @@ const logCategory = computed(() => {
 })
 
 // Per-control look and labels, following the Figma design:
-//   pump 1 = Lowland irrigation (red), pump 2 = Highland irrigation (green),
-//   pump 3 = Fertilizer (brown/amber), pump 4 = Misting (blue).
+//   Colors follow meaning, not the pump: ON button = green, running = green,
+//   OFF button = neutral, red is kept for the override warning only.
 // `title` (prop) is still what gets written to the Activity Log — these are
 // display-only labels.
 const IRRIGATION_LOOK = {
   kind: 'irrigation', pad: 'p-4', eyebrow: 'Irrigation Zone',
   gearTitle: 'Adjust zone thresholds',
   onLabel: '▶ Turn Relay ON', offLabel: 'Turn Relay OFF',
-  countdownBox: 'bg-garden-danger/10 border-garden-danger/40',
-  countdownLabel: 'text-garden-danger/70', countdownText: 'text-garden-danger',
-  offBtn: 'bg-[#dc2626] hover:bg-[#b91c1c]',
+  countdownBox: 'bg-garden-good/10 border-garden-good/40',
+  countdownLabel: 'text-garden-good/70', countdownText: 'text-garden-good',
+  offBtn: 'bg-slate-600 hover:bg-slate-700',
   focus: 'focus:border-garden-primary focus:ring-garden-primary/20',
 }
 const VARIANTS = {
-  1: { ...IRRIGATION_LOOK, accent: '#dc2626', emoji: '🍅🍆', heading: 'Lowland Zone' },
+  1: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🍅🍆', heading: 'Lowland Zone' },
   2: { ...IRRIGATION_LOOK, accent: '#2d7a4f', emoji: '🫑',   heading: 'Highland Zone' },
   3: {
-    kind: 'fert', pad: 'p-4', accent: '#8b5e3c',
+    kind: 'fert', pad: 'p-4', accent: '#2d7a4f',
     heading: 'Fertilizer Pump Control', subtitle: 'Manual relay control',
     onLabel: '▶ Turn Relay ON', offLabel: 'Turn Relay OFF',
-    countdownBox: 'bg-garden-warn/10 border-garden-warn/40',
-    countdownLabel: 'text-garden-warn/70', countdownText: 'text-garden-warn',
-    offBtn: 'bg-[#d97706] hover:bg-[#b45309]',
-    focus: 'focus:border-[#8b5e3c] focus:ring-[#8b5e3c]/20',
+    countdownBox: 'bg-garden-good/10 border-garden-good/40',
+    countdownLabel: 'text-garden-good/70', countdownText: 'text-garden-good',
+    offBtn: 'bg-slate-600 hover:bg-slate-700',
+    focus: 'focus:border-garden-primary focus:ring-garden-primary/20',
   },
   4: {
-    kind: 'mist', pad: 'p-4', accent: '#3b9dd2',
+    kind: 'mist', pad: 'p-4', accent: '#2d7a4f',
     heading: 'Manual Override', gearTitle: 'Adjust misting thresholds',
     onLabel: '▶ Start Misting', offLabel: 'Stop Misting',
-    countdownBox: 'bg-garden-sky/10 border-garden-sky/40',
-    countdownLabel: 'text-garden-sky/70', countdownText: 'text-garden-sky',
-    offBtn: 'bg-[#3b9dd2] hover:bg-[#2980b9]',
-    focus: 'focus:border-[#3b9dd2] focus:ring-[#3b9dd2]/20',
+    countdownBox: 'bg-garden-good/10 border-garden-good/40',
+    countdownLabel: 'text-garden-good/70', countdownText: 'text-garden-good',
+    offBtn: 'bg-slate-600 hover:bg-slate-700',
+    focus: 'focus:border-garden-primary focus:ring-garden-primary/20',
   },
 }
 const variant = computed(() => VARIANTS[props.pumpNumber] ?? VARIANTS[1])
@@ -451,7 +451,7 @@ async function saveThresholds() {
     const summary = isIrrigation
       ? `moisture normal ≤${c(t.smNormal)}%, emergency ≤${c(t.smEmergency)}%, stop ≥${c(t.smStop)}%, VPD gate ≥${c(t.vpdGate)} kPa`
       : `temp ≥ ${c(t.tempOn)}°C, humidity ≤ ${c(t.humidityOn)}%`
-    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#3b9dd2', 'threshold', { category: logCategory.value, manual: true })
+    logActivity(`${props.title} auto-mode thresholds updated: ${summary}`, '#94a3b8', 'threshold', { category: logCategory.value, manual: true })
   } catch (err) {
     loading.value = false
     console.error(`Failed to save thresholds for pump ${props.pumpNumber}:`, err)

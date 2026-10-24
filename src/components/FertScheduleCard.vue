@@ -7,17 +7,17 @@
           <div class="text-sm font-semibold text-garden-text truncate">Scheduled Dispensing</div>
         </div>
         <span v-if="scheduleActive !== null"
-          class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+          class="flex items-center gap-1.5 text-[0.625rem] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
           :class="scheduleActive ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
         >
           <span class="w-1.5 h-1.5 rounded-full" :class="scheduleActive ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
-          {{ scheduleActive ? 'Active Now' : 'Inactive' }}
+          {{ scheduleActive ? 'Running' : 'Off' }}
         </span>
       </div>
 
       <!-- Time window -->
       <div>
-        <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">Time Window</div>
+        <div class="text-[0.625rem] font-medium tracking-widest uppercase text-garden-dim mb-2">Time Window</div>
         <div v-if="scheduleLoaded" class="flex items-center gap-2">
           <input
             v-model="startTime" type="time" :disabled="readonly"
@@ -38,12 +38,12 @@
           <span class="text-garden-dim text-sm flex-shrink-0">to</span>
           <div class="flex-1 h-[42px] rounded-xl border border-garden-border bg-garden-void animate-pulse" />
         </div>
-        <p v-if="scheduleLoaded && crossesMidnight" class="text-[11px] text-garden-dim mt-1.5">ⓘ Window crosses midnight.</p>
+        <p v-if="scheduleLoaded && crossesMidnight" class="text-[0.6875rem] text-garden-dim mt-1.5">ⓘ Window crosses midnight.</p>
       </div>
 
       <!-- Days (alarm-style toggle) -->
       <div>
-        <div class="text-[10px] font-medium tracking-widest uppercase text-garden-dim mb-2">Repeat On</div>
+        <div class="text-[0.625rem] font-medium tracking-widest uppercase text-garden-dim mb-2">Repeat On</div>
         <div v-if="scheduleLoaded" class="flex gap-1.5">
           <button
             v-for="d in dayList" :key="d.key"
@@ -59,7 +59,7 @@
         <div v-else class="flex gap-1.5">
           <div v-for="i in 7" :key="i" class="w-9 h-9 rounded-full border border-garden-border bg-garden-void animate-pulse" />
         </div>
-        <span v-if="daysError" class="block text-[11px] text-garden-danger mt-1.5">{{ daysError }}</span>
+        <span v-if="daysError" class="block text-[0.6875rem] text-garden-danger mt-1.5">{{ daysError }}</span>
       </div>
 
       <button
@@ -70,7 +70,7 @@
         @click="saveSchedule"
       >{{ scheduleSaving ? 'Saving…' : 'Save Schedule' }}</button>
 
-      <p v-else class="text-[11px] text-garden-dim text-center leading-snug">
+      <p v-else class="text-[0.6875rem] text-garden-dim text-center leading-snug">
         Read-only view. Editing is disabled.
       </p>
     </div>
@@ -154,7 +154,7 @@ async function saveSchedule() {
     const dayList  = Object.keys(dayNames).filter(k => days[k]).map(k => dayNames[k]).join(', ')
     logActivity(
       `Fertilizer schedule updated: ${startTime.value}–${endTime.value} on ${dayList}`,
-      '#3b9dd2', 'schedule', { category: 'fertilization', manual: true }
+      '#94a3b8', 'schedule', { category: 'fertilization', manual: true }
     )
   } catch (err) {
     console.error('Failed to save fertilizer schedule:', err)

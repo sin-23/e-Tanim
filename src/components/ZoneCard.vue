@@ -13,7 +13,7 @@
         <!-- Pump state; only shown when the parent passes it (Irrigation page) -->
         <span
           v-if="pumpOn !== null"
-          class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
+          class="flex items-center gap-1.5 text-[0.625rem] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full flex-shrink-0"
           :class="pumpOn ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
         >
           <span class="w-1.5 h-1.5 rounded-full" :class="pumpOn ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
@@ -26,30 +26,30 @@
 
       <!-- Zone Sensor Summary -->
       <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div class="p-2.5 rounded-xl" :style="{ backgroundColor: `${zoneColor(zone.colorKey)}1a` }">
-          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
-          <div class="text-base font-mono" :style="{ color: zoneColor(zone.colorKey) }">
+        <div class="p-2.5 rounded-xl bg-garden-base">
+          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">Moisture</div>
+          <div class="text-base font-mono" :style="{ color: statusColor(zone.sensors.moisture, 'moisture') }">
             {{ zone.sensors.moisture !== null ? `${zone.sensors.moisture} %` : '—' }}
           </div>
         </div>
 
-        <div class="p-2.5 rounded-xl bg-garden-warn/10">
-          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
-          <div class="text-base font-mono text-garden-warn">
+        <div class="p-2.5 rounded-xl bg-garden-base">
+          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">Temperature</div>
+          <div class="text-base font-mono" :style="{ color: statusColor(zone.sensors.temperature, 'temperature') }">
             {{ zone.sensors.temperature !== null ? `${celsiusToDisplay(zone.sensors.temperature)} ${unitLabel}` : '—' }}
           </div>
         </div>
 
-        <div class="p-2.5 rounded-xl bg-garden-sky/10">
-          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
-          <div class="text-base font-mono text-garden-sky">
+        <div class="p-2.5 rounded-xl bg-garden-base">
+          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">Humidity</div>
+          <div class="text-base font-mono" :style="{ color: statusColor(zone.sensors.humidity, 'humidity') }">
             {{ zone.sensors.humidity !== null ? `${zone.sensors.humidity} %` : '—' }}
           </div>
         </div>
 
         <div class="p-2.5 rounded-xl bg-garden-base">
-          <div class="text-[8px] uppercase tracking-widest text-garden-dim mb-1">VPD</div>
-          <div class="text-base font-mono text-garden-primary">
+          <div class="text-[0.5rem] uppercase tracking-widest text-garden-dim mb-1">VPD</div>
+          <div class="text-base font-mono" :style="{ color: statusColor(zone.vpd, 'vpd') }">
             {{ zone.vpd !== null ? zone.vpd : '—' }} kPa
           </div>
         </div>
@@ -60,16 +60,28 @@
 
 <script setup>
 import { useTempUnit } from '@/composables/useTempUnit'
+import { getSensorStatus } from '@/composables/useSensorData'
 
-defineProps({
+const props = defineProps({
   zone: { type: Object, required: true },
   pumpOn: { type: Boolean, default: null },
 })
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 
-// Original Dashboard zone colors (green / blue).
-const ZONE_COLORS = { lowland: '#2d7a4f', highland: '#3b9dd2' }
-function zoneColor(colorKey) { return ZONE_COLORS[colorKey] ?? '#2d7a4f' }
+// Reading colors carry meaning: inside the zone's healthy band = green (good),
+// outside it (too low / too high) = orange (warning), no data = neutral.
+// Bands come from the zone's own `thresholds` (ZONE_META in useSensorData.js).
+const STATUS_COLOR = {
+  ok:      'rgb(var(--garden-good))',
+  low:     'rgb(var(--garden-warn))',
+  high:    'rgb(var(--garden-warn))',
+  unknown: 'rgb(var(--garden-dim))',
+}
+function statusColor(value, key) {
+  const band = props.zone.thresholds?.[key]
+  if (!band) return 'rgb(var(--garden-text))'
+  return STATUS_COLOR[getSensorStatus(value, band)]
+}
 
 </script>

@@ -4,7 +4,7 @@
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
           Zone Status
@@ -23,7 +23,7 @@
     <!-- ───────────────── SYSTEM CONTROLS ───────────────── -->
     <section>
       <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
         </svg>
         System Controls
@@ -33,7 +33,6 @@
         <ControlStatusCard
           title="Irrigation"
           subtitle="Automatic soil moisture + VPD control"
-          color="#3b9dd2"
           :status="irrigationStatus"
           :active="irrigationActive"
         >
@@ -45,7 +44,6 @@
         <ControlStatusCard
           title="Fertilization"
           subtitle="Shared line, all crops"
-          color="#8b5e3c"
           :status="fertilizationStatus"
           :active="circuits.find(c => c.id === 3)?.relay ?? false"
         >
@@ -57,7 +55,6 @@
         <ControlStatusCard
           title="Misting"
           subtitle="Highland · Temperature / Humidity"
-          color="#3b9dd2"
           :status="mistingStatus"
           :active="misting.manualOn.value || misting.autoConditionsMet.value"
         >
@@ -72,7 +69,7 @@
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b9dd2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
           </svg>
           Reservoir Levels
@@ -89,7 +86,7 @@
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
           </svg>
           Harvest Maturity
@@ -109,7 +106,7 @@
       <div class="flex flex-col">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
             Activity Log
@@ -127,19 +124,19 @@
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <h2 class="text-sm font-bold text-garden-text flex items-center gap-2">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
               Alerts
             </h2>
             <span
               v-if="unreadAlertCount > 0"
-              class="w-5 h-5 rounded-full bg-garden-danger text-white text-[9px] font-bold flex items-center justify-center"
+              class="w-5 h-5 rounded-full bg-garden-danger text-white text-[0.5625rem] font-bold flex items-center justify-center"
             >{{ unreadAlertCount }}</span>
           </div>
           <button
             v-if="unreadAlertCount > 0"
-            class="text-[10px] font-semibold text-garden-primary hover:underline"
+            class="text-[0.625rem] font-semibold text-garden-primary hover:underline"
             @click="markAllAlertsRead"
           >Mark all read</button>
         </div>
@@ -164,7 +161,7 @@
                 <div class="text-xs font-semibold leading-snug" :class="a.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'">
                   {{ a.message }}
                 </div>
-                <div class="text-[10px] text-garden-dim mt-0.5">{{ formatLogTime(a.createdAt) }}</div>
+                <div class="text-[0.625rem] text-garden-dim mt-0.5">{{ formatLogTime(a.createdAt) }}</div>
               </div>
               <div v-if="a.unread" class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" :class="a.tone === 'danger' ? 'bg-garden-danger' : 'bg-garden-good'" />
             </div>
@@ -209,10 +206,10 @@ const {
 // ── VPD / moisture status bands — ported from the design file's
 // getVPDStatus()/getMoistureStatus() so the labels and thresholds match. ────
 function vpdStatus(vpd) {
-  if (vpd < 0.4)  return { label: 'Low',     color: '#1d4ed8' }
-  if (vpd <= 1.2) return { label: 'Optimal', color: '#15803d' }
-  if (vpd <= 2.0) return { label: 'High',    color: '#92400e' }
-  return { label: 'Stress', color: '#991b1b' }
+  if (vpd < 0.4)  return { label: 'Low',     color: 'rgb(var(--garden-warn))' }
+  if (vpd <= 1.2) return { label: 'Optimal', color: 'rgb(var(--garden-good))' }
+  if (vpd <= 2.0) return { label: 'High',    color: 'rgb(var(--garden-warn))' }
+  return { label: 'Stress', color: 'rgb(var(--garden-danger))' }
 }
 
 // ── Live relay state (read-only summary — feeds the System Controls cards;

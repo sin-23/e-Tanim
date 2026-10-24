@@ -18,9 +18,9 @@
     <!-- Date/time -->
     <div class="text-right hidden sm:block">
       <div class="text-xs font-semibold text-garden-text">{{ dateStr }}</div>
-      <div class="text-[10px] font-mono text-garden-dim">{{ clock }}</div>
+      <div class="text-[0.625rem] font-mono text-garden-dim">{{ clock }}</div>
     </div>
-    <div class="sm:hidden text-[10px] font-mono text-garden-dim">{{ clock }}</div>
+    <div class="sm:hidden text-[0.625rem] font-mono text-garden-dim">{{ clock }}</div>
 
     <NotificationBell />
 
@@ -46,7 +46,7 @@
           <div class="font-sans font-semibold text-garden-text text-sm truncate">
             {{ currentUser?.displayName || 'User' }}
           </div>
-          <div class="font-mono text-[11px] text-garden-dim truncate">
+          <div class="font-mono text-[0.6875rem] text-garden-dim truncate">
             {{ currentUser?.email }}
           </div>
         </div>

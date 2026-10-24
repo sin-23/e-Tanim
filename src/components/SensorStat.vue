@@ -1,15 +1,15 @@
 <template>
   <div class="rounded-xl p-2.5" :class="bgClass">
-    <div class="text-[8px] font-bold uppercase tracking-widest text-garden-dim mb-1 truncate">
+    <div class="text-[0.5rem] font-bold uppercase tracking-widest text-garden-dim mb-1 truncate">
       {{ label }}
     </div>
     <div class="flex items-baseline gap-1 flex-wrap">
       <span class="text-base font-extrabold font-mono leading-none" :class="valueClass">{{ displayValue }}</span>
-      <span v-if="unit" class="text-[9px] font-medium text-garden-dim leading-none">{{ unit }}</span>
+      <span v-if="unit" class="text-[0.5625rem] font-medium text-garden-dim leading-none">{{ unit }}</span>
     </div>
     <div
       v-if="showPill"
-      class="inline-flex mt-1 text-[8px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap"
+      class="inline-flex mt-1 text-[0.5rem] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap"
       :class="pillClass"
     >{{ pillText }}</div>
   </div>

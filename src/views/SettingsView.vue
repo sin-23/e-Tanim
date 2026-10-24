@@ -14,7 +14,7 @@
         <div class="w-9 h-9 rounded-xl bg-garden-base flex items-center justify-center text-lg flex-shrink-0">🔐</div>
         <div>
           <div class="text-sm font-extrabold text-garden-text">Account</div>
-          <div class="text-[11px] text-garden-dim mt-0.5 font-medium">Change the password or email you sign in with.</div>
+          <div class="text-[0.6875rem] text-garden-dim mt-0.5 font-medium">Change the password or email you sign in with.</div>
         </div>
       </div>
 
@@ -71,7 +71,7 @@
             <p v-if="pwTouched.confirm && pwConfirmError" class="mt-1 text-xs text-garden-danger">{{ pwConfirmError }}</p>
           </div>
 
-          <label class="flex items-center gap-2 text-[11px] text-garden-dim cursor-pointer select-none">
+          <label class="flex items-center gap-2 text-[0.6875rem] text-garden-dim cursor-pointer select-none">
             <input v-model="pwShow" type="checkbox" class="accent-[#2d7a4f]" />
             Show passwords
           </label>
@@ -95,7 +95,7 @@
         <div class="space-y-3">
           <div>
             <div class="text-sm font-bold text-garden-text">Change Email</div>
-            <p class="text-[11px] text-garden-dim mt-0.5">
+            <p class="text-[0.6875rem] text-garden-dim mt-0.5">
               We send a verification link to the new address. Your email only changes after you open it.
             </p>
           </div>
@@ -150,7 +150,7 @@
         <div class="w-9 h-9 rounded-xl bg-garden-base flex items-center justify-center text-lg flex-shrink-0">🎨</div>
         <div>
           <div class="text-sm font-extrabold text-garden-text">Display Preferences</div>
-          <div class="text-[11px] text-garden-dim mt-0.5 font-medium">Adjust how data and the interface appear.</div>
+          <div class="text-[0.6875rem] text-garden-dim mt-0.5 font-medium">Adjust how data and the interface appear.</div>
         </div>
       </div>
 
@@ -161,7 +161,7 @@
           <div class="flex items-center justify-between gap-4">
             <div>
               <div class="text-sm font-bold text-garden-text">Dark Mode</div>
-              <div class="text-[11px] text-garden-dim mt-0.5">Switch to a dark green palette suited for low-light use.</div>
+              <div class="text-[0.6875rem] text-garden-dim mt-0.5">Switch to a dark green palette suited for low-light use.</div>
             </div>
             <button
               role="switch" :aria-checked="isDarkMode"
@@ -191,7 +191,7 @@
               @click="setTempUnit('F')"
             >°F — Fahrenheit</button>
           </div>
-          <p class="text-[11px] text-garden-dim mt-2">
+          <p class="text-[0.6875rem] text-garden-dim mt-2">
             Displayed values are converted from raw °C stored by the sensors.<span v-if="unit === 'F'"> Stored data remains in °C.</span>
           </p>
         </div>
@@ -205,9 +205,9 @@
     <div class="px-5 py-4 rounded-2xl border border-garden-border bg-garden-surface flex items-center justify-between transition-colors duration-200">
       <div>
         <div class="text-xs font-bold text-garden-text">e-Tanim System</div>
-        <div class="font-mono text-[10px] text-garden-dim mt-0.5">v2.4.1 · Off-grid IoT · ESP32 + Mini PC</div>
+        <div class="font-mono text-[0.625rem] text-garden-dim mt-0.5">v2.4.1 · Off-grid IoT · ESP32 + Mini PC</div>
       </div>
-      <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">
+      <span class="text-[0.625rem] font-semibold text-garden-dim bg-garden-base px-2 py-1 rounded-full">
         Lowland + Highland
       </span>
     </div>

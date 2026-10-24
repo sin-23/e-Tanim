@@ -22,7 +22,7 @@
 
         <!-- Count + reset, pushed to the right end of the filter row -->
         <div v-if="!embedded" class="flex items-center gap-2 ml-auto">
-          <span class="text-[10px] text-garden-dim font-semibold whitespace-nowrap">
+          <span class="text-[0.625rem] text-garden-dim font-semibold whitespace-nowrap">
             {{ filtered.length }} event{{ filtered.length !== 1 ? 's' : '' }}
           </span>
           <button
@@ -58,7 +58,7 @@
         <div class="flex items-center gap-3 mb-3">
           <span class="text-xs font-extrabold text-garden-dim uppercase tracking-widest">{{ date }}</span>
           <div class="flex-1 h-px bg-garden-border" />
-          <span class="text-[10px] font-semibold text-garden-dim bg-garden-base px-2 py-0.5 rounded-full">
+          <span class="text-[0.625rem] font-semibold text-garden-dim bg-garden-base px-2 py-0.5 rounded-full">
             {{ entries.length }} event{{ entries.length !== 1 ? 's' : '' }}
           </span>
         </div>
@@ -78,21 +78,21 @@
               <div class="min-w-0 flex-1">
                 <div class="text-sm text-garden-text leading-snug">{{ entry.message }}</div>
 
-                <div v-if="entry.by" class="text-[11px] text-garden-dim mt-1 font-medium">by {{ entry.by }}</div>
+                <div v-if="entry.by" class="text-[0.6875rem] text-garden-dim mt-1 font-medium">by {{ entry.by }}</div>
 
                 <!-- One tag row: category, Manual/Auto, then the time pushed to the right -->
                 <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                   <span
-                    class="text-[9px] font-bold px-2 py-0.5 rounded-full border"
+                    class="text-[0.5625rem] font-bold px-2 py-0.5 rounded-full border"
                     :class="EVENT_STYLE[entry.eventType].cls"
                   >{{ typeLabel(entry.eventType) }}</span>
 
                   <span
-                    class="text-[9px] px-2 py-0.5 rounded-full"
+                    class="text-[0.5625rem] px-2 py-0.5 rounded-full"
                     :class="entry.isManual ? MANUAL_TAG_CLS : AUTO_TAG_CLS"
                   >{{ entry.isManual ? '🖐️ Manual' : '⚙️ Auto' }}</span>
 
-                  <span class="text-[10px] font-mono text-garden-dim ml-auto whitespace-nowrap">
+                  <span class="text-[0.625rem] font-mono text-garden-dim ml-auto whitespace-nowrap">
                     {{ formatLogTime(entry.timestamp) }}
                   </span>
                 </div>
@@ -151,16 +151,18 @@ const FILTER_TYPES = [
 
 // Tailwind classes (bg + text + border) with dark: variants, so the tags follow dark mode.
 const EVENT_STYLE = {
-  irrigation:    { icon: '💧', cls: 'bg-[#eff8ff] text-[#1d4ed8] border-[#93c5fd] dark:bg-[#12263f] dark:text-[#93c5fd] dark:border-[#1e4a7a]' },
-  fertilization: { icon: '⚗️', cls: 'bg-[#f5ede6] text-[#92400e] border-[#fcd9bd] dark:bg-[#33241a] dark:text-[#fcd9bd] dark:border-[#6b4a30]' },
-  misting:       { icon: '☁️', cls: 'bg-[#e6f4fb] text-[#0369a1] border-[#7dd3fc] dark:bg-[#0f2a38] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
-  detection:     { icon: '📷', cls: 'bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]' },
-  reservoir:     { icon: '🛢️', cls: 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc] dark:bg-[#10283a] dark:text-[#7dd3fc] dark:border-[#1e5a78]' },
+  irrigation:    { icon: '💧', cls: 'bg-garden-base text-garden-dim border-garden-border' },
+  fertilization: { icon: '⚗️', cls: 'bg-garden-base text-garden-dim border-garden-border' },
+  misting:       { icon: '☁️', cls: 'bg-garden-base text-garden-dim border-garden-border' },
+  detection:     { icon: '📷', cls: 'bg-garden-base text-garden-dim border-garden-border' },
+  reservoir:     { icon: '🛢️', cls: 'bg-garden-base text-garden-dim border-garden-border' },
   other:         { icon: '⚙️', cls: 'bg-garden-base text-garden-dim border-garden-border' },
 }
 
-const MANUAL_TAG_CLS = 'bg-[#fef9c3] text-[#854d0e] border border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]'
-const AUTO_TAG_CLS = 'bg-garden-base text-garden-dim border border-garden-border'
+// Manual vs Auto is a classification, not a good/bad status, so both tags share
+// one neutral style from the theme's own tokens (the label and emoji tell them apart).
+const MANUAL_TAG_CLS = 'bg-garden-base text-garden-text border border-garden-border'
+const AUTO_TAG_CLS = MANUAL_TAG_CLS
 
 // Order matters: reservoir wording is checked first because reservoir entries
 // often also name the liquid ("Fertilizer reservoir low", "Water tank refilled"),

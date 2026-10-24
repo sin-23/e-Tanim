@@ -10,7 +10,7 @@
       </svg>
       <span
         v-if="unreadCount > 0"
-        class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-garden-danger text-white text-[10px] font-semibold flex items-center justify-center"
+        class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-garden-danger text-white text-[0.625rem] font-semibold flex items-center justify-center"
       >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
     </button>
 
@@ -22,7 +22,7 @@
         <h2 class="text-sm font-semibold text-garden-text">Notifications</h2>
         <button
           v-if="unreadCount > 0"
-          class="text-[11px] font-semibold text-garden-primary hover:underline"
+          class="text-[0.6875rem] font-semibold text-garden-primary hover:underline"
           @click="markAllRead"
         >Mark all read</button>
       </div>
@@ -45,11 +45,11 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-2">
                 <span
-                  class="text-[11px] font-semibold"
+                  class="text-[0.6875rem] font-semibold"
                   :class="n.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'"
                 >{{ n.label }}</span>
                 <div class="flex items-center gap-1 flex-shrink-0">
-                  <span class="text-[10px] text-garden-dim">{{ timeAgo(n.createdAt) }}</span>
+                  <span class="text-[0.625rem] text-garden-dim">{{ timeAgo(n.createdAt) }}</span>
                   <!-- Removes it from the bell only; it stays in the Dashboard Alerts list -->
                   <button
                     class="p-0.5 rounded text-garden-dim hover:text-garden-text hover:bg-garden-base transition-colors"
@@ -64,7 +64,7 @@
                 </div>
               </div>
               <p class="text-xs text-garden-text break-words">{{ n.message }}</p>
-              <p v-if="n.source" class="text-[10px] text-garden-dim mt-0.5">{{ n.source }}</p>
+              <p v-if="n.source" class="text-[0.625rem] text-garden-dim mt-0.5">{{ n.source }}</p>
             </div>
           </li>
         </ul>

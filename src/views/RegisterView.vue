@@ -31,7 +31,7 @@
           </div>
           <div>
             <div class="text-xl font-bold text-white tracking-tight">e-Tanim</div>
-            <div class="text-[10px] font-semibold tracking-widest uppercase text-white/40">AI · IoT · Crop Management</div>
+            <div class="text-[0.625rem] font-semibold tracking-widest uppercase text-white/40">AI · IoT · Crop Management</div>
           </div>
         </div>
 
@@ -58,7 +58,7 @@
         </div>
         <div>
           <div class="text-xl font-bold text-garden-text">e-Tanim</div>
-          <div class="text-[10px] font-semibold tracking-widest uppercase text-garden-dim">AI · IoT · Crop Management</div>
+          <div class="text-[0.625rem] font-semibold tracking-widest uppercase text-garden-dim">AI · IoT · Crop Management</div>
         </div>
       </div>
 
@@ -97,7 +97,7 @@
           <h2 class="text-2xl font-semibold text-garden-text mb-1.5">Create Account</h2>
           <p class="text-sm font-medium text-garden-dim">
             Sensor Dashboard · e-Tanim
-            <span class="block mt-1 font-mono text-[11px] text-garden-primary">Unit: {{ deviceSystemId }}</span>
+            <span class="block mt-1 font-mono text-[0.6875rem] text-garden-primary">Unit: {{ deviceSystemId }}</span>
           </p>
         </div>
 
@@ -178,7 +178,7 @@
                 :style="{ background: (password && n <= passwordStrength) ? STRENGTH_COLORS[passwordStrength] : 'rgb(var(--garden-border))' }"
               />
             </div>
-            <p v-if="password" class="mt-1 text-[10px] font-mono" :style="{ color: STRENGTH_COLORS[passwordStrength] }">
+            <p v-if="password" class="mt-1 text-[0.625rem] font-mono" :style="{ color: STRENGTH_COLORS[passwordStrength] }">
               {{ strengthLabel }}
             </p>
 
@@ -225,7 +225,7 @@
         </button>
 
         <!-- Sign in link -->
-        <p class="text-center text-[11px] text-garden-dim mt-6">
+        <p class="text-center text-[0.6875rem] text-garden-dim mt-6">
           Already have an account?
           <router-link to="/login" class="font-semibold text-garden-primary hover:underline">Sign in</router-link>
         </p>

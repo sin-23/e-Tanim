@@ -31,7 +31,7 @@
           </div>
           <div>
             <div class="text-xl font-bold text-white tracking-tight">e-Tanim</div>
-            <div class="text-[10px] font-semibold tracking-widest uppercase text-white/40">AI · IoT · Crop Management</div>
+            <div class="text-[0.625rem] font-semibold tracking-widest uppercase text-white/40">AI · IoT · Crop Management</div>
           </div>
         </div>
 
@@ -58,7 +58,7 @@
         </div>
         <div>
           <div class="text-xl font-bold text-garden-text">e-Tanim</div>
-          <div class="text-[10px] font-semibold tracking-widest uppercase text-garden-dim">AI · IoT · Crop Management</div>
+          <div class="text-[0.625rem] font-semibold tracking-widest uppercase text-garden-dim">AI · IoT · Crop Management</div>
         </div>
       </div>
 
@@ -194,7 +194,7 @@
           </form>
 
           <!-- Register link -->
-          <p class="text-center text-[11px] text-garden-dim mt-6">
+          <p class="text-center text-[0.6875rem] text-garden-dim mt-6">
             Don't have an account?
             <router-link to="/register" class="font-semibold text-garden-primary hover:underline">Create account →</router-link>
           </p>

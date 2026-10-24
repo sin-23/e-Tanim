@@ -26,7 +26,7 @@
           </div>
           <div>
             <div class="text-xl font-bold text-white tracking-tight">e-Tanim</div>
-            <div class="text-[10px] font-semibold tracking-widest uppercase text-white/40">AI · IoT · Crop Management</div>
+            <div class="text-[0.625rem] font-semibold tracking-widest uppercase text-white/40">AI · IoT · Crop Management</div>
           </div>
         </div>
 
@@ -52,7 +52,7 @@
         </div>
         <div>
           <div class="text-xl font-bold text-garden-text">e-Tanim</div>
-          <div class="text-[10px] font-semibold tracking-widest uppercase text-garden-dim">AI · IoT · Crop Management</div>
+          <div class="text-[0.625rem] font-semibold tracking-widest uppercase text-garden-dim">AI · IoT · Crop Management</div>
         </div>
       </div>
 
@@ -150,7 +150,7 @@
                 :style="{ background: (password && n <= passwordStrength) ? STRENGTH_COLORS[passwordStrength] : 'rgb(var(--garden-border))' }"
               />
             </div>
-            <p v-if="password" class="mt-1 text-[10px] font-mono" :style="{ color: STRENGTH_COLORS[passwordStrength] }">
+            <p v-if="password" class="mt-1 text-[0.625rem] font-mono" :style="{ color: STRENGTH_COLORS[passwordStrength] }">
               {{ strengthLabel }}
             </p>
 
@@ -196,7 +196,7 @@
           {{ submitting ? 'Updating…' : 'Update Password' }}
         </button>
 
-        <p class="text-center text-[11px] text-garden-dim mt-6">
+        <p class="text-center text-[0.6875rem] text-garden-dim mt-6">
           <router-link to="/login" class="font-semibold text-garden-primary hover:underline">← Back to Sign In</router-link>
         </p>
       </div>

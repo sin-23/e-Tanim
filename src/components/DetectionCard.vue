@@ -22,7 +22,7 @@
               {{ crop.error ? '—' : counts(crop).total }}
             </div>
           </template>
-          <div class="text-[9px] font-extrabold uppercase tracking-widest text-garden-dim">
+          <div class="text-[0.5625rem] font-extrabold uppercase tracking-widest text-garden-dim">
             Detections
           </div>
         </div>
@@ -38,25 +38,25 @@
 
       <!-- 3 count boxes: Underripe, Ripe, Damaged -->
       <div class="p-4 grid grid-cols-3 gap-3">
-        <div class="rounded-2xl border p-4 text-center bg-[#fef9c3] text-[#854d0e] border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]">
-          <div class="text-[9px] font-extrabold uppercase tracking-widest opacity-75">Underripe</div>
+        <div class="rounded-2xl border p-4 text-center bg-garden-base text-garden-dim border-garden-border">
+          <div class="text-[0.5625rem] font-extrabold uppercase tracking-widest opacity-75">Underripe</div>
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.underripe }}</div>
         </div>
 
-        <div class="rounded-2xl border p-4 text-center bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]">
-          <div class="text-[9px] font-extrabold uppercase tracking-widest opacity-75">Ripe</div>
+        <div class="rounded-2xl border p-4 text-center bg-garden-good/10 text-garden-good border-garden-good/40">
+          <div class="text-[0.5625rem] font-extrabold uppercase tracking-widest opacity-75">Ripe</div>
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.ripe }}</div>
         </div>
 
-        <div class="rounded-2xl border p-4 text-center bg-[#fee2e2] text-[#991b1b] border-[#fca5a5] dark:bg-[#3a1414] dark:text-[#fca5a5] dark:border-[#7a2828]">
-          <div class="text-[9px] font-extrabold uppercase tracking-widest opacity-75">Damaged</div>
+        <div class="rounded-2xl border p-4 text-center bg-garden-danger/10 text-garden-danger border-garden-danger/40">
+          <div class="text-[0.5625rem] font-extrabold uppercase tracking-widest opacity-75">Damaged</div>
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.damaged }}</div>
         </div>
       </div>
 
       <!-- Last update / confidence -->
       <p
-        class="px-5 text-[10px]"
+        class="px-5 text-[0.625rem]"
         :class="[
           showFruitLog ? 'pb-1' : 'pb-4',
           crop.stale ? 'text-garden-warn font-semibold' : 'text-garden-dim'
@@ -74,17 +74,17 @@
           >
             <span class="font-mono text-xs font-extrabold text-garden-text w-10">#{{ f.id }}</span>
             <span
-              class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border"
+              class="text-[0.625rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border"
               :class="stageCls[f.stage || 'unknown']"
             >{{ f.stage || 'Not evaluated' }}</span>
-            <span v-if="f.confidence !== null" class="ml-auto text-[11px] font-mono text-garden-dim">
+            <span v-if="f.confidence !== null" class="ml-auto text-[0.6875rem] font-mono text-garden-dim">
               {{ Math.round(f.confidence * 100) }}%
             </span>
           </div>
         </div>
         <div v-else class="flex items-center gap-3 p-3 rounded-xl bg-garden-base border border-dashed border-garden-border">
           <span class="text-garden-dim"><CameraIconSvg /></span>
-          <div class="text-[11px] text-garden-dim">No fruit currently tracked.</div>
+          <div class="text-[0.6875rem] text-garden-dim">No fruit currently tracked.</div>
         </div>
       </div>
     </template>
@@ -101,17 +101,17 @@ const props = defineProps({
 })
 const crop = computed(() => props.detection)
 
-// Per-crop accent colors, matching the Figma design (tomato / eggplant / bell pepper).
+// Crop names stay neutral so color is reserved for status (underripe / ripe / damaged).
 const cropAccent = {
-  tomato:      { text: 'text-[#dc2626]' },
-  eggplant:    { text: 'text-[#7c3aed]' },
-  bell_pepper: { text: 'text-garden-primary' },
+  tomato:      { text: 'text-garden-text' },
+  eggplant:    { text: 'text-garden-text' },
+  bell_pepper: { text: 'text-garden-text' },
 }
 
 const stageCls = {
-  underripe: 'bg-[#fef9c3] text-[#854d0e] border-[#fde047] dark:bg-[#3a330f] dark:text-[#fde047] dark:border-[#7a6a1f]',
-  ripe:      'bg-[#dcfce7] text-[#15803d] border-[#86efac] dark:bg-[#123a20] dark:text-[#86efac] dark:border-[#1e6b3a]',
-  damaged:   'bg-[#fee2e2] text-[#991b1b] border-[#fca5a5] dark:bg-[#3a1414] dark:text-[#fca5a5] dark:border-[#7a2828]',
+  underripe: 'bg-garden-base text-garden-dim border-garden-border',
+  ripe:      'bg-garden-good/10 text-garden-good border-garden-good/40',
+  damaged:   'bg-garden-danger/10 text-garden-danger border-garden-danger/40',
   unknown:   'bg-garden-surface text-garden-dim border-garden-border',
 }
 

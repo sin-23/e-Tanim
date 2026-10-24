@@ -6,7 +6,7 @@
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
           <span class="text-base leading-none">{{ r.emoji }}</span>
           {{ r.label }}
-          <span class="text-[10px] font-medium text-garden-dim">· {{ r.subtitle }}</span>
+          <span class="text-[0.625rem] font-medium text-garden-dim">· {{ r.subtitle }}</span>
         </h2>
         <ReservoirCard :reservoir="r" @save-threshold="onSaveThreshold" />
       </div>

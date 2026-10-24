@@ -23,7 +23,7 @@
         </div>
         <div>
           <div class="text-lg font-extrabold tracking-tight leading-none">e-Tanim</div>
-          <div class="text-[10px] text-white/50 font-medium tracking-widest uppercase mt-0.5">
+          <div class="text-[0.625rem] text-white/50 font-medium tracking-widest uppercase mt-0.5">
             Smart Garden AI
           </div>
         </div>
