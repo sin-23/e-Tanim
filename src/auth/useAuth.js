@@ -3,13 +3,10 @@ import { ref, computed }       from 'vue'
 import { auth, db }            from '@/firebase'
 import {
   signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
   verifyPasswordResetCode,
   confirmPasswordReset,
-  fetchSignInMethodsForEmail,
   onAuthStateChanged,
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -39,15 +36,11 @@ export function initAuth() {
         currentUser.value = user
 
         try {
-          const batch = [
+          await Promise.all([
             set(dbRef(db, `users/${user.uid}/email`),       user.email ?? ''),
             set(dbRef(db, `users/${user.uid}/displayName`), user.displayName ?? user.email ?? ''),
             set(dbRef(db, `users/${user.uid}/lastLogin`),   Date.now()),
-          ]
-          if (user.photoURL) {
-            batch.push(set(dbRef(db, `users/${user.uid}/photoURL`), user.photoURL))
-          }
-          await Promise.all(batch)
+          ])
         } catch {
           // Ignore errors
         }
@@ -71,10 +64,6 @@ export function useAuth() {
     return signInWithEmailAndPassword(auth, email, password)
   }
 
-  async function loginWithGoogle() {
-    return signInWithPopup(auth, new GoogleAuthProvider())
-  }
-
   async function logout() {
     loggingOut.value = true
     try {
@@ -84,34 +73,18 @@ export function useAuth() {
     }
   }
 
-  // Best-effort lookup of how an email is registered. Note: if "Email
-  // Enumeration Protection" is enabled on the Firebase project (default for
-  // newer projects), this always returns [] regardless of the real account
-  // state — in that case we just can't know, and fall through to the normal
-  // reset flow. When it *does* return data, it lets us catch the "this
-  // account only has Google sign-in" case up front.
-  async function getSignInMethods(email) {
-    try {
-      return await fetchSignInMethodsForEmail(auth, email)
-    } catch {
-      return []
-    }
-  }
-
+  // Sends the password-reset email. continueUrl: Firebase's hosted reset page
+  // shows a "Continue" button that returns the user to our login page once
+  // the password is changed. (The project's custom action URL can't be set,
+  // because Firebase rejects the update with EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED,
+  // so the hosted page is used.) The origin must be listed under
+  // Authentication → Settings → Authorized domains (localhost is there by
+  // default).
   async function resetPassword(email) {
-    const methods = await getSignInMethods(email)
-    const isGoogleOnly = methods.length > 0 && !methods.includes('password')
-
-    // sendPasswordResetEmail only sends mail for accounts that already have
-    // (or can accept) a password credential. For a Google-only account it
-    // silently no-ops on the Firebase side — but as long as the project has
-    // Email/Password sign-in enabled in the console, sending the reset
-    // email still works, and completing it *adds* a password credential to
-    // that account (so the user can then sign in either way). We still
-    // attempt the send either way; isGoogleOnly is just used to give the
-    // user an accurate heads-up in the UI.
-    await sendPasswordResetEmail(auth, email)
-    return { isGoogleOnly }
+    await sendPasswordResetEmail(auth, email, {
+      url: `${window.location.origin}/login`,
+      handleCodeInApp: false,
+    })
   }
 
   // Requires the user's current password since changing credentials is a
@@ -151,10 +124,8 @@ export function useAuth() {
     loggingOut,
     isLoggedIn,
     loginWithEmail,
-    loginWithGoogle,
     logout,
     resetPassword,
-    getSignInMethods,
     changePassword,
     verifyResetCode,
     confirmReset,

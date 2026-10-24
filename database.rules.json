@@ -137,64 +137,64 @@
     "control": {
       ".read": true,
       "relay_lowland": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_lowland_off_at": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_highland": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_highland_off_at": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_fert": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_fert_off_at": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_mist": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "relay_mist_off_at": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       }
     },
     "config": {
       ".read": true,
       "thresholds": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "thresholds_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "thresholds_pump2": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "thresholds_pump2_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "thresholds_highland": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "thresholds_highland_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "irrigation": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "irrigation_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "irrigation_override_zone": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "irrigation_override_zone_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "reservoir_low": {
-        ".write": "auth != null",
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false",
         "water": {
           ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
         },
@@ -206,32 +206,62 @@
         }
       },
       "reservoir_low_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "misting": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "misting_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "fert_schedule": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "fert_schedule_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "fert_active_source": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       },
       "fert_active_source_updated": {
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       }
     },
     "users": {
       ".read": "auth != null",
       "$uid": {
         ".read": "auth != null",
-        ".write": "$uid === auth.uid"
+        ".write": "auth != null && $uid === auth.uid",
+        "systemId": {
+          ".validate": "newData.isString() && newData.val().length <= 32"
+        },
+        "code": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6,12}$/)"
+        }
+      }
+    },
+    "deviceAccessCodes": {
+      "$code": {
+        ".read": true,
+        ".validate": "newData.hasChildren(['systemId'])",
+        "systemId": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 32"
+        },
+        "active": {
+          ".validate": "newData.isBoolean()"
+        },
+        "claimed": {
+          ".validate": "newData.isBoolean()"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.isBoolean() && newData.val() === true"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     }
   }

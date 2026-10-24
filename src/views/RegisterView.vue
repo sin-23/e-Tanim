@@ -82,35 +82,23 @@
         </div>
       </div>
 
+      <!-- ── Device access gate (scan or enter the unit's code first) ── -->
+      <DeviceAccessGate v-else-if="!deviceVerified" @verified="onDeviceVerified" />
+
       <!-- ── Registration form ────────────────────────────────── -->
       <div v-else class="w-full max-w-sm">
         <div class="mb-8">
+          <button
+            class="text-xs font-semibold text-garden-dim flex items-center gap-1 hover:text-garden-text transition-colors mb-4"
+            @click="deviceVerified = false"
+          >
+            ← Back
+          </button>
           <h2 class="text-2xl font-semibold text-garden-text mb-1.5">Create Account</h2>
-          <p class="text-sm font-medium text-garden-dim">Sensor Dashboard · e-Tanim</p>
-        </div>
-
-        <!-- Google -->
-        <button
-          class="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-garden-border
-                 bg-garden-surface text-garden-text font-medium text-sm hover:bg-garden-base hover:border-garden-primary/40
-                 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-5"
-          :disabled="loading"
-          @click="handleGoogle"
-        >
-          <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Sign up with Google
-        </button>
-
-        <!-- Divider -->
-        <div class="flex items-center gap-3 mb-5">
-          <div class="flex-1 h-px bg-garden-border" />
-          <span class="text-[10px] font-semibold text-garden-dim uppercase tracking-widest">or</span>
-          <div class="flex-1 h-px bg-garden-border" />
+          <p class="text-sm font-medium text-garden-dim">
+            Sensor Dashboard · e-Tanim
+            <span class="block mt-1 font-mono text-[11px] text-garden-primary">Unit: {{ deviceSystemId }}</span>
+          </p>
         </div>
 
         <!-- Fields -->
@@ -259,11 +247,11 @@ import {
 import { auth, db }       from '@/firebase'
 import {
   createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   updateProfile,
 }                         from 'firebase/auth'
 import { ref as dbRef, set } from 'firebase/database'
+import DeviceAccessGate      from '@/components/DeviceAccessGate.vue'
+import { joinDeviceBySystemCode } from '@/auth/useDeviceAccessCode'
 
 const router = useRouter()
 
@@ -276,6 +264,19 @@ const showPassword    = ref(false)
 const loading         = ref(false)
 const serverError     = ref('')
 const success          = ref(false)
+
+// ── Device access gate ───────────────────────────────────────────────────────
+// The form stays hidden until a valid, active device code has been scanned or
+// typed. The code is reusable: several accounts can join the same unit.
+const deviceVerified = ref(false)
+const deviceCode     = ref('')
+const deviceSystemId = ref('')
+
+function onDeviceVerified({ code, systemId }) {
+  deviceCode.value     = code
+  deviceSystemId.value = systemId
+  deviceVerified.value = true
+}
 
 // ── Vuelidate rules ───────────────────────────────────────────────────────────
 const mustMatch = helpers.withMessage(
@@ -337,7 +338,6 @@ function friendlyError(code) {
     'auth/invalid-email':          'Please enter a valid email address.',
     'auth/weak-password':          'Password is too weak. Use at least 8 characters.',
     'auth/network-request-failed': 'Network error. Check your connection.',
-    'auth/popup-closed-by-user':   'Google sign-up was cancelled.',
     'auth/operation-not-allowed':  'Email/Password sign-in is not enabled in Firebase (Authentication → Sign-in method).',
     'auth/admin-restricted-operation': 'Sign-up is disabled for this Firebase project (Authentication → Settings → User actions → enable "create").',
     'auth/password-does-not-meet-requirements': 'Password does not meet the project\'s password policy (try upper/lowercase, a number and a symbol).',
@@ -355,7 +355,7 @@ function redirectAfterRegister() {
 // ── Handlers ───────────────────────────────────────────────────────────────────
 async function handleRegister() {
   v$.value.$touch()
-  if (v$.value.$invalid || loading.value) return
+  if (v$.value.$invalid || loading.value || !deviceVerified.value) return
 
   serverError.value = ''
   loading.value = true
@@ -381,34 +381,22 @@ async function handleRegister() {
       console.error('Saving user record failed (check RTDB rules for /users):', e)
     }
 
+    // Join the unit: adds this uid to deviceAccessCodes/{code}/members and
+    // stores systemId + code on users/{uid}. Without this the account cannot
+    // control the system, so a failure here is reported, not swallowed.
+    try {
+      await joinDeviceBySystemCode(deviceCode.value, cred.user.uid)
+    } catch (e) {
+      console.error('Joining the unit failed:', e)
+      serverError.value = 'Your account was created, but it could not be linked to the unit (' +
+        (e?.message ?? 'unknown error') + '). Sign in and contact the system owner.'
+      return
+    }
+
     success.value = true
     setTimeout(redirectAfterRegister, 2200)
   } catch (err) {
     console.error('Register failed:', err.code, err.message)
-    serverError.value = friendlyError(err.code)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleGoogle() {
-  if (loading.value) return
-  serverError.value = ''
-  loading.value = true
-  try {
-    const cred = await signInWithPopup(auth, new GoogleAuthProvider())
-
-    await set(dbRef(db, `users/${cred.user.uid}`), {
-      email:       cred.user.email ?? '',
-      displayName: cred.user.displayName ?? cred.user.email ?? '',
-      photoURL:    cred.user.photoURL ?? '',
-      createdAt:   Date.now(),
-      lastLogin:   Date.now(),
-    })
-
-    success.value = true
-    setTimeout(redirectAfterRegister, 2200)
-  } catch (err) {
     serverError.value = friendlyError(err.code)
   } finally {
     loading.value = false
