@@ -18,9 +18,9 @@
             Firebase Not Configured
           </h1>
           <p class="text-garden-dim text-sm font-sans">
-            Copy <code class="font-mono bg-garden-surface px-1 rounded">.env.example</code> to
-            <code class="font-mono bg-garden-surface px-1 rounded">.env</code>
-            and fill in your Firebase credentials, then restart the dev server.
+            Create a <code class="font-mono bg-garden-surface px-1 rounded">.env</code> file
+            in the project root with your Firebase credentials (see the README, step 2),
+            then restart the dev server.
           </p>
         </div>
       </div>

@@ -35,38 +35,14 @@
         </p>
 
         <ul v-else class="divide-y divide-garden-border">
-          <li
+          <NotificationItem
             v-for="n in notifications"
             :key="n.id"
-            class="flex gap-3 px-4 py-3"
-            :class="n.unread ? 'bg-garden-base' : ''"
-          >
-            <span class="text-lg leading-none mt-0.5">{{ n.emoji }}</span>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center justify-between gap-2">
-                <span
-                  class="text-[0.6875rem] font-semibold"
-                  :class="n.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'"
-                >{{ n.label }}</span>
-                <div class="flex items-center gap-1 flex-shrink-0">
-                  <span class="text-[0.625rem] text-garden-dim">{{ timeAgo(n.createdAt) }}</span>
-                  <!-- Removes it from the bell only; it stays in the Dashboard Alerts list -->
-                  <button
-                    class="p-0.5 rounded text-garden-dim hover:text-garden-text hover:bg-garden-base transition-colors"
-                    aria-label="Dismiss notification"
-                    title="Dismiss"
-                    @click.stop="dismiss(n.id)"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <p class="text-xs text-garden-text break-words">{{ n.message }}</p>
-              <p v-if="n.source" class="text-[0.625rem] text-garden-dim mt-0.5">{{ n.source }}</p>
-            </div>
-          </li>
+            :notification="n"
+            variant="bell"
+            :time-text="timeAgo(n.createdAt)"
+            @dismiss="dismiss"
+          />
         </ul>
       </div>
     </div>
@@ -76,6 +52,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications'
+import NotificationItem from '@/components/NotificationItem.vue'
 
 const {
   bellNotifications: notifications,

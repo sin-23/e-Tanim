@@ -43,7 +43,7 @@
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.underripe }}</div>
         </div>
 
-        <div class="rounded-2xl border p-4 text-center bg-garden-good/10 text-garden-good border-garden-good/40">
+        <div class="rounded-2xl border p-4 text-center bg-garden-good/25 text-garden-good border-garden-good/40">
           <div class="text-[0.5625rem] font-extrabold uppercase tracking-widest opacity-75">Ripe</div>
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.ripe }}</div>
         </div>

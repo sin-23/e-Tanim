@@ -12,7 +12,7 @@
           :class="scheduleActive ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
         >
           <span class="w-1.5 h-1.5 rounded-full" :class="scheduleActive ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
-          {{ scheduleActive ? 'Active Now' : 'Inactive' }}
+          {{ scheduleActive ? 'Running' : 'Off' }}
         </span>
       </div>
 

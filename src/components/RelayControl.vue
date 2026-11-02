@@ -122,17 +122,13 @@
     </div>
 
     <!-- Warning Modal -->
-    <Teleport to="body">
-      <div v-if="showWarningModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeWarning">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-danger/40 z-10" @click.stop>
-          <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border">
-            <h3 class="text-base font-semibold text-garden-text">⚠️ Unfavorable Conditions</h3>
-            <button
-              class="w-8 h-8 rounded-full bg-garden-base flex items-center justify-center text-garden-dim hover:bg-garden-border transition-colors"
-              @click="closeWarning"
-            >✕</button>
-          </div>bold
+    <BaseModal
+      :open="showWarningModal"
+      title="⚠️ Unfavorable Conditions"
+      width-class="max-w-xs"
+      border-class="border-garden-danger/40"
+      @close="closeWarning"
+    >
           <div class="p-5 space-y-3">
             <p class="text-sm text-garden-text">Current conditions may harm the plants:</p>
             <ul class="space-y-2">
@@ -149,26 +145,16 @@
             <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-garden-surface text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeWarning">Cancel</button>
             <button class="flex-1 py-2.5 rounded-xl bg-[#dc2626] text-white font-semibold text-sm hover:bg-[#b91c1c] transition" @click="proceedOverride">Proceed</button>
           </div>
-        </div>
-      </div>
-    </Teleport>
+    </BaseModal>
 
     <!-- Settings Modal -->
-    <Teleport to="body">
-      <div v-if="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeSettings">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-border z-10 max-h-[85vh] overflow-y-auto" @click.stop>
-          <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border sticky top-0 bg-garden-surface">
-            <div>
-              <div class="text-[0.625rem] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
-              <h3 class="text-base font-semibold text-garden-text">Threshold Settings — Pump {{ props.pumpNumber }}</h3>
-            </div>
-            <button
-              class="w-8 h-8 rounded-full bg-garden-base flex items-center justify-center text-garden-dim hover:bg-garden-border transition-colors flex-shrink-0"
-              @click="closeSettings"
-            >✕</button>
-          </div>
-
+    <BaseModal
+      :open="showSettings"
+      eyebrow="Settings"
+      :title="`Threshold Settings — Pump ${props.pumpNumber}`"
+      width-class="max-w-xs"
+      @close="closeSettings"
+    >
           <div class="p-5 space-y-5">
             <!-- Irrigation pumps (lowland / highland): VPD-gated state-machine breakpoints,
                  per decision log item 1/2 and DOC-CAP §2.3/2.5. Soil moisture (% of field
@@ -231,14 +217,13 @@
             <button class="flex-1 py-2.5 rounded-xl border border-garden-border bg-garden-surface text-garden-text font-medium text-sm hover:opacity-80 transition" @click="closeSettings">Cancel</button>
             <button class="flex-1 py-2.5 rounded-xl text-white font-medium text-sm hover:opacity-90 transition" :style="{ backgroundColor: accent }" @click="saveThresholds">Save</button>
           </div>
-        </div>
-      </div>
-    </Teleport>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { db }                                     from '@/firebase'
 import { ref as dbRef, set, update, onValue, get, off } from 'firebase/database'
 import { logActivity } from '@/composables/useActivityLog'

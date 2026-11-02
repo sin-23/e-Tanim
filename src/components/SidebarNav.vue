@@ -88,6 +88,7 @@ const ICON = {
   leaf: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>',
   database: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
   activity: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+  reports: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19V3"/></svg>',
 }
 
 // Real, working routes — order follows the Figma design's sidebar
@@ -97,6 +98,7 @@ const navItems = [
   { id: 'irrigation', to: '/irrigation', label: 'Irrigation, Fertilization & Misting', icon: ICON.droplet },
   { id: 'reservoir', to: '/reservoir', label: 'Reservoir Levels', icon: ICON.database },
   { id: 'activity-log', to: '/activity-log', label: 'Activity Log', icon: ICON.activity },
+  { id: 'reports', to: '/reports', label: 'Reports', icon: ICON.reports },
   { id: 'settings', to: '/settings', label: 'Settings', icon: ICON.settings },
 ]
 

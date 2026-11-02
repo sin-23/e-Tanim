@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app'
 import { getDatabase }   from 'firebase/database'
 import { getAuth }       from 'firebase/auth'
 import { getFirestore }  from 'firebase/firestore'
+import { getStorage }    from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -27,12 +28,15 @@ let app       = null
 let db        = null
 let auth      = null
 let firestore = null
+let storage   = null
 
 if (isConfigured) {
   app       = initializeApp(firebaseConfig)
   db        = getDatabase(app)
   auth      = getAuth(app)
   firestore = getFirestore(app)
+  // Cloud Storage needs a bucket name; stay null until VITE_FIREBASE_STORAGE_BUCKET is set
+  if (firebaseConfig.storageBucket) storage = getStorage(app)
 }
 
-export { db, auth, firestore, isConfigured }
+export { db, auth, firestore, storage, isConfigured }

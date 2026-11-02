@@ -48,11 +48,11 @@
         </div>
       </div>
 
-      <!-- Pump Override Controls -->
+      <!-- Manual override controls -->
       <div>
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-          Pump Override Controls
+          Manual Override Controls
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <RelayControl

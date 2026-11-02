@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Phase 0: deny everything. Signed-in read of frames/{crop}/{file} is added in the
+// snapshots phase. Clients never write; the Mini PC AI Inference uses the Admin SDK.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

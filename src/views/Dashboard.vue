@@ -147,24 +147,13 @@
           <p v-else-if="alerts.length === 0" class="text-xs text-garden-dim text-center py-8">No alerts yet.</p>
 
           <div v-else class="space-y-2 overflow-y-auto max-h-80 pr-1">
-            <div
+            <NotificationItem
               v-for="a in alerts"
               :key="a.id"
-              class="flex items-start gap-2.5 p-3 rounded-xl border transition-all duration-200"
-              :class="[
-                a.tone === 'danger' ? 'bg-garden-danger/10 border-garden-danger/30' : 'bg-garden-good/10 border-garden-good/30',
-                a.unread ? '' : 'opacity-50',
-              ]"
-            >
-              <span class="text-base flex-shrink-0 mt-0.5">{{ a.emoji }}</span>
-              <div class="min-w-0 flex-1">
-                <div class="text-xs font-semibold leading-snug" :class="a.tone === 'danger' ? 'text-garden-danger' : 'text-garden-good'">
-                  {{ a.message }}
-                </div>
-                <div class="text-[0.625rem] text-garden-dim mt-0.5">{{ formatLogTime(a.createdAt) }}</div>
-              </div>
-              <div v-if="a.unread" class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" :class="a.tone === 'danger' ? 'bg-garden-danger' : 'bg-garden-good'" />
-            </div>
+              :notification="a"
+              variant="alert"
+              :time-text="formatLogTime(a.createdAt)"
+            />
           </div>
         </div>
       </div>
@@ -188,6 +177,7 @@ import { useMisting } from '@/composables/useMisting'
 import { useNotifications } from '@/composables/useNotifications'
 import ControlStatusCard from '@/components/ControlStatusCard.vue'
 import ZoneCard from '@/components/ZoneCard.vue'
+import NotificationItem from '@/components/NotificationItem.vue'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 const { reservoirs, lowReservoirs } = useReservoirs()

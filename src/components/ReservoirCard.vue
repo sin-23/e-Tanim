@@ -105,21 +105,13 @@
       </template>
     </div>
     <!-- Low-level alert settings modal -->
-    <Teleport to="body">
-      <div v-if="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click="closeSettings">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        <div class="relative bg-garden-surface rounded-2xl shadow-2xl w-full max-w-xs border border-garden-border z-10" @click.stop>
-          <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-garden-border">
-            <div>
-              <div class="text-[0.625rem] font-medium text-garden-dim uppercase tracking-widest mb-0.5">Settings</div>
-              <h3 class="text-base font-semibold text-garden-text">{{ r.label }} Alert</h3>
-            </div>
-            <button
-              class="w-8 h-8 rounded-full bg-garden-base flex items-center justify-center text-garden-dim hover:bg-garden-border transition-colors flex-shrink-0"
-              @click="closeSettings"
-            >✕</button>
-          </div>
-
+    <BaseModal
+      :open="showSettings"
+      eyebrow="Settings"
+      :title="`${r.label} Alert`"
+      width-class="max-w-xs"
+      @close="closeSettings"
+    >
           <div class="p-5 space-y-3">
             <label class="text-xs font-semibold text-garden-text block" :for="`low-pct-${r.id}`">
               Notify me when the level drops to or below (%)
@@ -144,14 +136,13 @@
               {{ saving ? 'Saving…' : 'Save' }}
             </button>
           </div>
-        </div>
-      </div>
-    </Teleport>
+    </BaseModal>
   </article>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
+import BaseModal from '@/components/BaseModal.vue'
 import { RESERVOIR_LOW_PCT, RESERVOIR_LOW_MIN, RESERVOIR_LOW_MAX } from '@/composables/useReservoirs'
 
 const props = defineProps({
