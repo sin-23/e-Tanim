@@ -21,7 +21,6 @@
 
   <!-- ── Admin full control ───────────────────────────────────────────────── -->
   <div v-else class="bg-garden-surface rounded-2xl border border-garden-border shadow-sm overflow-hidden flex flex-col">
-
     <!-- flex-1 + flex-col so the body fills the card when it is stretched to match a taller neighbour;
          the action button is pinned to the bottom with mt-auto -->
     <div :class="[variant.pad, 'flex-1 flex flex-col']">
