@@ -3,8 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Activity log of one unit. Signed-in read and create; no update or delete.
-    // Firestore rules cannot read the Realtime Database, so membership of the unit
-    // cannot be checked here (decision log item 50).
+    // Firestore rules cannot read the Realtime Database, so membership of the unit cannot be checked here (decision log item 50).
     match /systems/{systemId}/activity_log/{entryId} {
       allow read: if request.auth != null;
       allow update, delete: if false;
