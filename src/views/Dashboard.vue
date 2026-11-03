@@ -153,6 +153,9 @@
               :notification="a"
               variant="alert"
               :time-text="formatLogTime(a.createdAt)"
+              :busy="busyId === a.id"
+              @resolve="resolveCheck"
+              @undo="undoResolution"
             />
           </div>
         </div>
@@ -164,6 +167,7 @@
 </template>
 
 <script setup>
+import { sysPath } from '@/composables/useSystemId'
 import { computed, ref, onUnmounted } from 'vue'
 import { db } from '@/firebase'
 import ActivityLogView from '@/views/ActivityLogView.vue'
@@ -178,6 +182,7 @@ import { useNotifications } from '@/composables/useNotifications'
 import ControlStatusCard from '@/components/ControlStatusCard.vue'
 import ZoneCard from '@/components/ZoneCard.vue'
 import NotificationItem from '@/components/NotificationItem.vue'
+import { formatDateTime } from '@/utils/formatTime'
 
 const { unitLabel, celsiusToDisplay } = useTempUnit()
 const { reservoirs, lowReservoirs } = useReservoirs()
@@ -191,6 +196,7 @@ const {
   loading: alertsLoading,
   error: alertsError,
   markAllRead: markAllAlertsRead,
+  resolveCheck, undoResolution, busyId,
 } = useNotifications()
 
 // ── VPD / moisture status bands — ported from the design file's
@@ -216,7 +222,7 @@ const relayUnsubs = []
 
 import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
   RELAY_CIRCUITS.forEach(({ id, path }) => {
-    const r = dbRef(db, path)
+    const r = dbRef(db, sysPath(path))
     const cb = onValue(r, (snapshot) => { relayState.value = { ...relayState.value, [id]: snapshot.val() === true } })
     relayUnsubs.push(() => off(r, 'value', cb))
   })
@@ -244,10 +250,5 @@ const mistingStatus = computed(() => {
   return misting.autoConditionsMet.value ? 'RUNNING' : 'AUTO'
 })
 
-function formatLogTime(timestamp) {
-  const d = new Date(timestamp)
-  const isToday = d.toDateString() === new Date().toDateString()
-  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
-}
+const formatLogTime = (ts) => formatDateTime(ts, { seconds: true })
 </script>

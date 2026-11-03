@@ -1,15 +1,13 @@
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /activity_log/system/entries/{entryId} {
-      // System-wide log shared by all signed-in users; entries carry a `by`
-      // tag with the acting user's name. Sign-in is required to read/write.
+    // Activity log of one unit. Signed-in read and create; no update or delete.
+    // Firestore rules cannot read the Realtime Database, so membership of the unit
+    // cannot be checked here (decision log item 50).
+    match /systems/{systemId}/activity_log/{entryId} {
       allow read: if request.auth != null;
-
-      // Entries are append-only: create allowed (with validation below),
-      // no update or delete from the client.
       allow update, delete: if false;
-
       allow create: if request.auth != null && isValidEntry(request.resource.data);
     }
 

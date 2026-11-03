@@ -1,10 +1,11 @@
 // src/composables/useSensorData.js
 //
-// e-Tanim data model: THREE physical sensor nodes in RTDB (sensors/zone-1..3,
+// e-Tanim data model: THREE physical sensor nodes in RTDB (sensors/lowland-t, lowland-e, highland,
 // one per crop) grouped into TWO climate zones on the dashboard:
-//   Lowland  = tomato (zone-1) + eggplant (zone-2)  -> readings averaged
-//   Highland = bell pepper (zone-3)
+//   Lowland  = tomato (lowland-t) + eggplant (lowland-e)  -> readings averaged
+//   Highland = bell pepper (highland)
 // Irrigation is a per-zone VPD-gated soil-moisture state machine (decision log items 1-2).
+import { sysPath } from '@/composables/useSystemId'
 import { ref, computed, onUnmounted }                          from 'vue'
 import { db, isDemoMode }                                      from '@/firebase'
 import { validateSensorPayload }                               from '@/security/validator'
@@ -12,9 +13,9 @@ import { checkRateLimit, resetRateLimit, formatResetTime }     from '@/security/
 
 // ── Physical sensor nodes → crop → climate zone ─────────────────────────────
 export const CROPS = [
-  { nodeId: 'zone-1', crop: 'tomato',      label: 'Tomato',      emoji: '🍅', climate: 'lowland'  },
-  { nodeId: 'zone-2', crop: 'eggplant',    label: 'Eggplant',    emoji: '🍆', climate: 'lowland'  },
-  { nodeId: 'zone-3', crop: 'bell_pepper', label: 'Bell Pepper', emoji: '🫑', climate: 'highland' },
+  { nodeId: 'lowland-t', crop: 'tomato',      label: 'Tomato',      emoji: '🍅', climate: 'lowland'  },
+  { nodeId: 'lowland-e', crop: 'eggplant',    label: 'Eggplant',    emoji: '🍆', climate: 'lowland'  },
+  { nodeId: 'highland', crop: 'bell_pepper', label: 'Bell Pepper', emoji: '🫑', climate: 'highland' },
 ]
 
 // Irrigation state, per zone, mirrors the ESP32's evaluateZone() decision
@@ -173,7 +174,7 @@ export function useSensorData() {
           return
         }
 
-        const sensorRef = dbRef(db, `sensors/${c.nodeId}`)
+        const sensorRef = dbRef(db, sysPath(`sensors/${c.nodeId}`))
         const unsubscribe = onValue(
           sensorRef,
           (snapshot) => {

@@ -165,93 +165,118 @@ export function validateReservoirPayload(raw) {
   }
 }
 
-// ── Harvest detection payloads (detections/{tomato|eggplant|bell_pepper}) ────
-// Written by the Mini PC. Matches the database rules: underripe/ripe/damaged
-// are counts (0 or more), confidence is 0-1, updatedAt is epoch ms, and any
-// other key is rejected.
+// ── Fruit records (detections/{crop}/{fruitId}) ──────────────────────────────
+// Written by the Mini PC AI Inference on events only; the dashboard writes only
+// harvested and harvestedAt. Matches the database rules.
 export const DETECTION_CROPS = ['tomato', 'eggplant', 'bell_pepper']
 
-const DETECTION_FIELDS = new Set(['underripe', 'ripe', 'damaged', 'confidence', 'updatedAt', 'fruits'])
-const DETECTION_STAGES = new Set(['underripe', 'ripe', 'damaged'])
-const MAX_FRUITS = 30
-// The fruit list makes a detections payload larger than a sensor snapshot.
-const MAX_DETECTION_BYTES = 4096
+const FRUIT_FIELDS = new Set(['stage', 'confidence', 'firstSeen', 'updatedAt', 'harvested', 'harvestedAt', 'entries'])
+const FRUIT_STAGES = new Set(['underripe', 'ripe', 'damaged'])
+const MAX_FRUITS_PER_CROP = 2000
+
+const isEpoch = (v) => typeof v === 'number' && isFinite(v) && v > 0
+
+// An entry's framePath is the part under the system: frames/{crop}/{file}
+// (decision log item 52). The dashboard adds systems/{systemId}/ itself, so a
+// stored value can never point outside this system's frames.
+export const FRAME_PATH_RE = /^frames\/(tomato|eggplant|bell_pepper)\/[A-Za-z0-9._-]{1,120}$/
+const MAX_ENTRIES_PER_FRUIT = 200
 
 /**
- * @param {unknown} raw - raw snapshot.val() of detections/{crop}
- * @returns {{ ok: true, data: { underripe: number, ripe: number, damaged: number, confidence: number|null, updatedAt: number|null } } | { ok: false, error: string }}
+ * Validate the entries/ child of one fruit. Invalid entries are skipped. Sorted
+ * oldest first. An entry with no usable framePath is kept, with framePath null.
+ * @returns {Array<{ id: string, stage: string, confidence: number, timestamp: number, framePath: string|null }>}
  */
-export function validateDetectionPayload(raw) {
-  if (raw === null || raw === undefined) return { ok: false, error: 'No data at this path.' }
-  if (typeof raw !== 'object' || Array.isArray(raw)) {
-    return { ok: false, error: 'Malformed payload: expected object.' }
+export function validateEntries(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return []
+  const out = []
+  for (const [id, e] of Object.entries(raw).slice(0, MAX_ENTRIES_PER_FRUIT)) {
+    if (!e || typeof e !== 'object') continue
+    if (!FRUIT_STAGES.has(e.stage)) continue
+    if (typeof e.confidence !== 'number' || e.confidence < 0 || e.confidence > 1) continue
+    if (!isEpoch(e.timestamp)) continue
+    out.push({
+      id,
+      stage: e.stage,
+      confidence: e.confidence,
+      timestamp: e.timestamp,
+      framePath: typeof e.framePath === 'string' && FRAME_PATH_RE.test(e.framePath) ? e.framePath : null,
+    })
   }
-  if (JSON.stringify(raw).length > MAX_DETECTION_BYTES) {
-    return { ok: false, error: 'Oversized payload.' }
-  }
-  const unknown = Object.keys(raw).filter(k => !DETECTION_FIELDS.has(k))
-  if (unknown.length > 0) {
-    return { ok: false, error: `Unexpected fields in payload: ${unknown.join(', ')}` }
-  }
+  return out.sort((a, b) => a.timestamp - b.timestamp)
+}
 
-  for (const field of ['underripe', 'ripe', 'damaged']) {
-    const v = raw[field]
-    if (v === undefined || v === null) continue
-    if (typeof v !== 'number' || !isFinite(v) || v < 0) {
-      return { ok: false, error: `Field '${field}' must be a count of 0 or more.` }
-    }
+/**
+ * Validate one fruit record, detections/{crop}/{fruitId}. The fruit ID is a
+ * string and is never parsed. entries/ is read with validateEntries().
+ * @returns {{ ok: true, data: object } | { ok: false, error: string }}
+ */
+export function validateFruitPayload(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, error: 'Malformed fruit record.' }
   }
-  const { confidence, updatedAt } = raw
-  if (confidence !== undefined && confidence !== null) {
-    if (typeof confidence !== 'number' || !isFinite(confidence) || confidence < 0 || confidence > 1) {
-      return { ok: false, error: "Field 'confidence' must be a number from 0 to 1." }
-    }
+  const unknown = Object.keys(raw).filter(k => !FRUIT_FIELDS.has(k))
+  if (unknown.length > 0) return { ok: false, error: `Unexpected fields: ${unknown.join(', ')}` }
+  if (!FRUIT_STAGES.has(raw.stage)) return { ok: false, error: "Field 'stage' is not a known stage." }
+  if (typeof raw.confidence !== 'number' || raw.confidence < 0 || raw.confidence > 1) {
+    return { ok: false, error: "Field 'confidence' must be a number from 0 to 1." }
   }
-  if (updatedAt !== undefined && updatedAt !== null) {
-    if (typeof updatedAt !== 'number' || !isFinite(updatedAt) || updatedAt <= 0) {
-      return { ok: false, error: "Field 'updatedAt' must be a positive number." }
-    }
+  if (!isEpoch(raw.firstSeen) || !isEpoch(raw.updatedAt)) {
+    return { ok: false, error: "Fields 'firstSeen' and 'updatedAt' must be positive numbers." }
   }
-
-  // Per-fruit rows: [{ id, stage?, confidence? }]. RTDB returns a list as an
-  // array, but accept an object too in case sparse indexes turned it into one.
-  const fruits = []
-  if (raw.fruits !== undefined && raw.fruits !== null) {
-    const rows = Array.isArray(raw.fruits) ? raw.fruits : Object.values(raw.fruits)
-    for (const f of rows.slice(0, MAX_FRUITS)) {
-      if (!f || typeof f !== 'object') continue
-      if (typeof f.id !== 'number' || !isFinite(f.id) || f.id < 0) continue
-      fruits.push({
-        id: Math.floor(f.id),
-        stage: DETECTION_STAGES.has(f.stage) ? f.stage : null,
-        confidence: typeof f.confidence === 'number' && f.confidence >= 0 && f.confidence <= 1
-          ? +f.confidence.toFixed(2) : null,
-      })
-    }
-    fruits.sort((a, b) => a.id - b.id)
+  if (raw.harvested !== undefined && typeof raw.harvested !== 'boolean') {
+    return { ok: false, error: "Field 'harvested' must be true or false." }
   }
-
-  const count = (v) => (typeof v === 'number' ? Math.floor(v) : 0)
+  if (raw.harvestedAt !== undefined && !isEpoch(raw.harvestedAt)) {
+    return { ok: false, error: "Field 'harvestedAt' must be a positive number." }
+  }
   return {
     ok: true,
     data: {
-      fruits,
-      underripe:  count(raw.underripe),
-      ripe:       count(raw.ripe),
-      damaged:    count(raw.damaged),
-      confidence: typeof confidence === 'number' ? +confidence.toFixed(2) : null,
-      updatedAt:  typeof updatedAt  === 'number' ? Math.floor(updatedAt)  : null,
+      stage: raw.stage,
+      confidence: raw.confidence,
+      firstSeen: raw.firstSeen,
+      updatedAt: raw.updatedAt,
+      harvested: raw.harvested === true,
+      harvestedAt: raw.harvestedAt ?? null,
+      entries: validateEntries(raw.entries),
     },
   }
 }
 
-// ── Notification payloads (notifications/{notificationId}) ───────────────────
-// Written by the ESP32 (reservoir_low) or the Mini PC (harvest_ready); the
-// dashboard only reads. Matches the paper schema: type, source, message,
-// createdAt. Any other key is rejected.
-export const NOTIFICATION_TYPES = ['reservoir_low', 'harvest_ready']
+/**
+ * Validate every fruit of one crop, detections/{crop}. Invalid records are skipped.
+ * @returns {{ fruits: Array<object>, skipped: number }}
+ */
+export function validateCropFruits(raw) {
+  const fruits = []
+  let skipped = 0
+  if (raw && typeof raw === 'object') {
+    for (const [id, rec] of Object.entries(raw).slice(0, MAX_FRUITS_PER_CROP)) {
+      const res = validateFruitPayload(rec)
+      if (res.ok) fruits.push({ id, ...res.data })
+      else skipped++
+    }
+  }
+  return { fruits, skipped }
+}
 
-const NOTIFICATION_FIELDS = new Set(['type', 'source', 'message', 'createdAt'])
+// ── Notification payloads (notifications/{notificationId}) ───────────────────
+// Written by the ESP32 (reservoir_low) or the Mini PC (harvest_ready,
+// harvest_check). Paper schema: type, source, message, createdAt.
+// harvest_check also carries crop, fruitId and harvestedAt (the value on the
+// fruit when the check was written, so Undo can restore it). Members may add
+// only resolution, resolvedBy and resolvedAt (decision log item 51).
+// Any other key is rejected.
+export const NOTIFICATION_TYPES = ['reservoir_low', 'harvest_ready', 'harvest_check']
+export const NOTIFICATION_RESOLUTIONS = ['not_harvested', 'dismissed']
+
+const NOTIFICATION_FIELDS = new Set([
+  'type', 'source', 'message', 'createdAt',
+  'crop', 'fruitId', 'harvestedAt',
+  'resolution', 'resolvedBy', 'resolvedAt',
+])
+const NOTIFICATION_CROPS = ['tomato', 'eggplant', 'bell_pepper']
 const NOTIFICATION_MAX_TEXT = 200
 
 /**
@@ -272,7 +297,7 @@ export function validateNotificationPayload(raw) {
 
   const { type, source, message, createdAt } = raw
   if (!NOTIFICATION_TYPES.includes(type)) {
-    return { ok: false, error: "Field 'type' must be reservoir_low or harvest_ready." }
+    return { ok: false, error: "Field 'type' must be reservoir_low, harvest_ready or harvest_check." }
   }
   if (typeof message !== 'string' || message.length === 0 || message.length > NOTIFICATION_MAX_TEXT) {
     return { ok: false, error: "Field 'message' must be a string up to 200 characters." }
@@ -285,10 +310,35 @@ export function validateNotificationPayload(raw) {
     return { ok: false, error: "Field 'createdAt' must be a positive number." }
   }
 
+  // Harvest check fields (all optional, checked when present)
+  const { crop, fruitId, harvestedAt, resolution, resolvedBy, resolvedAt } = raw
+  if (crop !== undefined && !NOTIFICATION_CROPS.includes(crop)) {
+    return { ok: false, error: "Field 'crop' is not a known crop." }
+  }
+  if (fruitId !== undefined && (typeof fruitId !== 'string' || fruitId.length === 0 || fruitId.length > 64)) {
+    return { ok: false, error: "Field 'fruitId' must be a string up to 64 characters." }
+  }
+  if (harvestedAt !== undefined && (typeof harvestedAt !== 'number' || !isFinite(harvestedAt) || harvestedAt <= 0)) {
+    return { ok: false, error: "Field 'harvestedAt' must be a positive number." }
+  }
+  if (resolution !== undefined && !NOTIFICATION_RESOLUTIONS.includes(resolution)) {
+    return { ok: false, error: "Field 'resolution' must be not_harvested or dismissed." }
+  }
+  if (resolvedBy !== undefined && (typeof resolvedBy !== 'string' || resolvedBy.length === 0 || resolvedBy.length > 100)) {
+    return { ok: false, error: "Field 'resolvedBy' must be a string up to 100 characters." }
+  }
+  if (resolvedAt !== undefined && (typeof resolvedAt !== 'number' || !isFinite(resolvedAt) || resolvedAt <= 0)) {
+    return { ok: false, error: "Field 'resolvedAt' must be a positive number." }
+  }
+
   // Accept epoch seconds as well as epoch ms (values below 1e12 are seconds).
   const ms = createdAt < 1e12 ? Math.floor(createdAt * 1000) : Math.floor(createdAt)
-  return {
-    ok: true,
-    data: { type, source: typeof source === 'string' ? source : '', message, createdAt: ms },
-  }
+  const data = { type, source: typeof source === 'string' ? source : '', message, createdAt: ms }
+  if (crop !== undefined)        data.crop = crop
+  if (fruitId !== undefined)     data.fruitId = fruitId
+  if (harvestedAt !== undefined) data.harvestedAt = harvestedAt
+  if (resolution !== undefined)  data.resolution = resolution
+  if (resolvedBy !== undefined)  data.resolvedBy = resolvedBy
+  if (resolvedAt !== undefined)  data.resolvedAt = resolvedAt
+  return { ok: true, data }
 }

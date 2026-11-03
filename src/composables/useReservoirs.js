@@ -3,6 +3,7 @@
 // Live reservoir levels from RTDB `reservoirs/{water|fertilizer}`.
 // Written by the ESP32 (level sensors, 5 s read, upload on change + 60 s
 // heartbeat); the dashboard only reads.
+import { sysPath } from '@/composables/useSystemId'
 import { ref, computed, onUnmounted } from 'vue'
 import { db } from '@/firebase'
 import { validateReservoirPayload, RESERVOIR_LOW_PCT } from '@/security/validator'
@@ -30,7 +31,7 @@ export function useReservoirs() {
 
   import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
     // User-adjustable low-level alert thresholds (fall back to 30% when unset/invalid).
-    const tRef = dbRef(db, 'config/reservoir_low')
+    const tRef = dbRef(db, sysPath('config/reservoir_low'))
     const tCb = onValue(tRef, (snap) => {
       const raw = snap.val() ?? {}
       const pick = (v) => (typeof v === 'number' && isFinite(v) && v >= RESERVOIR_LOW_MIN && v <= RESERVOIR_LOW_MAX)
@@ -40,7 +41,7 @@ export function useReservoirs() {
     unsubs.push(() => off(tRef, 'value', tCb))
 
     RESERVOIRS.forEach(({ id }) => {
-      const r = dbRef(db, `reservoirs/${id}`)
+      const r = dbRef(db, sysPath(`reservoirs/${id}`))
       const cb = onValue(
         r,
         (snap) => {
@@ -93,8 +94,8 @@ export function useReservoirs() {
     }
     const { ref: dbRef, update } = await import('firebase/database')
     await update(dbRef(db), {
-      [`config/reservoir_low/${id}`]: n,
-      'config/reservoir_low_updated': Math.floor(Date.now() / 1000),
+      [sysPath(`config/reservoir_low/${id}`)]: n,
+      [sysPath('config/reservoir_low_updated')]: Math.floor(Date.now() / 1000),
     })
     const label = RESERVOIRS.find(r => r.id === id).label
     logActivity(`${label} low-level alert threshold set to ${n}%`, '#94a3b8', 'threshold', { category: 'reservoir', manual: true })

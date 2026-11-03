@@ -22,7 +22,7 @@ Related repositories: `esp32_firmware` (ESP32 control logic) and `eTanim-inferen
 |------|-------------------------|
 | Accounts | Email and password sign-in. Registration needs the device code printed (as a QR code and as text) on the e-Tanim unit. Password reset by email |
 | Environmental sensors | Average temperature, humidity and soil moisture; per-zone readings with VPD and the irrigation state each zone is in (stop, emergency, normal, idle) |
-| Climate zones | **Lowland** = tomato (`zone-1`) + eggplant (`zone-2`), readings averaged. **Highland** = bell pepper (`zone-3`) |
+| Climate zones | **Lowland** = tomato (`lowland-t`) + eggplant (`lowland-e`), readings averaged. **Highland** = bell pepper (`highland`) |
 | Manual override | Timed ON/OFF for lowland irrigation, highland irrigation, fertilization and misting, with auto-off |
 | Auto-mode settings | Per zone: `smNormal`, `smEmergency`, `smStop` (soil moisture, %) and `vpdGate` (kPa). Misting: temperature and humidity thresholds |
 | Fertilization schedule | Start and end time and days of the week, applied to the single shared fertilization line |
@@ -141,7 +141,7 @@ The database layout follows the schema in the paper (Section 2.2, Database Desig
 
 | Path | Contents | Writer | Reader |
 |------|----------|--------|--------|
-| `sensors/zone-1..3` | `moisture` (0–100), `temperature` (−40 to 85), `humidity` (0–100), `updatedAt` (epoch ms), optional `plant` | ESP32 | Dashboard |
+| `sensors/lowland-t`, `lowland-e`, `highland` | `moisture` (0–100), `temperature` (−40 to 85), `humidity` (0–100), `updatedAt` (epoch ms), optional `plant` | ESP32 | Dashboard |
 | `averages/{temperature\|humidity\|moisture\|vpd}` | Number | ESP32 | Dashboard |
 | `control/{relay_lowland\|relay_highland\|relay_fert\|relay_mist}` | Boolean manual override flag | Dashboard (members) | ESP32 |
 | `control/{name}_off_at` | Epoch ms auto-off deadline, or `null` | Dashboard (members) | Dashboard |
@@ -173,9 +173,9 @@ time-to-live policy on `createdAt`, which is configured in Firestore, not in thi
 ```json
 {
   "sensors": {
-    "zone-1": { "plant": "tomato",      "moisture": 62, "temperature": 31.0, "humidity": 68, "updatedAt": 1790000000000 },
-    "zone-2": { "plant": "eggplant",    "moisture": 58, "temperature": 31.5, "humidity": 66, "updatedAt": 1790000000000 },
-    "zone-3": { "plant": "bell_pepper", "moisture": 66, "temperature": 26.0, "humidity": 78, "updatedAt": 1790000000000 }
+    "lowland-t": { "plant": "tomato",      "moisture": 62, "temperature": 31.0, "humidity": 68, "updatedAt": 1790000000000 },
+    "lowland-e": { "plant": "eggplant",    "moisture": 58, "temperature": 31.5, "humidity": 66, "updatedAt": 1790000000000 },
+    "highland": { "plant": "bell_pepper", "moisture": 66, "temperature": 26.0, "humidity": 78, "updatedAt": 1790000000000 }
   }
 }
 ```

@@ -12,7 +12,7 @@
           :class="scheduleActive ? 'bg-garden-good/15 text-garden-good' : 'bg-garden-base text-garden-dim'"
         >
           <span class="w-1.5 h-1.5 rounded-full" :class="scheduleActive ? 'bg-garden-good animate-pulse' : 'bg-garden-dim'" />
-          {{ scheduleActive ? 'Running' : 'Off' }}
+          {{ scheduleActive ? 'Active Now' : 'Inactive' }}
         </span>
       </div>
 
@@ -79,6 +79,7 @@
 </template>
 
 <script setup>
+import { sysPath } from '@/composables/useSystemId'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { db }                                     from '@/firebase'
 import { ref as dbRef, set, onValue }             from 'firebase/database'
@@ -118,7 +119,7 @@ const crossesMidnight = computed(() => {
 })
 
 onMounted(() => {
-  unsubSchedule = onValue(dbRef(db, 'config/fert_schedule'), (snapshot) => {
+  unsubSchedule = onValue(dbRef(db, sysPath('config/fert_schedule')), (snapshot) => {
     const v = snapshot.val()
     if (v) {
       startTime.value = `${pad(v.startHour ?? 6)}:${pad(v.startMinute ?? 0)}`
@@ -146,11 +147,11 @@ async function saveSchedule() {
     const [startHour, startMinute] = startTime.value.split(':').map(Number)
     const [endHour, endMinute]     = endTime.value.split(':').map(Number)
 
-    await set(dbRef(db, 'config/fert_schedule'), {
+    await set(dbRef(db, sysPath('config/fert_schedule')), {
       startHour, startMinute, endHour, endMinute,
       days: { ...days },
     })
-    await set(dbRef(db, 'config/fert_schedule_updated'), Math.floor(Date.now() / 1000))
+    await set(dbRef(db, sysPath('config/fert_schedule_updated')), Math.floor(Date.now() / 1000))
     const dayNames = { sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat' }
     const dayList  = Object.keys(dayNames).filter(k => days[k]).map(k => dayNames[k]).join(', ')
     logActivity(

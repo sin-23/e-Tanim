@@ -11,9 +11,7 @@
           <div class="text-[0.625rem] text-garden-dim">Bell pepper cooling</div>
         </div>
       </div>
-      <span class="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0" :class="status.badge">
-        {{ status.text }}
-      </span>
+      <StatusBadge class="flex-shrink-0" :tone="status.tone">{{ status.text }}</StatusBadge>
     </div>
 
     <div v-if="m.loading.value" class="h-14 rounded-xl bg-garden-border animate-pulse" />
@@ -51,6 +49,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useMisting } from '@/composables/useMisting'
 import { useTempUnit } from '@/composables/useTempUnit'
 
@@ -88,10 +87,10 @@ const rows = computed(() => {
 const fmt = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`
 
 const status = computed(() => {
-  const good   = { box: 'bg-garden-good/10 border-garden-good/40',     badge: 'bg-garden-good/15 text-garden-good border-garden-good/40' }
-  const warn   = { box: 'bg-garden-warn/10 border-garden-warn/40',     badge: 'bg-garden-warn/15 text-garden-warn border-garden-warn/40' }
-  const danger = { box: 'bg-garden-danger/10 border-garden-danger/40', badge: 'bg-garden-danger/15 text-garden-danger border-garden-danger/40' }
-  const idle   = { box: 'bg-garden-base border-garden-border',         badge: 'bg-garden-base text-garden-dim border-garden-border' }
+  const good   = { box: 'bg-garden-good/10 border-garden-good/40', tone: 'good' }
+  const warn   = { box: 'bg-garden-warn/10 border-garden-warn/40', tone: 'warn' }
+  const danger = { box: 'bg-garden-danger/10 border-garden-danger/40', tone: 'danger' }
+  const idle   = { box: 'bg-garden-base border-garden-border', tone: 'neutral' }
 
   if (props.waterLow) {
     return { ...danger, text: 'LOCKED OUT',

@@ -57,11 +57,11 @@
       <!-- ── FORCED ON body ─────────────────────────────────────────────── -->
       <div v-if="relayOn" class="flex-1 flex flex-col gap-4">
         <!-- Countdown -->
-        <div v-if="countdown > 0" class="my-auto flex flex-col items-center py-3 rounded-xl border" :class="variant.countdownBox">
+        <div v-if="countdown > 0" class="my-auto flex flex-col items-center justify-center min-h-[4.75rem] py-2 rounded-xl border" :class="variant.countdownBox">
           <div class="text-[0.625rem] font-bold tracking-widest uppercase mb-1" :class="variant.countdownLabel">
             Auto-Off In
           </div>
-          <div class="text-4xl font-extrabold font-mono tracking-tight" :class="variant.countdownText">
+          <div class="text-3xl leading-9 font-extrabold font-mono tracking-tight" :class="variant.countdownText">
             {{ formattedCountdown }}
           </div>
         </div>
@@ -80,7 +80,7 @@
       <!-- ── Idle body ───────────────────────────────────────────────────── -->
       <div v-else class="flex-1 flex flex-col gap-4">
         <!-- Duration inputs (my-auto: extra card height is split evenly above/below) -->
-        <div class="my-auto">
+        <div class="my-auto min-h-[4.75rem]">
           <div class="text-[0.625rem] font-bold tracking-widest uppercase text-garden-dim mb-2">Duration</div>
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-1.5 flex-1">
@@ -222,6 +222,7 @@
 </template>
 
 <script setup>
+import { sysPath } from '@/composables/useSystemId'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import { db }                                     from '@/firebase'
@@ -393,8 +394,8 @@ const offAtPath = computed(() => `${props.controlPath}_off_at`)
 async function writeRelay(value, offAt = null) {
   try {
     await update(dbRef(db), {
-      [props.controlPath]: value,
-      [offAtPath.value]:   value ? offAt : null,
+      [sysPath(props.controlPath)]: value,
+      [sysPath(offAtPath.value)]:   value ? offAt : null,
     })
     return true
   } catch (err) {
@@ -406,7 +407,7 @@ async function writeRelay(value, offAt = null) {
 async function loadThresholds() {
   try {
     if (!thresholdCfg) return
-    const snapshot = await get(dbRef(db, thresholdCfg.path))
+    const snapshot = await get(dbRef(db, sysPath(thresholdCfg.path)))
     if (snapshot.exists()) {
       thresholds.value     = { ...thresholds.value, ...snapshot.val() }
       editThresholds.value = { ...thresholds.value }
@@ -425,8 +426,8 @@ async function saveThresholds() {
     const dataToSave = isIrrigation
       ? { smNormal: t.smNormal, smEmergency: t.smEmergency, smStop: t.smStop, vpdGate: t.vpdGate }
       : { tempOn: t.tempOn, humidityOn: t.humidityOn }
-    await set(dbRef(db, thresholdCfg.path), dataToSave)
-    await set(dbRef(db, `${thresholdCfg.path}_updated`), Math.floor(Date.now() / 1000))
+    await set(dbRef(db, sysPath(thresholdCfg.path)), dataToSave)
+    await set(dbRef(db, sysPath(`${thresholdCfg.path}_updated`)), Math.floor(Date.now() / 1000))
     thresholds.value     = { ...editThresholds.value }
     loading.value        = false
     showSettings.value   = false
@@ -521,7 +522,7 @@ async function handleClick() {
 // remaining time — rather than restarting it from the duration inputs.
 async function resumeCountdownFromServer() {
   try {
-    const snap  = await get(dbRef(db, offAtPath.value))
+    const snap  = await get(dbRef(db, sysPath(offAtPath.value)))
     const offAt = snap.exists() ? snap.val() : null
 
     if (typeof offAt === 'number') {
@@ -550,7 +551,7 @@ onMounted(() => {
     loadThresholds()
   }
 
-  const controlRef = dbRef(db, props.controlPath)
+  const controlRef = dbRef(db, sysPath(props.controlPath))
   unsubscribe = onValue(controlRef, (snapshot) => {
     const val  = snapshot.val()
     relayOn.value = val === true

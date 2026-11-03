@@ -12,6 +12,7 @@
 // long as the browser tab stays open. It's the single source of truth for
 // actually turning relays off; RelayControl.vue's local countdown is only
 // there to render a live "MM:SS" display for whoever is looking at it.
+import { sysPath } from '@/composables/useSystemId'
 import { ref as dbRef, onValue, get, update, runTransaction } from 'firebase/database'
 import { db } from '@/firebase'
 import { logActivity } from './useActivityLog'
@@ -50,11 +51,11 @@ let started = false
 export async function expireRelay(path) {
   const offAtPath = `${path}_off_at`
   try {
-    const result = await runTransaction(dbRef(db, path), (current) =>
+    const result = await runTransaction(dbRef(db, sysPath(path)), (current) =>
       current === false ? undefined : false   // abort if it is already known to be off
     )
     if (!result.committed) return false
-    await update(dbRef(db), { [offAtPath]: null })
+    await update(dbRef(db), { [sysPath(offAtPath)]: null })
     logActivity(`${RELAY_LABELS[path] ?? path} auto-off — timer expired`, '#94a3b8', 'relay', { category: relayCategory(path) })
     return true
   } catch (err) {
@@ -77,7 +78,7 @@ function watchRelay(path) {
   const offAtPath = `${path}_off_at`
   let expiryTimer = null
 
-  onValue(dbRef(db, path), async (snapshot) => {
+  onValue(dbRef(db, sysPath(path)), async (snapshot) => {
     if (expiryTimer) {
       clearTimeout(expiryTimer)
       expiryTimer = null
@@ -87,7 +88,7 @@ function watchRelay(path) {
     if (!isOn) return
 
     try {
-      const offAtSnap = await get(dbRef(db, offAtPath))
+      const offAtSnap = await get(dbRef(db, sysPath(offAtPath)))
       const offAt = offAtSnap.exists() ? offAtSnap.val() : null
       if (typeof offAt !== 'number') return // no timed shutoff scheduled for this relay
 

@@ -14,7 +14,7 @@
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border" :style="badgeStyle(r)">{{ badgeText(r) }}</span>
+          <StatusBadge :tone="badgeTone(r)">{{ badgeText(r) }}</StatusBadge>
           <span
             class="text-xl font-extrabold font-mono"
             :style="{ color: r.levelPct !== null ? gaugeColor(r) : undefined }"
@@ -53,10 +53,7 @@
           </svg>
           <span class="text-[0.6875rem] font-semibold truncate">Alert at ≤ {{ r.lowPct }}%</span>
         </button>
-        <span
-          class="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0"
-          :style="badgeStyle(r)"
-        >{{ badgeText(r) }}</span>
+        <StatusBadge class="flex-shrink-0" :tone="badgeTone(r)">{{ badgeText(r) }}</StatusBadge>
       </div>
 
       <!-- Loading skeleton -->
@@ -143,6 +140,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import { formatDateTime } from '@/utils/formatTime'
 import { RESERVOIR_LOW_PCT, RESERVOIR_LOW_MIN, RESERVOIR_LOW_MAX } from '@/composables/useReservoirs'
 
 const props = defineProps({
@@ -205,24 +204,12 @@ function badgeText(r) {
   return 'SUFFICIENT'
 }
 
-function badgeStyle(r) {
-  if (r.loading || r.error || r.levelPct === null) {
-    return { backgroundColor: 'rgb(var(--garden-base))', color: 'rgb(var(--garden-dim))', borderColor: 'rgb(var(--garden-border))' }
-  }
-  const color = r.low ? COLORS.danger : COLORS.good
-  return {
-    backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
-    color,
-    borderColor: `color-mix(in srgb, ${color} 40%, transparent)`,
-  }
+function badgeTone(r) {
+  if (r.loading || r.error || r.levelPct === null) return 'neutral'
+  return r.low ? 'danger' : 'good'
 }
 
 function lastUpdated(r) {
-  if (!r.updatedAt) return '—'
-  const d = new Date(r.updatedAt)
-  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
-  return d.toDateString() === new Date().toDateString()
-    ? `${time} today`
-    : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
+  return r.updatedAt ? formatDateTime(r.updatedAt) : '—'
 }
 </script>

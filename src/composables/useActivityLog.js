@@ -16,9 +16,13 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { checkRateLimit } from '@/security/rateLimiter'
+import { systemId } from '@/composables/useSystemId'
 
 const SYSTEM_LOG_PATH = 'system'
-const entriesCollection = () => collection(firestore, 'activity_log', SYSTEM_LOG_PATH, 'entries')
+const entriesCollection = () => {
+  if (!systemId.value) throw new Error('Not joined to a unit yet.')
+  return collection(firestore, 'systems', systemId.value, 'activity_log')
+}
 
 const WRITE_LIMIT_KEY_PREFIX = 'activity-log-write:'
 const MAX_WRITES_PER_MINUTE = 20
@@ -47,7 +51,7 @@ async function writeEntry(message, color, type, extra = {}) {
       ...extra,
     })
   } catch (err) {
-    console.error(`Failed to write activity log entry to activity_log/${SYSTEM_LOG_PATH}/entries:`, err)
+    console.error(`Failed to write activity log entry to systems/${systemId.value}/activity_log:`, err)
   }
 }
 
@@ -96,7 +100,7 @@ export function useActivityFeed(limitCount = 25) {
         loaded.value = true
       },
       (err) => {
-        console.error(`activity feed listener error on activity_log/${SYSTEM_LOG_PATH}/entries:`, err)
+        console.error(`activity feed listener error on systems/${systemId.value}/activity_log:`, err)
         loaded.value = true
       }
     )

@@ -17,7 +17,8 @@ async function bootstrap() {
   if (isConfigured) {
     // Block render until Firebase Auth fires its first state change.
     // Prevents the login page from flashing for already-logged-in users.
-    await initAuth()
+    // Never wait forever: if Firebase is unreachable the app still renders.
+    await Promise.race([initAuth(), new Promise(r => setTimeout(r, 10000))])
   }
 
   app.mount('#app')

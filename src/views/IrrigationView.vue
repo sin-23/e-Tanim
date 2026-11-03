@@ -48,11 +48,11 @@
         </div>
       </div>
 
-      <!-- Manual override controls -->
+      <!-- Pump Override Controls -->
       <div>
         <h2 class="text-sm font-bold text-garden-text mb-3 flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--garden-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-          Manual Override Controls
+          Pump Override Controls
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <RelayControl
@@ -206,6 +206,7 @@
 </template>
 
 <script setup>
+import { sysPath } from '@/composables/useSystemId'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import ZoneCard from '@/components/ZoneCard.vue'
 import RelayControl from '@/components/RelayControl.vue'
@@ -288,17 +289,17 @@ let scheduleTick = null
 
 onMounted(() => {
   import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
-    const relayRef = dbRef(db, 'control/relay_fert')
+    const relayRef = dbRef(db, sysPath('control/relay_fert'))
     const relayCb  = onValue(relayRef, (s) => { fertPumpOn.value = s.val() === true })
     unsubFertRelay = () => off(relayRef, 'value', relayCb)
 
-    const lowRef = dbRef(db, 'control/relay_lowland')
+    const lowRef = dbRef(db, sysPath('control/relay_lowland'))
     const lowCb  = onValue(lowRef, (s) => { lowlandPumpOn.value = s.val() === true })
-    const highRef = dbRef(db, 'control/relay_highland')
+    const highRef = dbRef(db, sysPath('control/relay_highland'))
     const highCb  = onValue(highRef, (s) => { highlandPumpOn.value = s.val() === true })
     unsubIrrigRelays = () => { off(lowRef, 'value', lowCb); off(highRef, 'value', highCb) }
 
-    const schedRef = dbRef(db, 'config/fert_schedule')
+    const schedRef = dbRef(db, sysPath('config/fert_schedule'))
     const schedCb  = onValue(schedRef, (s) => { fertSchedule.value = s.val() })
     unsubFertSchedule = () => off(schedRef, 'value', schedCb)
   })

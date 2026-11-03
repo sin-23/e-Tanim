@@ -41,7 +41,10 @@
             :notification="n"
             variant="bell"
             :time-text="timeAgo(n.createdAt)"
+            :busy="busyId === n.id"
             @dismiss="dismiss"
+            @resolve="resolveCheck"
+            @undo="undoResolution"
           />
         </ul>
       </div>
@@ -58,6 +61,7 @@ const {
   bellNotifications: notifications,
   bellUnreadCount: unreadCount,
   loading, error, markAllRead, dismiss,
+  resolveCheck, undoResolution, busyId,
 } = useNotifications()
 
 const open = ref(false)

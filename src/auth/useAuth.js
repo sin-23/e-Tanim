@@ -13,7 +13,7 @@ import {
   updatePassword,
   verifyBeforeUpdateEmail,
 } from 'firebase/auth'
-import { ref as dbRef, set, get } from 'firebase/database'
+import { loadSystemId, setSystemId } from '@/composables/useSystemId'
 
 // ── Singleton state ───────────────────────────────────────────────────────────
 export const currentUser = ref(null)
@@ -36,17 +36,12 @@ export function initAuth() {
       if (user) {
         currentUser.value = user
 
-        try {
-          await Promise.all([
-            set(dbRef(db, `users/${user.uid}/email`),       user.email ?? ''),
-            set(dbRef(db, `users/${user.uid}/displayName`), user.displayName ?? user.email ?? ''),
-            set(dbRef(db, `users/${user.uid}/lastLogin`),   Date.now()),
-          ])
-        } catch {
-          // Ignore errors
-        }
+        // users/{uid} holds only systemId and code, so nothing is written here
+        // (checklist 2.1). Do not let a slow database block the first render.
+        await Promise.race([loadSystemId(user.uid), new Promise(r => setTimeout(r, 8000))])
       } else {
         currentUser.value = null
+        setSystemId(null)
       }
 
       authLoading.value = false
@@ -62,7 +57,9 @@ export function useAuth() {
   const isLoggedIn = computed(() => !!currentUser.value && !loggingOut.value)
 
   async function loginWithEmail(email, password) {
-    return signInWithEmailAndPassword(auth, email, password)
+    const cred = await signInWithEmailAndPassword(auth, email, password)
+    await loadSystemId(cred.user.uid)   // pages read under systems/{systemId}/
+    return cred
   }
 
   async function logout() {

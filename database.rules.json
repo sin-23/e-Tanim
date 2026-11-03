@@ -2,229 +2,276 @@
   "rules": {
     ".read": false,
     ".write": false,
-    "sensors": {
-      ".read": true,
-      ".write": false,
-      "$zone": {
-        ".read": true,
-        ".write": false,
-        ".validate": "newData.hasChildren(['moisture', 'temperature', 'humidity', 'updatedAt'])",
-        "moisture": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "temperature": {
-          ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 85"
-        },
-        "humidity": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "plant": {
-          ".validate": "newData.isString() && newData.val().length <= 32"
-        },
-        "$other": {
-          ".validate": false
-        }
-      }
-    },
-    "averages": {
-      ".read": true,
-      ".write": false
-    },
-    "reservoirs": {
-      ".read": true,
-      ".write": false,
-      "water": {
-        ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
-        "level": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "low": {
-          ".validate": "newData.isBoolean()"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "$other": {
-          ".validate": false
-        }
-      },
-      "fertilizer": {
-        ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
-        "level": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
-        },
-        "low": {
-          ".validate": "newData.isBoolean()"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "$other": {
-          ".validate": false
-        }
-      },
-      "$other": {
-        ".validate": false
-      }
-    },
-    "detections": {
-      ".read": true,
-      ".write": false,
-      "$crop": {
-        ".validate": "($crop == 'tomato' || $crop == 'eggplant' || $crop == 'bell_pepper') && newData.hasChildren(['underripe', 'ripe', 'damaged', 'updatedAt'])",
-        "underripe": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
-        },
-        "ripe": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
-        },
-        "damaged": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
-        },
-        "confidence": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
-        },
-        "updatedAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "fruits": {
-          "$i": {
-            ".validate": "newData.hasChildren(['id'])",
-            "id": {
-              ".validate": "newData.isNumber() && newData.val() >= 0"
+    "systems": {
+      "$systemId": {
+        "sensors": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          ".write": false,
+          "$zone": {
+            ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+            ".write": false,
+            ".validate": "newData.hasChildren(['moisture', 'temperature', 'humidity', 'updatedAt'])",
+            "moisture": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
             },
-            "stage": {
-              ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
+            "temperature": {
+              ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 85"
             },
-            "confidence": {
-              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+            "humidity": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber() && newData.val() > 0"
+            },
+            "plant": {
+              ".validate": "newData.isString() && newData.val().length <= 32"
             },
             "$other": {
               ".validate": false
             }
           }
         },
-        "$other": {
-          ".validate": false
+        "averages": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          ".write": false
+        },
+        "reservoirs": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          ".write": false,
+          "water": {
+            ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
+            "level": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+            },
+            "low": {
+              ".validate": "newData.isBoolean()"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber() && newData.val() > 0"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "fertilizer": {
+            ".validate": "newData.hasChildren(['level', 'low', 'updatedAt'])",
+            "level": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+            },
+            "low": {
+              ".validate": "newData.isBoolean()"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber() && newData.val() > 0"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "notifications": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          ".write": false,
+          "$id": {
+            ".validate": "newData.hasChildren(['type', 'message', 'createdAt'])",
+            "type": {
+              ".validate": "newData.val() == 'reservoir_low' || newData.val() == 'harvest_ready'"
+            },
+            "source": {
+              ".validate": "newData.isString() && newData.val().length <= 64"
+            },
+            "message": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+            },
+            "createdAt": {
+              ".validate": "newData.isNumber() && newData.val() > 0"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "control": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          "relay_lowland": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_lowland_off_at": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_highland": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_highland_off_at": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_fert": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_fert_off_at": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_mist": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "relay_mist_off_at": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          }
+        },
+        "config": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          "thresholds": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "thresholds_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "thresholds_pump2": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "thresholds_pump2_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "thresholds_highland": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "thresholds_highland_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "irrigation": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "irrigation_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "irrigation_override_zone": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "irrigation_override_zone_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "reservoir_low": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+            "water": {
+              ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
+            },
+            "fertilizer": {
+              ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "reservoir_low_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "misting": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "misting_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "fert_schedule": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "fert_schedule_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "fert_active_source": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          },
+          "fert_active_source_updated": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId"
+          }
+        },
+        "detections": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          ".write": false,
+          "$crop": {
+            ".indexOn": [
+              "updatedAt"
+            ],
+            ".validate": "$crop == 'tomato' || $crop == 'eggplant' || $crop == 'bell_pepper'",
+            "$fruitId": {
+              ".validate": "newData.hasChildren(['stage', 'confidence', 'firstSeen', 'updatedAt'])",
+              "stage": {
+                ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
+              },
+              "confidence": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+              },
+              "firstSeen": {
+                ".validate": "newData.isNumber() && newData.val() > 0"
+              },
+              "updatedAt": {
+                ".validate": "newData.isNumber() && newData.val() > 0"
+              },
+              "harvested": {
+                ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+                ".validate": "newData.isBoolean()"
+              },
+              "harvestedAt": {
+                ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+                ".validate": "newData.isNumber() && newData.val() > 0"
+              },
+              "entries": {
+                "$entryId": {
+                  ".validate": "newData.hasChildren(['stage', 'confidence', 'timestamp', 'framePath'])",
+                  "stage": {
+                    ".validate": "newData.isString() && (newData.val() == 'underripe' || newData.val() == 'ripe' || newData.val() == 'damaged')"
+                  },
+                  "confidence": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+                  },
+                  "timestamp": {
+                    ".validate": "newData.isNumber() && newData.val() > 0"
+                  },
+                  "framePath": {
+                    ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().matches(/^frames\\/(tomato|eggplant|bell_pepper)\\/[A-Za-z0-9._-]+$/)"
+                  },
+                  "$other": {
+                    ".validate": false
+                  }
+                }
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        },
+        "status": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          ".write": false
+        },
+        "frame_requests": {
+          ".read": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId",
+          "$id": {
+            ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('systemId').val() === $systemId && (!data.exists() || !newData.exists())",
+            ".validate": "newData.hasChildren(['crop', 'fruitId', 'entryId', 'framePath', 'requestedAt'])",
+            "crop": {
+              ".validate": "newData.isString() && (newData.val() == 'tomato' || newData.val() == 'eggplant' || newData.val() == 'bell_pepper')"
+            },
+            "fruitId": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 64"
+            },
+            "entryId": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 64"
+            },
+            "framePath": {
+              ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().matches(/^frames\\/(tomato|eggplant|bell_pepper)\\/[A-Za-z0-9._-]+$/) && newData.val().beginsWith('frames/' + newData.parent().child('crop').val() + '/')"
+            },
+            "requestedAt": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 300000"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
         }
-      }
-    },
-    "notifications": {
-      ".read": true,
-      ".write": false,
-      "$id": {
-        ".validate": "newData.hasChildren(['type', 'message', 'createdAt'])",
-        "type": {
-          ".validate": "newData.val() == 'reservoir_low' || newData.val() == 'harvest_ready'"
-        },
-        "source": {
-          ".validate": "newData.isString() && newData.val().length <= 64"
-        },
-        "message": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
-        },
-        "createdAt": {
-          ".validate": "newData.isNumber() && newData.val() > 0"
-        },
-        "$other": {
-          ".validate": false
-        }
-      }
-    },
-    "control": {
-      ".read": true,
-      "relay_lowland": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_lowland_off_at": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_highland": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_highland_off_at": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_fert": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_fert_off_at": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_mist": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "relay_mist_off_at": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      }
-    },
-    "config": {
-      ".read": true,
-      "thresholds": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "thresholds_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "thresholds_pump2": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "thresholds_pump2_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "thresholds_highland": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "thresholds_highland_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "irrigation": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "irrigation_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "irrigation_override_zone": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "irrigation_override_zone_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "reservoir_low": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false",
-        "water": {
-          ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
-        },
-        "fertilizer": {
-          ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 95"
-        },
-        "$other": {
-          ".validate": false
-        }
-      },
-      "reservoir_low_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "misting": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "misting_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "fert_schedule": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "fert_schedule_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "fert_active_source": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
-      },
-      "fert_active_source_updated": {
-        ".write": "auth != null && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('members').child(auth.uid).exists() && root.child('deviceAccessCodes').child(root.child('users').child(auth.uid).child('code').val()).child('active').val() !== false"
       }
     },
     "users": {

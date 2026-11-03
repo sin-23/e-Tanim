@@ -22,6 +22,7 @@
 // into a Cloud Function that mints a custom token only for a valid, active
 // code, and stop exposing the codes list to unauthenticated reads.
 
+import { setSystemId } from '@/composables/useSystemId'
 import { db } from '@/firebase'
 import { ref as dbRef, get, update } from 'firebase/database'
 
@@ -117,4 +118,5 @@ export async function joinDeviceBySystemCode(code, uid) {
     // writes.
     update(dbRef(db, `users/${uid}`), { systemId, code: normalized }),
   ])
+  setSystemId(systemId)
 }

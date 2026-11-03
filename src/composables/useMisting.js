@@ -3,7 +3,7 @@
 // Read-only status for the highland misting circuit.
 //   control/relay_mist (+ _off_at)  manual override flag written by the dashboard
 //   config/misting                  { tempOn (C), humidityOn (%) } user thresholds
-//   sensors/zone-3                  highland (bell pepper) DHT22 reading
+//   sensors/highland                 highland (bell pepper) DHT22 reading
 //
 // The paper's schema has no node where the ESP32 reports the *actual* misting
 // relay state, so "manual" is a confirmed command flag, while "triggered" is the
@@ -12,6 +12,7 @@
 // when highland temperature is at or above tempOn OR humidity is at or below
 // humidityOn (an earlier Group5 flowchart wording used AND with high humidity;
 // that wording is superseded).
+import { sysPath } from '@/composables/useSystemId'
 import { ref, computed, onUnmounted } from 'vue'
 import { db } from '@/firebase'
 import { validateSensorPayload } from '@/security/validator'
@@ -42,7 +43,7 @@ export function useMisting() {
 
   import('firebase/database').then(({ ref: dbRef, onValue, off }) => {
     const watch = (path, handler) => {
-      const r = dbRef(db, path)
+      const r = dbRef(db, sysPath(path))
       const cb = onValue(r, handler, () => {})
       unsubs.push(() => off(r, 'value', cb))
     }
@@ -64,8 +65,8 @@ export function useMisting() {
       }
     })
 
-    watch('sensors/zone-3', (s) => {
-      const res = validateSensorPayload(s.val(), 'zone-3')
+    watch('sensors/highland', (s) => {
+      const res = validateSensorPayload(s.val(), 'highland')
       if (res.ok) { sensors.value = res.data; sensorErr.value = null }
       else        { sensors.value = null;     sensorErr.value = res.error }
     })

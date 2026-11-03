@@ -82,10 +82,7 @@
 
                 <!-- One tag row: category, Manual/Auto, then the time pushed to the right -->
                 <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                  <span
-                    class="text-[0.5625rem] font-bold px-2 py-0.5 rounded-full border"
-                    :class="EVENT_STYLE[entry.eventType].cls"
-                  >{{ typeLabel(entry.eventType) }}</span>
+                  <StatusBadge size="sm">{{ typeLabel(entry.eventType) }}</StatusBadge>
 
                   <span
                     class="text-[0.5625rem] px-2 py-0.5 rounded-full"
@@ -127,6 +124,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import { formatDateTime } from '@/utils/formatTime'
 import { useActivityFeed } from '@/composables/useActivityLog'
 
 // `embedded` = the compact version shown inside the Dashboard's Activity Log card.
@@ -197,12 +196,7 @@ function typeLabel(type) {
   return type.charAt(0).toUpperCase() + type.slice(1)
 }
 
-function formatLogTime(timestamp) {
-  const d = new Date(timestamp)
-  const isToday = d.toDateString() === new Date().toDateString()
-  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  return isToday ? `${time} today` : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
-}
+const formatLogTime = (ts) => formatDateTime(ts, { seconds: true })
 
 const PAGE_SIZE = props.embedded ? 25 : 8
 const page = ref(1)

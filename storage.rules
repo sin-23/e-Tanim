@@ -1,9 +1,14 @@
 rules_version = '2';
 
-// Phase 0: deny everything. Signed-in read of frames/{crop}/{file} is added in the
-// snapshots phase. Clients never write; the Mini PC AI Inference uses the Admin SDK.
+// Signed-in accounts may read the cropped fruit images. Storage rules cannot read
+// the Realtime Database, so membership of the unit cannot be checked here (checklist
+// 3.4). Clients never write or delete; the Mini PC AI Inference uses the Admin SDK.
 service firebase.storage {
   match /b/{bucket}/o {
+    match /systems/{systemId}/frames/{crop}/{file} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
     match /{allPaths=**} {
       allow read, write: if false;
     }

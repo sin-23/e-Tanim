@@ -15,6 +15,23 @@
         <!-- Viewfinder frame -->
         <div class="pointer-events-none absolute inset-6 border-2 border-white/70 rounded-xl" />
 
+        <!-- Yellow outline around a QR code once one is found -->
+        <svg
+          v-if="scanner.box.value"
+          class="pointer-events-none absolute inset-0 w-full h-full"
+          :viewBox="boxViewBox"
+          preserveAspectRatio="none"
+        >
+          <polygon
+            :points="boxPoints"
+            fill="none"
+            stroke="#FFD60A"
+            stroke-width="6"
+            stroke-linejoin="round"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+
         <div v-if="!scanner.isScanning.value" class="absolute inset-0 flex items-center justify-center bg-garden-void/80">
           <button
             class="px-4 py-2 rounded-xl bg-garden-primary text-white text-sm font-semibold hover:bg-[#246040] transition-colors"
@@ -24,7 +41,7 @@
           </button>
         </div>
 
-        <div v-else class="absolute bottom-3 left-0 right-0 flex justify-center">
+        <div v-else-if="!scanner.box.value" class="absolute bottom-3 left-0 right-0 flex justify-center">
           <span class="text-[0.625rem] font-semibold px-2.5 py-1 rounded-full bg-garden-void/70 text-white flex items-center gap-1.5">
             <svg class="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -92,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import { useQrScanner } from '@/composables/useQrScanner'
 import { checkDeviceAccessCode, extractCodeFromScan } from '@/auth/useDeviceAccessCode'
 
@@ -105,6 +122,18 @@ const checking    = ref(false)
 const gateError   = ref('')
 
 const scanner = useQrScanner()
+
+// The video is shown with object-cover in a square, so only the centred
+// square of the frame is visible. Map video pixels onto that square.
+const boxViewBox = computed(() => {
+  const b = scanner.box.value
+  if (!b) return '0 0 1 1'
+  const m = Math.min(b.vw, b.vh)
+  return `${(b.vw - m) / 2} ${(b.vh - m) / 2} ${m} ${m}`
+})
+const boxPoints = computed(() =>
+  (scanner.box.value?.points ?? []).map(p => `${p.x},${p.y}`).join(' ')
+)
 watch(videoRef, (el) => scanner.bindVideo(el))
 
 async function beginScan() {

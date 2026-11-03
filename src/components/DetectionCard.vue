@@ -43,7 +43,7 @@
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.underripe }}</div>
         </div>
 
-        <div class="rounded-2xl border p-4 text-center bg-garden-good/25 text-garden-good border-garden-good/40">
+        <div class="rounded-2xl border p-4 text-center bg-garden-good/10 text-garden-good border-garden-good/40">
           <div class="text-[0.5625rem] font-extrabold uppercase tracking-widest opacity-75">Ripe</div>
           <div class="text-3xl font-extrabold font-mono mt-1">{{ crop.ripe }}</div>
         </div>
@@ -62,6 +62,8 @@
           crop.stale ? 'text-garden-warn font-semibold' : 'text-garden-dim'
         ]"
       >
+        <template v-if="crop.stale">Mini PC is offline, so these counts may be out of date.</template>
+        <template v-else-if="crop.updatedAt">Last seen {{ lastUpdated(crop) }}</template>
       </p>
 
       <!-- Per-fruit rows, keyed by the tracker ID the Mini PC assigns. -->
@@ -73,10 +75,7 @@
             class="flex items-center gap-3 px-3 py-2 rounded-xl bg-garden-base border border-garden-border"
           >
             <span class="font-mono text-xs font-extrabold text-garden-text w-10">#{{ f.id }}</span>
-            <span
-              class="text-[0.625rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border"
-              :class="stageCls[f.stage || 'unknown']"
-            >{{ f.stage || 'Not evaluated' }}</span>
+            <StatusBadge class="font-extrabold uppercase tracking-wider" :tone="stageTone[f.stage || 'unknown']">{{ f.stage || 'Not evaluated' }}</StatusBadge>
             <span v-if="f.confidence !== null" class="ml-auto text-[0.6875rem] font-mono text-garden-dim">
               {{ Math.round(f.confidence * 100) }}%
             </span>
@@ -93,6 +92,8 @@
 
 <script setup>
 import { computed, h } from 'vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import { formatDateTime } from '@/utils/formatTime'
 
 const props = defineProps({
   detection: { type: Object, required: true },
@@ -108,25 +109,14 @@ const cropAccent = {
   bell_pepper: { text: 'text-garden-text' },
 }
 
-const stageCls = {
-  underripe: 'bg-garden-base text-garden-dim border-garden-border',
-  ripe:      'bg-garden-good/10 text-garden-good border-garden-good/40',
-  damaged:   'bg-garden-danger/10 text-garden-danger border-garden-danger/40',
-  unknown:   'bg-garden-surface text-garden-dim border-garden-border',
-}
+const stageTone = { underripe: 'neutral', ripe: 'good', damaged: 'danger', unknown: 'neutral' }
 
 function counts(crop) {
   return { total: crop.underripe + crop.ripe + crop.damaged }
 }
 
 function lastUpdated(crop) {
-  const t = crop.updatedAt
-  if (!t) return '—'
-  const d = new Date(t)
-  const time = d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
-  return d.toDateString() === new Date().toDateString()
-    ? `${time} today`
-    : `${time}, ${d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`
+  return crop.updatedAt ? formatDateTime(crop.updatedAt) : '—'
 }
 
 const CameraIconSvg = () => h('svg', {
