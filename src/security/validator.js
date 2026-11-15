@@ -342,3 +342,42 @@ export function validateNotificationPayload(raw) {
   if (resolvedAt !== undefined)  data.resolvedAt = resolvedAt
   return { ok: true, data }
 }
+
+// ── Zone period averages (Firestore systems/{systemId}/zone_period_averages) ─
+// One document per zone, date and period. Written by the ESP32 (once its Firestore
+// sign-in is decided) or entered in the Console. Matches firestore.rules.
+export const AVERAGE_ZONES   = ['lowland', 'highland']
+export const AVERAGE_PERIODS = ['morning', 'afternoon', 'night']
+const AVERAGE_METRICS = {
+  soilMoisture: { min: 0,   max: 100 },
+  temperature:  { min: -40, max: 85  },
+  humidity:     { min: 0,   max: 100 },
+  vpd:          { min: 0,   max: 10  },
+}
+
+const inRange = (v, b) => typeof v === 'number' && isFinite(v) && v >= b.min && v <= b.max
+
+/**
+ * @param {unknown} raw - doc.data() of a zone_period_averages document
+ * @returns {{ ok: true, data: object } | { ok: false, error: string }}
+ */
+export function validateAveragePayload(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, error: 'Malformed average.' }
+  if (!AVERAGE_ZONES.includes(raw.zone))     return { ok: false, error: "Field 'zone' is not lowland or highland." }
+  if (!AVERAGE_PERIODS.includes(raw.period)) return { ok: false, error: "Field 'period' is not morning, afternoon or night." }
+  if (typeof raw.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw.date)) return { ok: false, error: "Field 'date' must be YYYY-MM-DD." }
+
+  const data = { zone: raw.zone, period: raw.period, date: raw.date }
+  const minimum = {}, maximum = {}
+  for (const [key, bounds] of Object.entries(AVERAGE_METRICS)) {
+    if (!inRange(raw[key], bounds)) return { ok: false, error: `Field '${key}' is missing or out of range.` }
+    data[key] = raw[key]
+    // minimum and maximum are optional per value; keep only the valid ones
+    const lo = raw.minimum?.[key], hi = raw.maximum?.[key]
+    minimum[key] = inRange(lo, bounds) ? lo : null
+    maximum[key] = inRange(hi, bounds) ? hi : null
+  }
+  if (!Number.isInteger(raw.sampleCount) || raw.sampleCount < 1) return { ok: false, error: "Field 'sampleCount' must be a positive whole number." }
+
+  return { ok: true, data: { ...data, minimum, maximum, sampleCount: raw.sampleCount } }
+}
