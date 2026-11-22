@@ -9,7 +9,7 @@
           :class="relayOn
             ? 'bg-garden-good/15 text-garden-good border-garden-good/40'
             : 'bg-garden-base text-garden-dim border-garden-border'"
-        >{{ relayOn ? 'ACTIVE' : 'INACTIVE' }}</span>
+        >{{ relayOn ? 'RUNNING' : 'OFF' }}</span>
       </div>
       <p class="text-[0.6875rem] text-garden-dim leading-snug">
         {{ relayOn

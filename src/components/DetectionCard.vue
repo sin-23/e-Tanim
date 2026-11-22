@@ -8,7 +8,7 @@
         <div class="flex items-center gap-3">
           <span class="text-2xl">{{ crop.emoji }}</span>
           <div>
-            <div class="font-extrabold text-base text-garden-text">{{ crop.label }}</div>
+            <div class="font-bold text-base text-garden-text">{{ crop.label }}</div>
           </div>
         </div>
 
@@ -18,7 +18,7 @@
             <div class="h-6 w-8 rounded bg-garden-border animate-pulse ml-auto" />
           </template>
           <template v-else>
-            <div class="text-2xl font-extrabold font-mono" :class="cropAccent[crop.id].text">
+            <div class="text-2xl font-semibold font-mono" :class="cropAccent[crop.id].text">
               {{ crop.error ? '—' : counts(crop).total }}
             </div>
           </template>
