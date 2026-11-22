@@ -318,12 +318,15 @@ async function buildExport(all = false, format = 'csv') {
   const first = events.value.seen.reduce((m, e) => (e.date < m ? e.date : m), today)
   const ds = all ? dayList(first, today) : days.value
   const rangeLabel = all || range.value.preset === 'all' ? 'all dates with data' : null
-  if (format === 'pdf') {
-    const { detectionsPdf } = await import('@/utils/reportPdf')
-    return [await detectionsPdf({
+  if (format === 'pdf' || format === 'pdf-part') {
+    const args = {
       fruits: fruitRows.value, events: events.value, crops: CROPS, days: ds, from, to,
       meta: { systemId: systemId.value, from: ds[0], to: ds[ds.length - 1], rangeLabel, name: exportName(systemId.value, ds[0], ds[ds.length - 1], 'detections_report', 'pdf') },
-    })]
+    }
+    // 'pdf-part': the data for one section of the combined report (scope Everything), not a file.
+    if (format === 'pdf-part') return { kind: 'detections', args }
+    const { detectionsPdf } = await import('@/utils/reportPdf')
+    return [await detectionsPdf(args)]
   }
   return packFiles({
     format, workbook: 'detections',

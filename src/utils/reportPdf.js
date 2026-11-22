@@ -24,10 +24,15 @@ const PAGE_W = 210, PAGE_H = 297, MARGIN = 15, CW = PAGE_W - 2 * MARGIN
 const INK = [26, 46, 34], SOFT = [75, 90, 80], GREEN = [45, 122, 79]
 
 class Pdf {
-  constructor(jsPDF, footerTitle) {
+  constructor(jsPDF) {
     this.doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true })
     this.y = MARGIN
-    this.footerTitle = footerTitle
+    this.sections = []   // [{ page, title }]: the footer of a page names the report it belongs to
+  }
+  /** Starts a report. After the first one, it starts on a new page. */
+  section(title) {
+    if (this.sections.length) { this.doc.addPage(); this.y = MARGIN }
+    this.sections.push({ page: this.doc.getNumberOfPages(), title })
   }
   need(h) {
     if (this.y + h > PAGE_H - MARGIN - 4) { this.doc.addPage(); this.y = MARGIN }
@@ -138,7 +143,8 @@ class Pdf {
     for (let i = 1; i <= n; i++) {
       d.setPage(i)
       d.setFont('helvetica', 'normal'); d.setFontSize(8); d.setTextColor(120, 135, 125)
-      d.text(`e-Tanim | ${this.footerTitle}`, MARGIN, PAGE_H - 8)
+      const title = [...this.sections].reverse().find(x => x.page <= i)?.title ?? ''
+      d.text(`e-Tanim | ${title}`, MARGIN, PAGE_H - 8)
       d.text(`Page ${i} of ${n}`, PAGE_W - MARGIN, PAGE_H - 8, { align: 'right' })
     }
     return d.output('blob')
@@ -203,9 +209,8 @@ const METRICS = [
  * smStop, vpdGate. toTemp: Celsius -> display unit. meta: { systemId, from, to, unit, rangeLabel }.
  * Returns the file entry for downloadFiles.
  */
-export async function sensorsPdf({ rows, thresholds, toTemp, meta }) {
-  const { jsPDF } = await import('jspdf')
-  const pdf = new Pdf(jsPDF, 'Sensor Averages report')
+function drawSensors(pdf, { rows, thresholds, toTemp, meta }) {
+  pdf.section('Sensor Averages report')
   const asc = [...rows].sort((a, b) => (a.date < b.date ? -1 : 1))
   const unit = (m) => m.unit ?? `°${meta.unit}`
   const val = (r, zone, key) => {
@@ -288,7 +293,12 @@ export async function sensorsPdf({ rows, thresholds, toTemp, meta }) {
     maxRows: 200,
   })
   if (!days) pdf.text('No daily data was found for this range.')
-  return { name: meta.name, blob: pdf.finish(), type: PDF_TYPE }
+}
+export async function sensorsPdf(args) {
+  const { jsPDF } = await import('jspdf')
+  const pdf = new Pdf(jsPDF)
+  drawSensors(pdf, args)
+  return { name: args.meta.name, blob: pdf.finish(), type: PDF_TYPE }
 }
 
 // ── Detections report ───────────────────────────────────────────────────────
@@ -296,9 +306,8 @@ export async function sensorsPdf({ rows, thresholds, toTemp, meta }) {
  * fruits: Reports fruit rows. events: buildEvents() result. days: list of garden dates. crops: [{id,label}].
  * meta: { systemId, from, to, rangeLabel, name }. from/to on ctx may be null (all).
  */
-export async function detectionsPdf({ fruits, events, crops, days, from, to, meta }) {
-  const { jsPDF } = await import('jspdf')
-  const pdf = new Pdf(jsPDF, 'Detections report')
+function drawDetections(pdf, { fruits, events, crops, days, from, to, meta }) {
+  pdf.section('Detections report')
   const tables = Object.fromEntries(detectionTables({ fruits, events, crops, days, from, to }).map(t => [t.key, t]))
   const seen = events.seen.filter(e => inRange(e.date, from, to))
   const harv = events.harvested.filter(e => inRange(e.date, from, to))
@@ -371,5 +380,26 @@ export async function detectionsPdf({ fruits, events, crops, days, from, to, met
   } else pdf.text('No ripe detections in this range.')
 
   pdf.text('The full fruit list and every event are in the CSV and Excel exports.', { size: 9, color: SOFT })
-  return { name: meta.name, blob: pdf.finish(), type: PDF_TYPE }
+}
+export async function detectionsPdf(args) {
+  const { jsPDF } = await import('jspdf')
+  const pdf = new Pdf(jsPDF)
+  drawDetections(pdf, args)
+  return { name: args.meta.name, blob: pdf.finish(), type: PDF_TYPE }
+}
+
+// ── Everything: one PDF with both reports ───────────────────────────────────
+/**
+ * parts: [{ kind: 'sensors' | 'detections', args }] where args is what sensorsPdf or detectionsPdf takes.
+ * Sensor Averages comes first, Detections starts on a new page. name: the file name.
+ */
+export async function combinedPdf({ parts, name }) {
+  const { jsPDF } = await import('jspdf')
+  const pdf = new Pdf(jsPDF)
+  for (const kind of ['sensors', 'detections']) {
+    const part = parts.find(p => p.kind === kind)
+    if (!part) continue
+    if (kind === 'sensors') drawSensors(pdf, part.args); else drawDetections(pdf, part.args)
+  }
+  return { name, blob: pdf.finish(), type: PDF_TYPE }
 }

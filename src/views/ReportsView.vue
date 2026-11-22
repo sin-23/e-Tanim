@@ -76,7 +76,7 @@ import SegmentedToggle from '@/components/SegmentedToggle.vue'
 import ReportsSensorAverages from '@/components/ReportsSensorAverages.vue'
 import ReportsDetections from '@/components/ReportsDetections.vue'
 import { systemId } from '@/composables/useSystemId'
-import { downloadFiles } from '@/utils/reportCsv'
+import { downloadFiles, exportName } from '@/utils/reportCsv'
 
 const tabs = [
   { id: 'sensors',    label: 'Sensor Averages' },
@@ -125,15 +125,26 @@ async function collect(format) {
   }
   visitedDetections.value = true
   await nextTick()
-  const files = [], miss = []
-  const a = await sensorsRef.value?.buildExport(true, format); a ? files.push(...a) : miss.push('Sensor Averages')
+  // For PDF, each tab hands over the data for its section and the two are drawn into ONE PDF.
+  const pdf = format === 'pdf'
+  const part = pdf ? 'pdf-part' : format
+  const files = [], miss = [], parts = []
+  const a = await sensorsRef.value?.buildExport(true, part)
+  if (!a) miss.push('Sensor Averages'); else if (pdf) parts.push(a); else files.push(...a)
   // Wait up to 10 seconds for the fruit records to load (they start loading when the tab mounts).
   let d = null
   for (let i = 0; i < 40 && !d && systemId.value; i++) {
-    d = await detectionsRef.value?.buildExport(true, format) ?? null
+    d = await detectionsRef.value?.buildExport(true, part) ?? null
     if (!d) await new Promise(r => setTimeout(r, 250))
   }
-  d ? files.push(...d) : miss.push('Detections')
+  if (!d) miss.push('Detections'); else if (pdf) parts.push(d); else files.push(...d)
+  if (pdf && parts.length) {
+    const { combinedPdf } = await import('@/utils/reportPdf')
+    const metas = parts.map(p => p.args.meta)
+    const from = metas.map(m => m.from).sort()[0], to = metas.map(m => m.to).sort().at(-1)
+    const name = parts.length === 2 ? exportName(systemId.value, from, to, 'everything_report', 'pdf') : metas[0].name
+    files.push(await combinedPdf({ parts, name }))
+  }
   return { files, miss }
 }
 
@@ -146,6 +157,7 @@ async function runExport(format) {
     if (miss.length) say(`Nothing to export from ${miss.join(' and ')} yet. Check the date range, or wait for the data to load.`, false)
     else say(`Downloaded ${files.length} file${files.length === 1 ? '' : 's'}.`, true)
   } catch (e) {
+    console.error('Export failed:', e)
     say('The export failed. Try again, or use a different format.', false)
   } finally { exporting.value = false }
 }

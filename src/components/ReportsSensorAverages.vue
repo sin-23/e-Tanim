@@ -176,12 +176,15 @@ async function buildExport(all = false, format = 'csv') {
   to = to ?? dates[0]
   const unit = tempUnit.value
   const rangeLabel = all || range.value.preset === 'all' ? 'all dates with data' : null
-  if (format === 'pdf') {
-    const { sensorsPdf } = await import('@/utils/reportPdf')
-    return [await sensorsPdf({
+  if (format === 'pdf' || format === 'pdf-part') {
+    const args = {
       rows: list, thresholds: thresholds.value, toTemp: (v) => celsiusToDisplay(v, 2),
       meta: { systemId: systemId.value, from, to, unit, rangeLabel, name: exportName(systemId.value, from, to, 'averages_report', 'pdf') },
-    })]
+    }
+    // 'pdf-part': the data for one section of the combined report (scope Everything), not a file.
+    if (format === 'pdf-part') return { kind: 'sensors', args }
+    const { sensorsPdf } = await import('@/utils/reportPdf')
+    return [await sensorsPdf(args)]
   }
   return packFiles({
     format, workbook: 'averages',
