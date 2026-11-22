@@ -12,9 +12,11 @@
     "@vuelidate/validators": "^2.0.4",
     "chart.js": "^4.6.1",
     "firebase": "^10.12.2",
+    "jspdf": "^4.2.1",
     "jsqr": "^1.4.0",
     "vue": "^3.4.31",
     "vue-router": "^4.3.3",
+    "write-excel-file": "^4.1.1",
     "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {

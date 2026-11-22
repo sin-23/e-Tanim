@@ -40,8 +40,8 @@
       </dl>
 
       <section>
-        <h3 class="text-xs font-extrabold text-garden-text mb-2">Entries</h3>
-        <p v-if="!fruit.entries.length" class="text-xs text-garden-dim">No entries recorded for this fruit.</p>
+        <h3 class="text-xs font-extrabold text-garden-text mb-2">Events</h3>
+        <p v-if="!fruit.entries.length" class="text-xs text-garden-dim">No events recorded for this fruit.</p>
         <ol v-else class="space-y-2">
           <li
             v-for="(e, i) in fruit.entries"

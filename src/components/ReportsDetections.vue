@@ -116,7 +116,7 @@
             </tbody>
           </table>
         </div>
-        <p class="mt-2 text-[0.6875rem] text-garden-dim">Taken from the ripe entries of each fruit record. Times are in your time zone.</p>
+        <p class="mt-2 text-[0.6875rem] text-garden-dim">Taken from the ripe events of each fruit record. Times are in your time zone.</p>
       </div>
 
       <!-- Fruit list -->
@@ -147,13 +147,13 @@
                     </td>
                     <td class="px-3 py-2.5">
                       <button type="button" class="font-bold text-garden-primary hover:underline" :aria-expanded="openFruit.has(key(f))" @click="toggleFruit(f)">
-                        {{ f.entries.length }} {{ f.entries.length === 1 ? 'entry' : 'entries' }} {{ openFruit.has(key(f)) ? '▾' : '▸' }}
+                        {{ f.entries.length }} {{ f.entries.length === 1 ? 'event' : 'events' }} {{ openFruit.has(key(f)) ? '▾' : '▸' }}
                       </button>
                     </td>
                   </tr>
                   <tr v-if="openFruit.has(key(f))" class="bg-garden-base/60">
                     <td colspan="9" class="px-6 py-3">
-                      <div v-if="!f.entries.length" class="text-garden-dim">No entries.</div>
+                      <div v-if="!f.entries.length" class="text-garden-dim">No events.</div>
                       <ul v-else class="space-y-1.5">
                         <li v-for="(e, i) in f.entries" :key="e.id" class="flex flex-wrap items-center gap-x-3 gap-y-1">
                           <span class="w-36 whitespace-nowrap text-garden-dim">{{ formatDateTime(e.timestamp) }}</span>
@@ -205,8 +205,11 @@ import { useDetections, DETECTION_CROPS as CROPS, PRESUMED_HARVESTED_MS, FRUIT_S
 import { useFrameRequests } from '@/composables/useSnapshots'
 import { buildEvents, dailyRows, dayList, gardenDate, inRange, monthlyRows, onPlantByStage, STAGES } from '@/utils/detectionReport'
 import { formatDateTime } from '@/utils/formatTime'
+import { detectionTables, exportName } from '@/utils/reportCsv'
+import { packFiles } from '@/utils/reportExport'
+import { systemId } from '@/composables/useSystemId'
 
-const HEADERS = ['Fruit ID', 'Crop', 'Stage', 'Confidence', 'First seen', 'Last seen', 'Status', 'Snapshot', 'Entries']
+const HEADERS = ['Fruit ID', 'Crop', 'Stage', 'Confidence', 'First seen', 'Last seen', 'Status', 'Snapshot', 'Events']
 const CROP_OPTIONS = [{ id: 'all', label: 'All crops' }, ...CROPS.map(c => ({ id: c.id, label: c.label }))]
 const STAGE_COLORS = { underripe: 'dim', ripe: 'good', damaged: 'danger' }
 const STAGE_SWATCH = { underripe: 'bg-garden-dim', ripe: 'bg-garden-good', damaged: 'bg-garden-danger' }
@@ -301,4 +304,41 @@ function entryLabel(f, i) {
 const withImage = (f) => [...f.entries].reverse().find(e => e.framePath) || null
 const snap = ref(null)   // { fruit, entry }
 const openSnapshot = (fruit, entry) => { snap.value = { fruit, entry } }
+
+// ── CSV export (Phase 5c) ───────────────────────────────────────────────────
+// Six tables: CSV is one file with the notes and all tables stacked, Excel one workbook with a sheet per
+// table, PDF a plain-language report.
+// Every file follows the date range only: the crop selector does not change an export (each table
+// has a crop column). all = true (scope Everything): the full history, whatever range the tab shows.
+// Returns null while the records are not ready.
+async function buildExport(all = false, format = 'csv') {
+  if (panelState.value) return null
+  const from = all ? null : range.value.from
+  const to = all ? null : range.value.to
+  const first = events.value.seen.reduce((m, e) => (e.date < m ? e.date : m), today)
+  const ds = all ? dayList(first, today) : days.value
+  const rangeLabel = all || range.value.preset === 'all' ? 'all dates with data' : null
+  if (format === 'pdf') {
+    const { detectionsPdf } = await import('@/utils/reportPdf')
+    return [await detectionsPdf({
+      fruits: fruitRows.value, events: events.value, crops: CROPS, days: ds, from, to,
+      meta: { systemId: systemId.value, from: ds[0], to: ds[ds.length - 1], rangeLabel, name: exportName(systemId.value, ds[0], ds[ds.length - 1], 'detections_report', 'pdf') },
+    })]
+  }
+  return packFiles({
+    format, workbook: 'detections',
+    tables: detectionTables({ fruits: fruitRows.value, events: events.value, crops: CROPS, days: ds, from, to }),
+    meta: {
+      tab: 'Detections', systemId: systemId.value, from: ds[0], to: ds[ds.length - 1],
+      rangeLabel,
+      extra: [
+        'The crop selector on the page does not change the files; filter by the Crop column instead.',
+        'Counting: one count per fruit on its first-seen day, by its current stage. A fruit is on the plant from its first-seen day through its harvest day (the day it was marked, or for a presumed-harvested fruit the day it was last seen).',
+        'Fruit on the plant per day uses the stage the fruit had that day, taken from its events.',
+        'Snapshot path is the part under the system: frames/{crop}/{file}.',
+      ],
+    },
+  })
+}
+defineExpose({ buildExport })
 </script>

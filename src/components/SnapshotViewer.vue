@@ -113,7 +113,7 @@ const headline = computed(() => ({
   failed:      'Could not send the request',
   error:       'Could not load the snapshot',
   unavailable: 'Snapshots are not available',
-  none:        'No snapshot for this entry',
+  none:        'No snapshot for this event',
 }[state.value] || ''))
 const detail = computed(() => ({
   missing:     'This image was not uploaded automatically, or it was removed to save space. Request it from the Mini PC.',
@@ -122,7 +122,7 @@ const detail = computed(() => ({
   failed:      'Check the connection and try again.',
   error:       'Check the connection and try again.',
   unavailable: 'Cloud Storage is not set up for this unit.',
-  none:        'This entry has no image path.',
+  none:        'This event has no image path.',
 }[state.value] || ''))
 
 async function sendRequest() {

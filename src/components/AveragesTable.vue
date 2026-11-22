@@ -138,7 +138,7 @@ const Cell = defineComponent({
   props: { c: { type: Object, required: true } },
   setup: (p) => () => h('div', [
     h('div', {
-      class: ['font-mono font-bold tabular-nums', p.c.warn ? 'text-garden-warn' : 'text-garden-text'],
+      class: ['font-mono tabular-nums', p.c.warn ? 'text-garden-warn' : 'text-garden-text'],
       title: p.c.flag ? 'Below the VPD gate: irrigation does not start on a normal run' : undefined,
     }, [p.c.main, p.c.flag ? h('span', { class: 'ml-1 text-[0.625rem]' }, '▼') : null]),
     p.c.range ? h('div', { class: 'font-mono text-[0.6875rem] text-garden-dim tabular-nums' }, p.c.range) : null,

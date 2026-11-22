@@ -11,8 +11,10 @@
         <div class="text-[0.625rem] font-bold text-garden-dim mb-1.5">Period</div>
         <SegmentedToggle v-model="period" :options="PERIOD_OPTIONS" aria-label="Period shown" />
       </div>
-      <button type="button" class="ml-auto px-3 py-2 rounded-xl border border-garden-border text-xs font-bold text-garden-dim hover:text-garden-primary"
-              :disabled="state === 'loading'" @click="reload">Refresh</button>
+      <div class="ml-auto">
+        <button type="button" class="whitespace-nowrap px-3 py-2 rounded-xl border border-garden-border text-xs font-bold text-garden-dim hover:text-garden-primary"
+                :disabled="state === 'loading'" @click="reload">Refresh</button>
+      </div>
     </div>
 
     <div v-if="!systemId" class="rounded-2xl border border-garden-border bg-garden-surface p-10 text-center text-sm font-bold text-garden-text">
@@ -71,6 +73,8 @@ import AveragesTable from '@/components/AveragesTable.vue'
 import { useZonePeriodAverages } from '@/composables/useZonePeriodAverages'
 import { celsiusToDisplay, tempUnit } from '@/composables/useTempUnit'
 import { systemId } from '@/composables/useSystemId'
+import { averagesTables, exportName } from '@/utils/reportCsv'
+import { packFiles } from '@/utils/reportExport'
 
 const MAX_SHOWN = 2000
 const ZONES = [{ id: 'lowland', label: 'Lowland zone' }, { id: 'highland', label: 'Highland zone' }]
@@ -152,4 +156,42 @@ function zoneSets(m, zone) {
   if (m.key === 'vpd') sets.push({ label: `VPD gate ${t.vpdGate} kPa`, data: flat(t.vpdGate), color: 'danger', dashed: true, width: 1.5 })
   return sets
 }
+
+// ── CSV export (Phase 5c) ───────────────────────────────────────────────────
+// Returns the files for this tab, or null when there is nothing to export.
+// all = false: what the tab shows, for the chosen range. all = true (scope Everything): the full history,
+// read separately so the page does not change. File name dates are the range, or for the full
+// history the first and last dates with data. format: 'csv' or 'xlsx'.
+async function buildExport(all = false, format = 'csv') {
+  let list = rows.value, from = range.value.from, to = range.value.to
+  if (all) {
+    const full = useZonePeriodAverages()
+    await full.load({})
+    if (full.state.value !== 'ready') return null
+    list = full.rows.value; from = null; to = null
+  } else if (state.value !== 'ready') return null
+  if (!list.length) return null
+  const dates = list.map(r => r.date)           // newest first
+  from = from ?? dates[dates.length - 1]
+  to = to ?? dates[0]
+  const unit = tempUnit.value
+  const rangeLabel = all || range.value.preset === 'all' ? 'all dates with data' : null
+  if (format === 'pdf') {
+    const { sensorsPdf } = await import('@/utils/reportPdf')
+    return [await sensorsPdf({
+      rows: list, thresholds: thresholds.value, toTemp: (v) => celsiusToDisplay(v, 2),
+      meta: { systemId: systemId.value, from, to, unit, rangeLabel, name: exportName(systemId.value, from, to, 'averages_report', 'pdf') },
+    })]
+  }
+  return packFiles({
+    format, workbook: 'averages',
+    tables: averagesTables(list, (v) => celsiusToDisplay(v, 2), unit),
+    meta: {
+      tab: 'Sensor Averages', systemId: systemId.value, from, to, tempUnit: unit,
+      rangeLabel,
+      extra: ['Rows: one per zone, date and period. Period "daily" is the sample-weighted mean of the periods that exist for that date (minimum of minimums, maximum of maximums).'],
+    },
+  })
+}
+defineExpose({ buildExport })
 </script>
