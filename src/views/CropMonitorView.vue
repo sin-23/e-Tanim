@@ -5,17 +5,6 @@
         <h1 class="text-xl font-extrabold text-garden-text">Crop Monitor</h1>
         <p class="text-sm text-garden-dim mt-0.5">Tracked fruit and harvest review from the Mini PC.</p>
       </div>
-      <div
-        v-if="miniPc.loaded"
-        class="inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5"
-        :class="miniPc.online
-          ? 'bg-garden-good/10 border-garden-good/30 text-garden-good'
-          : 'bg-garden-danger/10 border-garden-danger/30 text-garden-danger'"
-      >
-        <span class="w-2 h-2 rounded-full" :class="miniPc.online ? 'bg-garden-live animate-pulse' : 'bg-garden-danger'" />
-        <span class="text-[0.6875rem] font-bold">{{ miniPc.online ? 'Mini PC online' : 'Mini PC offline' }}</span>
-        <span v-if="miniPc.lastCycleAt" class="text-[0.625rem] text-garden-dim">Last cycle {{ formatDateTime(miniPc.lastCycleAt) }}</span>
-      </div>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">

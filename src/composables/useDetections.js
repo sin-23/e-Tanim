@@ -10,6 +10,7 @@ import { db } from '@/firebase'
 import { validateCropFruits } from '@/security/validator'
 import { CROPS } from '@/composables/useSensorData'
 import { sysPath } from '@/composables/useSystemId'
+import { useMiniPcStatus } from '@/composables/useMiniPcStatus'
 
 export const DETECTION_CROPS = CROPS.map(({ crop, label, emoji, climate }) => ({
   id: crop, label, emoji, climate,
@@ -17,7 +18,6 @@ export const DETECTION_CROPS = CROPS.map(({ crop, label, emoji, climate }) => ({
 
 // Provisional values (checklist 13.8)
 export const PRESUMED_HARVESTED_MS = 48 * 60 * 60 * 1000
-const HEARTBEAT_STALE_MS    = 60 * 60 * 1000
 
 export const FRUIT_STATUS = {
   active:    'Active',
@@ -37,8 +37,6 @@ const blankCrop = () => ({ fruits: [], loading: true, error: null })
 
 export function useDetections() {
   const crops = ref(Object.fromEntries(DETECTION_CROPS.map(c => [c.id, blankCrop()])))
-  const lastCycleAt = ref(null)
-  const heartbeatLoaded = ref(false)
   const now = ref(Date.now())
   const unsubs = []
 
@@ -71,18 +69,6 @@ export function useDetections() {
       )
       unsubs.push(() => off(r, 'value', cb))
     })
-
-    const hb = dbRef(db, sysPath('status/miniPc/lastCycleAt'))
-    const hbCb = onValue(
-      hb,
-      (snap) => {
-        const v = snap.val()
-        lastCycleAt.value = typeof v === 'number' && v > 0 ? v : null
-        heartbeatLoaded.value = true
-      },
-      () => { heartbeatLoaded.value = true },
-    )
-    unsubs.push(() => off(hb, 'value', hbCb))
   })
 
   onUnmounted(() => {
@@ -90,12 +76,8 @@ export function useDetections() {
     unsubs.forEach(fn => fn())
   })
 
-  // Mini PC AI Inference is down after 1 hour without a heartbeat.
-  const miniPc = computed(() => ({
-    loaded: heartbeatLoaded.value,
-    lastCycleAt: lastCycleAt.value,
-    online: lastCycleAt.value !== null && now.value - lastCycleAt.value <= HEARTBEAT_STALE_MS,
-  }))
+  // Heartbeat: one shared listener (useMiniPcStatus), down after 1 hour without it.
+  const { miniPc } = useMiniPcStatus()
 
   function statusOf(f) {
     if (f.harvested) return FRUIT_STATUS.harvested
@@ -127,7 +109,7 @@ export function useDetections() {
         ripe: countOf('ripe'),
         damaged: countOf('damaged'),
         updatedAt: latest || null,
-        stale: heartbeatLoaded.value && !miniPc.value.online,
+        stale: miniPc.value.loaded && !miniPc.value.online,
         fruits: active
           .map(f => ({ id: f.id, stage: f.stage, confidence: f.confidence }))
           .sort((a, b) => a.id.localeCompare(b.id)),

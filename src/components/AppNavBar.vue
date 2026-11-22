@@ -15,6 +15,24 @@
       </h1>
     </div>
 
+    <!-- Mini PC status badge: not a button, so it stays visible on every page -->
+    <div
+      v-if="isLoggedIn && miniPc.loaded"
+      role="status"
+      class="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 flex-shrink-0 whitespace-nowrap"
+      :class="miniPc.online
+        ? 'bg-garden-good/10 border-garden-good/30 text-garden-good'
+        : 'bg-garden-danger/10 border-garden-danger/30 text-garden-danger'"
+      :title="miniPc.lastCycleAt ? 'Last cycle ' + formatDateTime(miniPc.lastCycleAt) : 'No cycle reported yet'"
+    >
+      <span class="w-2 h-2 rounded-full" :class="miniPc.online ? 'bg-garden-live animate-pulse' : 'bg-garden-danger'" />
+      <span class="text-[0.6875rem] font-bold">
+        <span class="hidden sm:inline">{{ miniPc.online ? 'Mini PC online' : 'Mini PC offline' }}</span>
+        <span class="sm:hidden">{{ miniPc.online ? 'Online' : 'Offline' }}</span>
+      </span>
+      <span v-if="miniPc.lastCycleAt" class="hidden xl:inline text-[0.625rem] text-garden-dim">Last cycle {{ formatDateTime(miniPc.lastCycleAt) }}</span>
+    </div>
+
     <!-- Date/time -->
     <div class="text-right hidden sm:block">
       <div class="text-xs font-semibold text-garden-text">{{ dateStr }}</div>
@@ -69,12 +87,15 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/auth/useAuth'
 import NotificationBell from '@/components/NotificationBell.vue'
+import { useMiniPcStatus } from '@/composables/useMiniPcStatus'
+import { formatDateTime } from '@/utils/formatTime'
 
 defineEmits(['menu-click'])
 
 const route = useRoute()
 const router = useRouter()
 const { currentUser, isLoggedIn, logout } = useAuth()
+const { miniPc } = useMiniPcStatus()
 
 const pageTitle = computed(() => route.meta?.title || 'e-Tanim')
 const displayName = computed(() =>
